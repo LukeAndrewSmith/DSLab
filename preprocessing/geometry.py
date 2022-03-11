@@ -11,6 +11,20 @@ def min_bounding_rectangle(points):
     return box
 
 
+def mm_to_pixel(mm, dpi):
+    # 25.4 mm is one inch
+    # formula:
+    pixel = (mm * dpi) / 25.4
+    return pixel
+
+
+def pixel_to_mm(pixel, dpi):
+    # 25.4 mm is one inch
+    # formula:
+    mm = (pixel * 25.4) / dpi
+    return mm
+
+
 if __name__ == "__main__":
     # read a polygon in and plot it
     # then find the rect
