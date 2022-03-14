@@ -1,6 +1,7 @@
 import json
-from geometry import min_bounding_rectangle, mm_to_pixel, pixel_to_mm
+from preprocessing.geometry import min_bounding_rectangle, mm_to_pixel, pixel_to_mm
 import os
+from preprocessing.Core_Annotation import Core_Annotation
 
 # this is a class that reads in a json annotation of an image and creates a class for each core with all relevant
 # annotations
@@ -33,18 +34,5 @@ class Image_Annotation:
     def get_image_path(self):
         return self.annotations['imagePath']
 
-    def convert_image(self):
-        # this function takes in the annotated image and produces an inner and an outer image
-        # it also produces new gt labels from the .pos files
-        pass
 
 
-
-
-
-
-if __name__ == "__main__":
-    pos_path = "/Users/fredericboesel/Documents/master/frühling22/ds_lab/data/Data label pos files"
-    json_path = "/Users/fredericboesel/Documents/master/frühling22/ds_lab/data/labels/KunA08.json"
-    annotation = Image_Annotation(json_path, pos_path)
-    print(annotation)

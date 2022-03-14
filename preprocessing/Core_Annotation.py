@@ -1,16 +1,20 @@
+import os
+from preprocessing.geometry import min_bounding_rectangle, mm_to_pixel, pixel_to_mm
+import re
+
 class Core_Annotation:
     def __init__(self, annotations, name, pos_path):
         self.name = name
         self.annotations = annotations
         self.pos_path = pos_path
-        self.inner = self.get_inner()
-        self.outer = self.get_outer()
+        self.inner_bound = self.get_inner()
+        self.outer_bound = self.get_outer()
         self.cracks = self.get_cracks()
         self.bark = self.get_bark()
         self.ctrmid = self.get_ctrmid()
         self.ctrend = self.get_ctrend()
         self.is_tricky = self.get_tricky()
-        #self.rings = self.get_pos_info()
+        self.rings, self.dpi, self.pith, self.dist_to_pith, self.years_to_pith = self.get_pos_info()
 
     def get_inner(self):
         for shape in self.annotations['shapes']:
@@ -79,24 +83,32 @@ class Core_Annotation:
         for file in os.listdir(self.pos_path):
             if file == f'{self.name}.pos':
                 f = open(os.path.join(self.pos_path, file))
-                for line in f.readline():
-                    s = line.split(' ')
+                for line in f.readlines():
+                    print(line)
+                    s = list(filter(None,re.split("[ \n;]", line)))
                     if s[0] == '#DPI':
-                        dpi = int(s[1])
-                    elif 'Pith' in s[1]:
-                        # looks like this:
-                        # #C PithCoordinates=447.146,70.294; DistanceToPith=50.8; YearsToPith=13;
-                        pith_mm = s[1].split('=')[1].split(',')
-                        # to pixel values:
-                        pith = [mm_to_pixel(int(coordinate), dpi) for coordinate in pith_mm]
+                        dpi = float(s[1])
+                    if len(s) > 1:
+                        if 'Pith' in s[1]:
+                            # looks like this:
+                            # #C PithCoordinates=447.146,70.294; DistanceToPith=50.8; YearsToPith=13;
+                            pith_mm = s[1].split('=')[1].split(',')
+                            # to pixel values:
+                            pith = [mm_to_pixel(float(coordinate), dpi) for coordinate in pith_mm]
 
-                        dist_to_pith_mm = s[2].split('=')[1]
-                        # to pixel values:
-                        dist_to_pith = mm_to_pixel(dist_to_pith_mm, dpi)
+                            dist_to_pith_mm = s[2].split('=')[1]
+                            # to pixel values:
+                            dist_to_pith = mm_to_pixel(float(dist_to_pith_mm), dpi)
 
-                        years_to_pith = s[3].split('=')[1]
+                            years_to_pith = int(float(s[3].split('=')[1]))
                     elif '#' not in s[0] and 'SCALE' not in s[0]:
                         ring_coordinates = s[0].split(' ')
+                        # there can be multiple points on one ring
+                        ring = list()
+                        for point in ring_coordinates:
+                            point = point.split(',')
+                            ring_point = [mm_to_pixel(float(coordinate), dpi) for coordinate in point]
+                            ring.append(ring_point)
 
-                        ring = [mm_to_pixel(int(coordinate)) for coordinate in ring_coordinates]
                         rings.append(ring)
+        return rings, dpi, pith, dist_to_pith, years_to_pith
