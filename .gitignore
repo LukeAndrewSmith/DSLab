@@ -1,6 +1,9 @@
-
 # Ignore data subfolder
 /data/*
 
 # Ignore python cache files
-/preprocessing/*.pyc
+*/*.pyc
+*/__pycache__/*
+
+# Ignore .vscoe
+/.vscode
