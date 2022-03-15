@@ -30,8 +30,8 @@ if __name__ == "__main__":
     # read a polygon in and plot it
     # then find the rect
     # plot the rectangle
-    image_path = "/Users/fredericboesel/Documents/master/frühling22/ds_lab/data/Scanned images/KunA08.jpg"
-    json_path = "/Users/fredericboesel/Documents/master/frühling22/ds_lab/data/labels/KunA08.json"
+    image_path = "data/images/KunA08.jpg"
+    json_path = "data/point_labels/KunA08.json"
     image = cv2.imread(image_path)
     f = open(json_path)
     annotations = json.load(f)

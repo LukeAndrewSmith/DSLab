@@ -1,6 +1,8 @@
-import json
-from geometry import min_bounding_rectangle, mm_to_pixel, pixel_to_mm
 import os
+import json
+
+from Core_Annotation import Core_Annotation
+from geometry import min_bounding_rectangle, mm_to_pixel, pixel_to_mm
 
 # this is a class that reads in a json annotation of an image and creates a class for each core with all relevant
 # annotations
@@ -40,11 +42,8 @@ class Image_Annotation:
 
 
 
-
-
-
 if __name__ == "__main__":
-    pos_path = "/Users/fredericboesel/Documents/master/frühling22/ds_lab/data/Data label pos files"
-    json_path = "/Users/fredericboesel/Documents/master/frühling22/ds_lab/data/labels/KunA08.json"
+    pos_path = "data/point_labels"
+    json_path = "data/point_labels/KunA08.json"
     annotation = Image_Annotation(json_path, pos_path)
     print(annotation)
