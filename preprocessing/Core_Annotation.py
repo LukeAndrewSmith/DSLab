@@ -23,8 +23,8 @@ class Core_Annotation:
                 inner = shape['points']
                 # translate to bounding box
                 # TODO bugging right now..
-                inner_box = inner
-                #inner_box = min_bounding_rectangle(inner)
+                #inner_box = inner
+                inner_box = min_bounding_rectangle(inner)
                 return inner_box
 
     def get_outer(self):
@@ -34,8 +34,8 @@ class Core_Annotation:
                 outer = shape['points']
                 # translate to bounding box
                 # TODO bugging right now...
-                outer_box = outer
-                # outer_box = min_bounding_rectangle(outer)
+                #outer_box = outer
+                outer_box = min_bounding_rectangle(outer)
                 return outer_box
 
     def get_cracks(self):
