@@ -101,14 +101,14 @@ class Core_Annotation:
                             dist_to_pith = mm_to_pixel(float(dist_to_pith_mm), dpi)
 
                             years_to_pith = int(float(s[3].split('=')[1]))
-                    elif '#' not in s[0] and 'SCALE' not in s[0]:
-                        ring_coordinates = s[0].split(' ')
+                    if '#' not in s[0] and 'SCALE' not in s[0]:
+                        ring_coordinates = s
                         # there can be multiple points on one ring
                         ring = list()
                         for point in ring_coordinates:
                             point = point.split(',')
                             ring_point = [mm_to_pixel(float(coordinate), dpi) for coordinate in point]
                             ring.append(ring_point)
-
                         rings.append(ring)
+
         return rings, dpi, pith, dist_to_pith, years_to_pith
