@@ -1,3 +1,5 @@
+from operator import truediv
+from preprocessing.geometry import min_bounding_rectangle
 import os
 import re
 
@@ -8,30 +10,31 @@ class Core_Annotation:
         self.labelmeAnnotations = labelmeAnnotations
 
         # Shapes: [ [x,y], ... ]
-        self.innerBound  = self.initInner()
-        self.outerBound  = self.initOuter()
+        self.innerRectangle  = self.initInnerRectangle()
+        self.outerRectangle  = self.initOuterRectangle()
         self.cracks      = self.initCracks()
         self.bark        = self.initBark()
         self.ctrmid      = self.initCtrmid()
         self.ctrend      = self.initCtrend()
-        self.shapes      = [self.innerBound, self.outerBound, self.cracks, self.bark, self.ctrmid, self.ctrend]
+        self.shapes      = [self.innerRectangle, self.outerRectangle, self.cracks, self.bark, self.ctrmid, self.ctrend]
         
         self.is_tricky   = self.initTricky()
         
-        # Point Labels: [ [ [x,y], ... ], ... ]
+        # Point/Gap Labels: [ [ [x,y], ... ], ... ]
         self.pointLabels = self._initPointLabels()
+        self.gapLabels = self._initGapLabels()
 
         # Point Label Info:
         self.dpi, self.pith, self.distToPith, self.yearsToPith = self._initPointLabelInfo()
 
     ######################
     # labelme Annotations
-    def initInner(self):
+    def initInnerRectangle(self):
         inner = self._findShape('inner', None)
-        innerBox = inner # TODO: translate to bounding box
+        innerBox = min_bounding_rectangle(inner)
         return innerBox
 
-    def initOuter(self):
+    def initOuterRectangle(self):
         outer = self._findShape('outer', None)
         outerBox = outer # TODO: translate to bounding box
         return outerBox
@@ -49,7 +52,8 @@ class Core_Annotation:
         return self._findShape('ctrend', None)
 
     def initTricky(self):
-        return self._findShape('tricky', False)
+        if self._findShape('tricky', False): return True
+        return False
 
     def _findShape(self, label, default):
         return next((shape['points'] for shape in self.labelmeAnnotations['shapes'] \
@@ -59,18 +63,18 @@ class Core_Annotation:
     ##############################
     def _initPointLabelInfo(self):
         lines = self._tryReadLines(f'{self.sampleName}.pos')
-        # Some lines return multiple values, hence return all lines in an array and unpack
+        # Some lines return multiple values (pith), hence return all lines in an array and unpack
         pointLabelInfoDict = dict([ i for x in lines for i in self._processInfoLine(x) \
                                                       if not self._isPositionLine(x) ])
         return self._unpackPointLabelInfoDict(pointLabelInfoDict)
         
     def _processInfoLine(self, line):
         if '#DPI' in line:
-            return [('dpi', self._safeRegexSearch(line, '#DPI (\d+\.\d+)'))]
+            return [('dpi', float(self._safeRegexSearch(line, '#DPI (\d+\.\d+)')))]
         if 'Pith' in line:
-            pithCoordinates = self._safeRegexSearch(line, 'PithCoordinates=(\d+\.\d+)')
-            distanceToPith = self._safeRegexSearch(line, 'DistanceToPith=(\d+\.\d+)')
-            yearsToPith = self._safeRegexSearch(line, 'YearsToPith=(\d+)')
+            pithCoordinates = float(self._safeRegexSearch(line, 'PithCoordinates=(\d+\.\d+)'))
+            distanceToPith = float(self._safeRegexSearch(line, 'DistanceToPith=(\d+\.\d+)'))
+            yearsToPith = float(self._safeRegexSearch(line, 'YearsToPith=(\d+)'))
             return [('pithCoordinates', pithCoordinates), ('distanceToPith', distanceToPith), ('yearsToPith', yearsToPith)]
         else:
             return [('',None)]
@@ -82,17 +86,44 @@ class Core_Annotation:
     ##############################
     def _initPointLabels(self):
         lines = self._tryReadLines(f'{self.sampleName}.pos')
-        return [ self._processPositionLine(x) for x in lines  \
-                                              if self._isPositionLine(x) ]
+        pointLabels = [ self._processPositionLine(x) for x in lines  \
+                                              if self._isPositionLine(x) 
+                                              and not self._isGapLine(x) ]
+        return pointLabels
 
     def _processPositionLine(self, line):
         lineSplit = line.split(' ')
-        lineSplit = [ x for x in lineSplit if ( x not in ['','\n','.'] ) ] # Remove unwanted elements
-        return [ self._positionStringToFloatTuple(x) for x in lineSplit ]
+        lineSplit = [ x for x in lineSplit if ( x not in ['','\n','.'] ) ]
+        return [ self._positionStringToFloatArray(x) for x in lineSplit ]
  
-    def _positionStringToFloatTuple(self, positionString):
+    def _positionStringToFloatArray(self, positionString):
         positionStringSplit = positionString.split(',')
-        return tuple([float(x) for x in positionStringSplit])
+        return [float(x) for x in positionStringSplit]
+
+
+    ##############################
+    def _initGapLabels(self):
+        lines = self._tryReadLines(f'{self.sampleName}.pos')
+        gapLabels = [ self._processGapPositionLine(x) for x in lines  \
+                                                 if self._isPositionLine(x) ]
+        gapLabels = [ x for x in gapLabels if ( len(x) != 0 )] # Empty array returned if no gap, hence needs to be removed, TODO: maybe maket this cleaner
+        return gapLabels      
+
+    def _processGapPositionLine(self, line):
+        lineSplit = line.split(' ')
+        lineSplit = [ self._processGaps(x) for x in lineSplit \
+                                           if ( self._isGapLine(x)) ] # Remove unwanted elements and only process gaps
+        return [ self._positionStringToFloatArray(x) for x in lineSplit ]
+        
+    def _processGaps(self, element):
+        element = self._safeRegexSearch(element,'D(\d+\.\d+,\d+\.\d+)')
+        return element
+
+    def _isGapLine(self, label):
+        # Gaps are labeled as:   D138.112,17.716 #%gap\n
+        # NOTE: #%gap\n already removed by _unwantedElems 
+        if ( 'D' in label ): return True
+        return False
 
 
     ##############################
