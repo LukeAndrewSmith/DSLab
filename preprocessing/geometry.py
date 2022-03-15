@@ -4,7 +4,7 @@ import json
 
 
 def min_bounding_rectangle(points):
-    # converts a list of points into the min are rectangle containing all points
+    # converts a list of points into the min area rectangle containing all points
     points = np.int0(np.asarray(points))
     rect = cv2.minAreaRect(points)
     box = cv2.boxPoints(rect)

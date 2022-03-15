@@ -1,8 +1,13 @@
 import os
-from preprocessing.geometry import min_bounding_rectangle, mm_to_pixel, pixel_to_mm
+from preprocessing.geometry import min_bounding_rectangle, mm_to_pixel
 import re
 
+
 class Core_Annotation:
+    """
+    This class contains all label information for one wooden core
+    It gathers info from the labelme jsons as well as the .pos files with the annotated rings
+    """
     def __init__(self, annotations, name, pos_path):
         self.name = name
         self.annotations = annotations
@@ -22,8 +27,6 @@ class Core_Annotation:
                 # get polygon
                 inner = shape['points']
                 # translate to bounding box
-                # TODO bugging right now..
-                #inner_box = inner
                 inner_box = min_bounding_rectangle(inner)
                 return inner_box
 
@@ -33,8 +36,6 @@ class Core_Annotation:
                 # get polygon
                 outer = shape['points']
                 # translate to bounding box
-                # TODO bugging right now...
-                #outer_box = outer
                 outer_box = min_bounding_rectangle(outer)
                 return outer_box
 
@@ -70,11 +71,18 @@ class Core_Annotation:
 
     def get_tricky(self):
         for shape in self.annotations['shapes']:
+            # determine if a point with the label tricky was added in labelme
             if shape['label'] == f'{self.name}_tricky':
                 return True
         return False
 
     def get_pos_info(self):
+        """
+        this function accesses the corresponding .pos file from the core and extracts:
+        dpi
+        pith information
+        ring annotations
+        """
         rings = list()
         dpi = 0
         pith = None
@@ -85,8 +93,9 @@ class Core_Annotation:
                 f = open(os.path.join(self.pos_path, file))
                 for line in f.readlines():
                     print(line)
-                    s = list(filter(None,re.split("[ \n;]", line)))
+                    s = list(filter(None, re.split("[ \n;]", line)))
                     if s[0] == '#DPI':
+                        # get dpi
                         dpi = float(s[1])
                     if len(s) > 1:
                         if 'Pith' in s[1]:
@@ -102,11 +111,13 @@ class Core_Annotation:
 
                             years_to_pith = int(float(s[3].split('=')[1]))
                     if '#' not in s[0] and 'SCALE' not in s[0]:
+                        # has to be coordinates of a ring then:
                         ring_coordinates = s
                         # there can be multiple points on one ring
                         ring = list()
                         for point in ring_coordinates:
                             point = point.split(',')
+                            # convert the mm mesurements to pixel values
                             ring_point = [mm_to_pixel(float(coordinate), dpi) for coordinate in point]
                             ring.append(ring_point)
                         rings.append(ring)

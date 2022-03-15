@@ -3,9 +3,10 @@ import cv2
 import os
 import numpy as np
 
+
 def draw_all_image_annotations(annotation: Image_Annotation):
     image = cv2.imread(os.path.join(data_path,"labels",annotation.image_path))
-
+    # draw all objects that are in each core
     for core in annotation.core_annotations:
         cv2.drawContours(image, [np.int0(np.array(core.inner_bound))], -1, (0,0,0), 5)
         cv2.drawContours(image, [np.int0(np.array(core.outer_bound))], -1, (0,0,0), 5)

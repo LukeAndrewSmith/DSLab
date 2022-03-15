@@ -22,11 +22,13 @@ if __name__ == "__main__":
     poly = np.int0(np.asarray(inner_poly[0]['points']))
     box = min_bounding_rectangle(poly)
 
+    # draw the polygon from labelme and then also the adjusted rectangle
     cv2.drawContours(image, [poly], -1, (0,0,0), 5)
     cv2.drawContours(image, [box], -1, (0, 0, 255), 10)
 
     cv2.imshow('output',image)
 
-    #optional saving to inspect
-    cv2.imwrite('test.jpg', image)
+    # optional saving to inspect
+    # cv2.imwrite('test.jpg', image)
+
     cv2.waitKey()
