@@ -1,8 +1,6 @@
-import os
 import json
 
-from Core_Annotation import Core_Annotation
-from geometry import min_bounding_rectangle, mm_to_pixel, pixel_to_mm
+from preprocessing.Core_Annotation import Core_Annotation
 
 # this is a class that reads in a json annotation of an image and creates a class for each core with all relevant
 # annotations
