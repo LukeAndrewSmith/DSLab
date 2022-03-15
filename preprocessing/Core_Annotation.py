@@ -1,114 +1,121 @@
 import os
-from preprocessing.geometry import min_bounding_rectangle, mm_to_pixel, pixel_to_mm
 import re
 
 class Core_Annotation:
-    def __init__(self, annotations, name, pos_path):
-        self.name = name
-        self.annotations = annotations
-        self.pos_path = pos_path
-        self.inner_bound = self.get_inner()
-        self.outer_bound = self.get_outer()
-        self.cracks = self.get_cracks()
-        self.bark = self.get_bark()
-        self.ctrmid = self.get_ctrmid()
-        self.ctrend = self.get_ctrend()
-        self.is_tricky = self.get_tricky()
-        self.rings, self.dpi, self.pith, self.dist_to_pith, self.years_to_pith = self.get_pos_info()
+    def __init__(self, labelmeAnnotations, sampleName, pointLabelDirectoryPath):
+        self.sampleName  = sampleName
+        self.pointLabelDirectoryPath = pointLabelDirectoryPath
+        self.labelmeAnnotations = labelmeAnnotations
 
-    def get_inner(self):
-        for shape in self.annotations['shapes']:
-            if shape['label'] == f'{self.name}_inner':
-                # get polygon
-                inner = shape['points']
-                # translate to bounding box
-                # TODO bugging right now..
-                inner_box = inner
-                #inner_box = min_bounding_rectangle(inner)
-                return inner_box
+        # Shapes: [ [x,y], ... ]
+        self.innerBound  = self.initInner()
+        self.outerBound  = self.initOuter()
+        self.cracks      = self.initCracks()
+        self.bark        = self.initBark()
+        self.ctrmid      = self.initCtrmid()
+        self.ctrend      = self.initCtrend()
+        self.shapes      = [self.innerBound, self.outerBound, self.cracks, self.bark, self.ctrmid, self.ctrend]
+        
+        self.is_tricky   = self.initTricky()
+        
+        # Point Labels: [ [ [x,y], ... ], ... ]
+        self.pointLabels = self._initPointLabels()
 
-    def get_outer(self):
-        for shape in self.annotations['shapes']:
-            if shape['label'] == f'{self.name}_outer':
-                # get polygon
-                outer = shape['points']
-                # translate to bounding box
-                # TODO bugging right now...
-                outer_box = outer
-                # outer_box = min_bounding_rectangle(outer)
-                return outer_box
+        # Point Label Info:
+        self.dpi, self.pith, self.distToPith, self.yearsToPith = self._initPointLabelInfo()
 
-    def get_cracks(self):
-        cracks = list()
-        for shape in self.annotations['shapes']:
-            if shape['label'] == f'{self.name}_crack':
-                # get polygon
-                crack = shape['points']
-                cracks.append(crack)
-        return cracks
+    ######################
+    # labelme Annotations
+    def initInner(self):
+        inner = self._findShape('inner', None)
+        innerBox = inner # TODO: translate to bounding box
+        return innerBox
 
-    def get_bark(self):
-        for shape in self.annotations['shapes']:
-            if shape['label'] == f'{self.name}_bark':
-                # get polygon
-                bark = shape['points']
-                return bark
+    def initOuter(self):
+        outer = self._findShape('outer', None)
+        outerBox = outer # TODO: translate to bounding box
+        return outerBox
 
-    def get_ctrmid(self):
-        for shape in self.annotations['shapes']:
-            if shape['label'] == f'{self.name}_ctrmid':
-                # get polygon
-                ctrmid = shape['points']
-                return ctrmid
+    def initCracks(self):
+        return self._findShape('crack', None)
 
-    def get_ctrend(self):
-        for shape in self.annotations['shapes']:
-            if shape['label'] == f'{self.name}_ctrend':
-                # get polygon
-                ctrend = shape['points']
-                return ctrend
+    def initBark(self):
+        return self._findShape('bark', None)
 
-    def get_tricky(self):
-        for shape in self.annotations['shapes']:
-            if shape['label'] == f'{self.name}_tricky':
-                return True
-        return False
+    def initCtrmid(self):
+        return self._findShape('ctrmid', None)
 
-    def get_pos_info(self):
-        rings = list()
-        dpi = 0
-        pith = None
-        dist_to_pith = None
-        years_to_pith = None
-        for file in os.listdir(self.pos_path):
-            if file == f'{self.name}.pos':
-                f = open(os.path.join(self.pos_path, file))
-                for line in f.readlines():
-                    print(line)
-                    s = list(filter(None,re.split("[ \n;]", line)))
-                    if s[0] == '#DPI':
-                        dpi = float(s[1])
-                    if len(s) > 1:
-                        if 'Pith' in s[1]:
-                            # looks like this:
-                            # #C PithCoordinates=447.146,70.294; DistanceToPith=50.8; YearsToPith=13;
-                            pith_mm = s[1].split('=')[1].split(',')
-                            # to pixel values:
-                            pith = [mm_to_pixel(float(coordinate), dpi) for coordinate in pith_mm]
+    def initCtrend(self):
+        return self._findShape('ctrend', None)
 
-                            dist_to_pith_mm = s[2].split('=')[1]
-                            # to pixel values:
-                            dist_to_pith = mm_to_pixel(float(dist_to_pith_mm), dpi)
+    def initTricky(self):
+        return self._findShape('tricky', False)
 
-                            years_to_pith = int(float(s[3].split('=')[1]))
-                    if '#' not in s[0] and 'SCALE' not in s[0]:
-                        ring_coordinates = s
-                        # there can be multiple points on one ring
-                        ring = list()
-                        for point in ring_coordinates:
-                            point = point.split(',')
-                            ring_point = [mm_to_pixel(float(coordinate), dpi) for coordinate in point]
-                            ring.append(ring_point)
-                        rings.append(ring)
+    def _findShape(self, label, default):
+        return next((shape['points'] for shape in self.labelmeAnnotations['shapes'] \
+                                     if shape["label"] == f'{self.sampleName}_{label}'), default)
 
-        return rings, dpi, pith, dist_to_pith, years_to_pith
+
+    ##############################
+    def _initPointLabelInfo(self):
+        lines = self._tryReadLines(f'{self.sampleName}.pos')
+        # Some lines return multiple values, hence return all lines in an array and unpack
+        pointLabelInfoDict = dict([ i for x in lines for i in self._processInfoLine(x) \
+                                                      if not self._isPositionLine(x) ])
+        return self._unpackPointLabelInfoDict(pointLabelInfoDict)
+        
+    def _processInfoLine(self, line):
+        if '#DPI' in line:
+            return [('dpi', self._safeRegexSearch(line, '#DPI (\d+\.\d+)'))]
+        if 'Pith' in line:
+            pithCoordinates = self._safeRegexSearch(line, 'PithCoordinates=(\d+\.\d+)')
+            distanceToPith = self._safeRegexSearch(line, 'DistanceToPith=(\d+\.\d+)')
+            yearsToPith = self._safeRegexSearch(line, 'YearsToPith=(\d+)')
+            return [('pithCoordinates', pithCoordinates), ('distanceToPith', distanceToPith), ('yearsToPith', yearsToPith)]
+        else:
+            return [('',None)]
+
+    def _unpackPointLabelInfoDict(self, d):
+        return [ d.get('dpi'), d.get('pithCoordinates'), d.get('distanceToPith'), d.get('yearsToPith') ]
+
+
+    ##############################
+    def _initPointLabels(self):
+        lines = self._tryReadLines(f'{self.sampleName}.pos')
+        return [ self._processPositionLine(x) for x in lines  \
+                                              if self._isPositionLine(x) ]
+
+    def _processPositionLine(self, line):
+        lineSplit = line.split(' ')
+        lineSplit = [ x for x in lineSplit if ( x not in ['','\n','.'] ) ] # Remove unwanted elements
+        return [ self._positionStringToFloatTuple(x) for x in lineSplit ]
+ 
+    def _positionStringToFloatTuple(self, positionString):
+        positionStringSplit = positionString.split(',')
+        return tuple([float(x) for x in positionStringSplit])
+
+
+    ##############################
+    # Helpers
+    def _isPositionLine(self, line):
+        return not line[0] in ["#", "S"]
+    
+    def _tryReadLines(self, file):
+        f = None
+        try:
+            f = open(os.path.join(self.pointLabelDirectoryPath, file))
+            lines = f.readlines()
+        except:
+            print(f'Cannot open { file }')
+            lines = []
+        finally:
+            if f is not None:
+                f.close()
+        return lines
+
+    def _safeRegexSearch(self,string,pattern):
+        try:
+            return re.search(pattern, string).group(1)
+        except:
+            print(f'Error: { pattern } not found in { string }')
+            return None
