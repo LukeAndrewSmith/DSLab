@@ -1,0 +1,6 @@
+
+# Ignore data subfolder
+/data/*
+
+# Ignore python cache files
+/preprocessing/*.pyc
