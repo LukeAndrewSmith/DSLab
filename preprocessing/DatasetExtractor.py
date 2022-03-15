@@ -32,6 +32,7 @@ class DatasetExtractor:
         self._saveImage()
 
     def _shiftPoints(self):
+        
         pass
 
     def _rotateImageAndPoints(self):

@@ -35,15 +35,5 @@ class Image_Annotation:
     def get_image_path(self):
         return self.annotations['imagePath']
 
-    def convert_image(self):
-        # this function takes in the annotated image and produces an inner and an outer image
-        # it also produces new gt labels from the .pos files
-        pass
 
 
-
-if __name__ == "__main__":
-    pos_path = "data/point_labels"
-    json_path = "data/point_labels/KunA08.json"
-    annotation = Image_Annotation(json_path, pos_path)
-    print(annotation)
