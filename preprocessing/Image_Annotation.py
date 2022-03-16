@@ -11,8 +11,8 @@ class Image_Annotation:
         self.pos_path = pos_path
         self.annotations = json.load(f)
         self.cores = self.get_cores()
-        self.core_annotations = self.annotate_cores()
         self.image_path = self.get_image_path()
+        self.core_annotations = self.annotate_cores()
 
     def get_cores(self):
         cores = list()
@@ -25,7 +25,7 @@ class Image_Annotation:
     def annotate_cores(self):
         core_annotations = list()
         for core in self.cores:
-            core_annotation = Core_Annotation(self.annotations, core, self.pos_path)
+            core_annotation = Core_Annotation(self.annotations, core, self.pos_path, self.image_path)
             core_annotations.append(core_annotation)
         return core_annotations
 
