@@ -26,6 +26,7 @@ class Dataset_Extractor:
 
     def _processCore(self, core):
         core = self._convertMMToPX(core)
+        # TODO: maybe _getImage should be a function and _rotateImagePointsShapes takes an image as a parameter as well
         core, rotatedImage = self._rotateImagePointsShapes(core) # TODO: pass image
         img = self._cropImage(core, rotatedImage)
         core = self._shiftAllPoints(core)
