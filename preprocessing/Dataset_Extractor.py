@@ -1,8 +1,10 @@
+from cmath import rect
 import os
 import numpy as np
 import cv2
 from preprocessing.Image_Annotation import Image_Annotation
 from preprocessing.geometry import mm_to_pixel
+from preprocessing.Paths import LABELME_JSONS, IMAGES, POINT_LABELS
 
 class Dataset_Extractor:
 # Class to extract datasets from image and core annotations
@@ -12,29 +14,28 @@ class Dataset_Extractor:
 
     def _initCoreAnnotations(self):
         coreAnnotations = []
-        dir = 'data/labelme_jsons/'
+        dir = LABELME_JSONS
         for file in os.listdir(dir):
-            coreAnnotations = coreAnnotations + Image_Annotation(dir+file, 'data/point_labels').core_annotations
+            coreAnnotations = coreAnnotations + Image_Annotation(dir+file, POINT_LABELS).core_annotations
         return coreAnnotations
 
+
+    ########################################
     def createInnerDataset(self):
-        self._apply(self._processCore, self.coreAnnotations)
+        # self._apply(self._processCore, self.coreAnnotations)
+        self._apply(self._processCore, [self.coreAnnotations[0]]) # TODO: Only run for one core for now
 
     def _processCore(self, core):
-        # Convert mm->px
-        # Shift points
-        # Rotate rectangle/points
-        # Crop image
-        # Save image and pos file
-
         core = self._convertMMToPX(core)
-        core = self._rotateImageAndPoints(core)
-        core = self._shiftPoints(core)
-        core = self._cropImage(core)
-        core = self._saveImage(core)
+        core, rotatedImage = self._rotateImagePointsShapes(core) # TODO: pass image
+        img = self._cropImage(core, rotatedImage)
+        core = self._shiftAllPoints(core)
+        self._saveImage(img)
+        # TODO: convertPXToMM(), should we convert back before saving
+        self._savePosFile(core)
 
+    #################
     def _convertMMToPX(self, core):
-        # TODO: Pixels are indexed from where?
         core.pointLabels = [[[mm_to_pixel(coord, core.dpi) for coord in coords]
                                                            for coords in shape] 
                                                            for shape in core.pointLabels]
@@ -42,41 +43,106 @@ class Dataset_Extractor:
                                                          for coords in shape] 
                                                          for shape in core.gapLabels]
         core.distToPith = mm_to_pixel(core.distToPith, core.dpi)
+        return core
 
-    def _rotateImageAndPoints(self, core):
-        # print(core.innerRectangle)
-        # NOTE: Points are stored in order: counter-clockwise from the top left coordinate:
-        # 0 ----- 3
-        # |       |
-        # 1 ----- 2
-        [topLeft, bottomLeft, topRight, bottomRight] = core.innerRectangle
+    #################
+    def _rotateImagePointsShapes(self, core):
+        # imagePath = self.coreAnnotations.imagePath # TODO: Wrong Image path for now as I changed the file structure
+        imagePath = IMAGES + "KunA08.jpg" # TODO: Hardcode for testing
+        img = cv2.imread(imagePath, cv2.IMREAD_COLOR)
+
+        rotMat = self._getRotationMatrix(core.innerRectangle)
+
+        rotatedImg = cv2.warpAffine(img, rotMat, img.shape[1::-1])
+        # ------ TODO: find a more elegant way of assigning the new variables, such that the lists are automatically updated----
+        core.innerRectangle, core.outerRectangle = self._rotateRectangles(core.rectangles, rotMat)
+        core.cracks, core.bark, core.ctrmid, core.ctrend = self._rotateListOfCoords(core.shapes, rotMat)
+        core.rectangles = [core.innerRectangle, core.outerRectangle]
+        core.shapes = [core.cracks, core.bark, core.ctrmid, core.ctrend]
+        # ----------------------------------------------------------------------------------------------------------------------
+        core.pointLabels = self._rotateListOfCoords(core.pointLabels, rotMat)
+        core.gapLabels = self._rotateListOfCoords(core.gapLabels, rotMat)
+
+        return core, rotatedImg
+
+    def _getRotationMatrix(self,rectangle):
+        _, topLeft, topRight, _ = rectangle
         run  = topRight[0] - topLeft[0]
-        rise = topRight[1] - topLeft[1] # TODO: (-ve or +ve)? if 3 heigher than 0, negative otherwise
-        print("rise:", rise)
-        print("run:", run)
+        rise = topRight[1] - topLeft[1]
         angle = np.degrees(np.arctan(rise/run))
-        print('angle:', angle)
-        center = (int(topLeft[0] + run/2), int(topLeft[1] + rise/2)) # TODO: Assuming top left pixel is (0,0)
-        print('center:', center) # TODO: verify this center point
-        cv2.getRotationMatrix2D(center, angle, 1.0)
+        center = (int(topLeft[0] + run/2), int(topLeft[1] + rise/2)) # Top left pixel is (0,0)
+        rotMat = cv2.getRotationMatrix2D(center, angle, 1.0)
+        return rotMat
+
+    def _rotateRectangles(self, rectangles, rotMat):
+        rectangles = [[self._rotateCoords(coords, rotMat) for coords in rectangle] 
+                                                 for rectangle in rectangles]
+        rectangles = [self._roundRectangleCoords(rectangle) for rectangle in rectangles]        
+        return rectangles
+
+    def _rotateListOfCoords(self, list, rotMat):
+        shapes = [[self._rotateCoords(coords, rotMat, round=True) for coords in shape] 
+                                             for shape in list]
+        return shapes
+
+    def _rotateCoords(self, coords, rotMat, round=False):
+        coords = [coords[0], coords[1], 1] # Pad with 1 as rotMat is 2x3 ( * 3x1 = 2x1 ), 1 as we want to take into account shift
+        result = np.matmul(np.array(rotMat), np.array(coords))
+        if round: result = result.astype(int)
+        return list(result)
+
+    def _roundRectangleCoords(self, rectangle):
+        # x or y coords should match for certain combinations of the rectangle bounding coordinates
+        # Hence take the same where they should match when rounding (TODO: randomly chose max instead of min, is there a problem with this?)
+        bottomLeft, topLeft, topRight, bottomRight = rectangle
+        topLeft[0]     = max(round(topLeft[0]),     round(bottomLeft[0]))
+        topLeft[1]     = max(round(topLeft[1]),     round(topRight[1]))
+        bottomLeft[0]  = topLeft[0]
+        bottomLeft[1]  = max(round(bottomLeft[1]),  round(bottomRight[1]))
+        topRight[0]    = max(round(topRight[0]),    round(bottomRight[0]))
+        topRight[1]    = topLeft[1]
+        bottomRight[0] = topRight[0]
+        bottomRight[1] = bottomLeft[1]
+        return [bottomLeft, topLeft, topRight, bottomRight]
+
+    #################
+    def _shiftAllPoints(self, core):
+        [_, topLeft, _, _] = core.innerRectangle # Should now be (0,0), hence shift all points by topLeft
+        # ------ TODO: find a more elegant way of assigning the new variables, such that the lists are automatically updated----
+        core.innerRectangle, core.outerRectangle = [self._shiftListOfCoords(list, topLeft) for list in core.rectangles] 
+        core.cracks, core.bark, core.ctrmid, core.ctrend = [self._shiftListOfCoords(list, topLeft) for list in core.shapes]
+        core.rectangles = [core.innerRectangle, core.outerRectangle] 
+        core.shapes = [core.cracks, core.bark, core.ctrmid, core.ctrend]
+        # ----------------------------------------------------------------------------------------------------------------------
+        core.pointLabels = [self._shiftListOfCoords(list, topLeft) for list in core.pointLabels]
+        core.gapLabels = [self._shiftListOfCoords(list, topLeft) for list in core.gapLabels]
         return core
 
-    def rotatePoints(image, angle):
-        image_center = tuple(np.array(image.shape[1::-1]) / 2)
-        rot_mat = cv2.getRotationMatrix2D(image_center, angle, 1.0)
-        result = cv2.warpAffine(image, rot_mat, image.shape[1::-1], flags=cv2.INTER_LINEAR)
-        return result
+    def _shiftListOfCoords(self, shape, shift):
+        shape = [self._shiftCoords(coord,shift) for coord in shape]
+        return shape
 
-    def _shiftPoints(self, core):
-        return core
+    def _shiftCoords(self, coord, shift):
+        return list(np.array(coord) - np.array(shift))
 
-    def _cropImage(self, core):
-        return core
+    #################
+    def _cropImage(self, core, img):
+        _, topLeft, _, bottomRight = core.innerRectangle
+        croppedImage = img[topLeft[1]:bottomRight[1], topLeft[0]:bottomRight[0]]
+        return croppedImage
+    
+    #################
+    def _saveImage(self, img):
+        # TODO:
+        pass
+    
+    #################
+    def _savePosFile(self, core):
+        # TODO:
+        pass
 
-    def _saveImage(self, core):
-        return core
 
-    ###############
+    ########################################
     # Helpers
     def _apply(self, func, list):
         for item in list:
