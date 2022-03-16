@@ -57,13 +57,13 @@ class Dataset_Extractor:
 
         rotatedImg = cv2.warpAffine(img, rotMat, img.shape[1::-1])
         # ------ TODO: find a more elegant way of assigning the new variables, such that the lists are automatically updated----
-        core.innerRectangle, core.outerRectangle = self._rotateRectangles(core.rectangles, rotMat)
+        core.innerRectangle, core.outerRectangle         = self._rotateRectangles(core.rectangles, rotMat)
         core.cracks, core.bark, core.ctrmid, core.ctrend = self._rotateListOfCoords(core.shapes, rotMat)
         core.rectangles = [core.innerRectangle, core.outerRectangle]
-        core.shapes = [core.cracks, core.bark, core.ctrmid, core.ctrend]
+        core.shapes     = [core.cracks, core.bark, core.ctrmid, core.ctrend]
         # ----------------------------------------------------------------------------------------------------------------------
         core.pointLabels = self._rotateListOfCoords(core.pointLabels, rotMat)
-        core.gapLabels = self._rotateListOfCoords(core.gapLabels, rotMat)
+        core.gapLabels   = self._rotateListOfCoords(core.gapLabels, rotMat)
 
         return core, rotatedImg
 
@@ -78,13 +78,13 @@ class Dataset_Extractor:
 
     def _rotateRectangles(self, rectangles, rotMat):
         rectangles = [[self._rotateCoords(coords, rotMat) for coords in rectangle] 
-                                                 for rectangle in rectangles]
+                                                          for rectangle in rectangles]
         rectangles = [self._roundRectangleCoords(rectangle) for rectangle in rectangles]        
         return rectangles
 
     def _rotateListOfCoords(self, list, rotMat):
         shapes = [[self._rotateCoords(coords, rotMat, round=True) for coords in shape] 
-                                             for shape in list]
+                                                                  for shape in list]
         return shapes
 
     def _rotateCoords(self, coords, rotMat, round=False):
@@ -111,13 +111,13 @@ class Dataset_Extractor:
     def _shiftAllPoints(self, core):
         [_, topLeft, _, _] = core.innerRectangle # Should now be (0,0), hence shift all points by topLeft
         # ------ TODO: find a more elegant way of assigning the new variables, such that the lists are automatically updated----
-        core.innerRectangle, core.outerRectangle = [self._shiftListOfCoords(list, topLeft) for list in core.rectangles] 
+        core.innerRectangle, core.outerRectangle         = [self._shiftListOfCoords(list, topLeft) for list in core.rectangles] 
         core.cracks, core.bark, core.ctrmid, core.ctrend = [self._shiftListOfCoords(list, topLeft) for list in core.shapes]
         core.rectangles = [core.innerRectangle, core.outerRectangle] 
-        core.shapes = [core.cracks, core.bark, core.ctrmid, core.ctrend]
+        core.shapes     = [core.cracks, core.bark, core.ctrmid, core.ctrend]
         # ----------------------------------------------------------------------------------------------------------------------
         core.pointLabels = [self._shiftListOfCoords(list, topLeft) for list in core.pointLabels]
-        core.gapLabels = [self._shiftListOfCoords(list, topLeft) for list in core.gapLabels]
+        core.gapLabels   = [self._shiftListOfCoords(list, topLeft) for list in core.gapLabels]
         return core
 
     def _shiftListOfCoords(self, shape, shift):
