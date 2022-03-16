@@ -11,21 +11,22 @@ class Core_Annotation:
         self.labelmeAnnotations = labelmeAnnotations
 
         # Shapes: [ [x,y], ... ]
+            # TODO: double check that the following is true...
             # NOTE: Rectangle points are stored in order: clockwise from the bottom left:
             # 1 ----- 2
             # |       |
             # 0 ----- 3
             # NOTE: do not modify self.shape or self.rectangles, this wont modify the original variables
-        self.innerRectangle  = self.initInnerRectangle()
-        self.outerRectangle  = self.initOuterRectangle()
+        self.innerRectangle  = self._initInnerRectangle()
+        self.outerRectangle  = self._initOuterRectangle()
         self.rectangles      = [self.innerRectangle, self.outerRectangle]
-        self.cracks = self.initCracks()
-        self.bark   = self.initBark()
-        self.ctrmid = self.initCtrmid()
-        self.ctrend = self.initCtrend()
+        self.cracks = self._initCracks()
+        self.bark   = self._initBark()
+        self.ctrmid = self._initCtrmid()
+        self.ctrend = self._initCtrend()
         self.shapes = [self.cracks, self.bark, self.ctrmid, self.ctrend]
         
-        self.is_tricky   = self.initTricky()
+        self.is_tricky   = self._initTricky()
         
         # Point/Gap Labels: [ [ [x,y], ... ], ... ]
         self.pointLabels = self._initPointLabels()
@@ -36,31 +37,31 @@ class Core_Annotation:
 
     ######################
     # labelme Annotations
-    def initInnerRectangle(self):
+    def _initInnerRectangle(self):
         inner = self._findShape('inner', None)
         innerBox = min_bounding_rectangle(inner)
         return innerBox
 
-    def initOuterRectangle(self):
+    def _initOuterRectangle(self):
         outer = self._findShape('outer', None)
         outerBox = outer # TODO: translate to bounding box
         # TODO: Handle having more points than expected in the rectange, the first example has 5
         outerBox = outer[0:4]
         return outerBox
 
-    def initCracks(self):
+    def _initCracks(self):
         return self._findShape('crack', None)
 
-    def initBark(self):
+    def _initBark(self):
         return self._findShape('bark', None)
 
-    def initCtrmid(self):
+    def _initCtrmid(self):
         return self._findShape('ctrmid', None)
 
-    def initCtrend(self):
+    def _initCtrend(self):
         return self._findShape('ctrend', None)
 
-    def initTricky(self):
+    def _initTricky(self):
         if self._findShape('tricky', False): return True
         return False
 
