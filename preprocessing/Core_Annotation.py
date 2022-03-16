@@ -4,19 +4,26 @@ import os
 import re
 
 class Core_Annotation:
-    def __init__(self, labelmeAnnotations, sampleName, pointLabelDirectoryPath):
+    def __init__(self, labelmeAnnotations, sampleName, pointLabelDirectoryPath, imagePath):
         self.sampleName  = sampleName
         self.pointLabelDirectoryPath = pointLabelDirectoryPath
+        self.imagePath = imagePath
         self.labelmeAnnotations = labelmeAnnotations
 
         # Shapes: [ [x,y], ... ]
+            # NOTE: Rectangle points are stored in order: clockwise from the bottom left:
+            # 1 ----- 2
+            # |       |
+            # 0 ----- 3
+            # NOTE: do not modify self.shape or self.rectangles, this wont modify the original variables
         self.innerRectangle  = self.initInnerRectangle()
         self.outerRectangle  = self.initOuterRectangle()
-        self.cracks      = self.initCracks()
-        self.bark        = self.initBark()
-        self.ctrmid      = self.initCtrmid()
-        self.ctrend      = self.initCtrend()
-        self.shapes      = [self.innerRectangle, self.outerRectangle, self.cracks, self.bark, self.ctrmid, self.ctrend]
+        self.rectangles      = [self.innerRectangle, self.outerRectangle]
+        self.cracks = self.initCracks()
+        self.bark   = self.initBark()
+        self.ctrmid = self.initCtrmid()
+        self.ctrend = self.initCtrend()
+        self.shapes = [self.cracks, self.bark, self.ctrmid, self.ctrend]
         
         self.is_tricky   = self.initTricky()
         
@@ -37,6 +44,8 @@ class Core_Annotation:
     def initOuterRectangle(self):
         outer = self._findShape('outer', None)
         outerBox = outer # TODO: translate to bounding box
+        # TODO: Handle having more points than expected in the rectange, the first example has 5
+        outerBox = outer[0:4]
         return outerBox
 
     def initCracks(self):
