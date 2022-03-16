@@ -135,12 +135,12 @@ class Core_Annotation:
         if ( 'D' in label ): return True
         return False
 
+    def _isPositionLine(self, line):
+        return not line[0] in ["#", "S"]
+
 
     ##############################
     # Helpers
-    def _isPositionLine(self, line):
-        return not line[0] in ["#", "S"]
-    
     def _tryReadLines(self, file):
         f = None
         try:

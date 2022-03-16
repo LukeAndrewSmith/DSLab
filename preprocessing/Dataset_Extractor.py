@@ -14,9 +14,8 @@ class Dataset_Extractor:
 
     def _initCoreAnnotations(self):
         coreAnnotations = []
-        dir = LABELME_JSONS
-        for file in os.listdir(dir):
-            coreAnnotations = coreAnnotations + Image_Annotation(dir+file, POINT_LABELS).core_annotations
+        for file in os.listdir(LABELME_JSONS):
+            coreAnnotations = coreAnnotations + Image_Annotation(LABELME_JSONS+file, POINT_LABELS).core_annotations
         return coreAnnotations
 
 
