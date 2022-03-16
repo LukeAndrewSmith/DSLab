@@ -1,10 +1,8 @@
 # TODO: Add all paths to here so that we don't hardcode them anyher
 
-class Paths:
-    def __init__(self):
-        self.data = ''
-        self.generated_datasets = ''
-        self.images = ''
-        self.labelme_jsons = ''
-        self.point_labels = ''
-        self.width_measurements = ''
+DATA = ''
+GENERATE_DATASETS = ''
+IMAGES = 'data/images/'
+LABELME_JSONS = 'data/labelme_jsons/'
+POINT_LABELS = 'data/point_labels/'
+WIDTH_MEASUREMENTS = ''
