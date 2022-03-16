@@ -25,6 +25,7 @@ class Dataset_Extractor:
         self._apply(self._processCore, [self.coreAnnotations[0]]) # TODO: Only run for one core for now
 
     def _processCore(self, core):
+        # TODO: all these functions have side effects as they modify core variables directly, not clean, should update
         core             = self._convertMMToPX(core)
         img              = self._getImage(core)
         core, rotatedImg = self._rotateImagePointsShapes(core, img)
