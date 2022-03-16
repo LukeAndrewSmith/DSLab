@@ -25,14 +25,13 @@ class Dataset_Extractor:
         self._apply(self._processCore, [self.coreAnnotations[0]]) # TODO: Only run for one core for now
 
     def _processCore(self, core):
-        core = self._convertMMToPX(core)
-        # TODO: maybe _getImage should be a function and _rotateImagePointsShapes takes an image as a parameter as well
-        core, rotatedImage = self._rotateImagePointsShapes(core)
-        img = self._cropImage(core, rotatedImage)
-        core = self._shiftAllPoints(core)
-        self._saveImage(img)
-        # TODO: convertPXToMM(), should we convert back before saving
-        self._savePosFile(core)
+        core             = self._convertMMToPX(core)
+        img              = self._getImage(core)
+        core, rotatedImg = self._rotateImagePointsShapes(core, img)
+        croppedImg       = self._cropImage(core, rotatedImg)
+        core             = self._shiftAllPoints(core)
+        self._saveImage(croppedImg)
+        self._savePosFile(core) # TODO: should we convertPXToMM() before saving
 
     #################
     def _convertMMToPX(self, core):
@@ -46,11 +45,14 @@ class Dataset_Extractor:
         return core
 
     #################
-    def _rotateImagePointsShapes(self, core):
+    def _getImage(self,core):
         # imagePath = self.coreAnnotations.imagePath # TODO: Wrong Image path for now as I changed the file structure
         imagePath = IMAGES + "KunA08.jpg" # TODO: Hardcode for testing
         img = cv2.imread(imagePath, cv2.IMREAD_COLOR)
+        return img
 
+    #################
+    def _rotateImagePointsShapes(self, core, img):
         rotMat = self._getRotationMatrix(core.innerRectangle)
 
         rotatedImg = cv2.warpAffine(img, rotMat, img.shape[1::-1])
