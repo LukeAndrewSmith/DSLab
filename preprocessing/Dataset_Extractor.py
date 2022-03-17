@@ -4,7 +4,7 @@ import numpy as np
 import cv2
 from preprocessing.Image_Annotation import Image_Annotation
 from preprocessing.geometry import mm_to_pixel
-from preprocessing.Paths import LABELME_JSONS, IMAGES, POINT_LABELS
+from preprocessing.Paths import GENERATED_DATASETS_INNER, LABELME_JSONS, IMAGES, POINT_LABELS, GENERATED_DATASETS_INNER
 
 class Dataset_Extractor:
 # Class to extract datasets from image and core annotations
@@ -31,7 +31,7 @@ class Dataset_Extractor:
         core, rotatedImg = self._rotateImagePointsShapes(core, img)
         croppedImg       = self._cropImage(core, rotatedImg)
         core             = self._shiftAllPoints(core)
-        self._saveImage(croppedImg)
+        self._saveImage(croppedImg, GENERATED_DATASETS_INNER+core.imageName)
         self._savePosFile(core) # TODO: should we convertPXToMM() before saving
 
     #################
@@ -135,9 +135,8 @@ class Dataset_Extractor:
         return croppedImage
     
     #################
-    def _saveImage(self, img):
-        # TODO:
-        pass
+    def _saveImage(self, img, path):
+        cv2.imwrite(path,img)
     
     #################
     def _savePosFile(self, core):

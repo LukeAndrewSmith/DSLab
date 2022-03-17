@@ -47,7 +47,8 @@ def testRotateCoords():
     core = getTestCoreAnnotation()
 
     core = extractor._convertMMToPX(core)
-    core, rotatedImage = extractor._rotateImagePointsShapes(core)
+    img = extractor._getImage(core)
+    core, rotatedImage = extractor._rotateImagePointsShapes(core, img)
 
     pointsImage = _addAllAnnotations(rotatedImage, core)
 
@@ -59,7 +60,8 @@ def testCropImage():
     extractor = Dataset_Extractor()
     core = getTestCoreAnnotation()
 
-    core, rotatedImage = extractor._rotateImagePointsShapes(core)
+    img = extractor._getImage(core)
+    core, rotatedImage = extractor._rotateImagePointsShapes(core, img)
     croppedImage = extractor._cropImage(core, rotatedImage)
 
     cv2.imshow("testCropImage", croppedImage)
@@ -71,7 +73,8 @@ def testShiftCoords():
     core = getTestCoreAnnotation()
 
     core = extractor._convertMMToPX(core)
-    core, rotatedImage = extractor._rotateImagePointsShapes(core)
+    img = extractor._getImage(core)
+    core, rotatedImage = extractor._rotateImagePointsShapes(core, img)
     croppedImage = extractor._cropImage(core, rotatedImage)
     core = extractor._shiftAllPoints(core)
 
