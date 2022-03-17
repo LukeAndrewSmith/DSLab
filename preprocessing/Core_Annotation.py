@@ -8,6 +8,7 @@ class Core_Annotation:
         self.sampleName  = sampleName
         self.pointLabelDirectoryPath = pointLabelDirectoryPath
         self.imagePath = imagePath
+        self.imageName = os.path.basename(self.imagePath)
         self.labelmeAnnotations = labelmeAnnotations
 
         # Shapes: [ [x,y], ... ]
