@@ -1,12 +1,14 @@
 from operator import truediv
-from preprocessing.geometry import min_bounding_rectangle
 import os
 import re
+import logging
 
-class Core_Annotation:
-    def __init__(self, labelmeAnnotations, sampleName, pointLabelDirectoryPath, imagePath):
+from preprocessing.geometry import min_bounding_rectangle
+
+class CoreAnnotation:
+    def __init__(self, labelmeAnnotations, sampleName, corePosPath, imagePath):
         self.sampleName  = sampleName
-        self.pointLabelDirectoryPath = pointLabelDirectoryPath
+        self.corePosPath = corePosPath
         self.imagePath = imagePath
         self.imageName = os.path.basename(self.imagePath)
         self.labelmeAnnotations = labelmeAnnotations
@@ -29,6 +31,11 @@ class Core_Annotation:
         
         self.is_tricky   = self._initTricky()
         
+        # Parsing the pos file, splitting lines into groups
+        self.header_lines = []
+        self.label_lines = []
+        self.gap_lines = []
+
         # Point/Gap Labels: [ [ [x,y], ... ], ... ]
         self.pointLabels = self._initPointLabels()
         self.gapLabels = self._initGapLabels()
@@ -73,10 +80,10 @@ class Core_Annotation:
 
     ##############################
     def _initPointLabelInfo(self):
-        lines = self._tryReadLines(f'{self.sampleName}.pos')
         # Some lines return multiple values (pith), hence return all lines in an array and unpack
-        pointLabelInfoDict = dict([ i for x in lines for i in self._processInfoLine(x) \
-                                                      if not self._isPositionLine(x) ])
+        pointLabelInfoDict = dict(
+            [ i for x in self.header_lines for i in self._processInfoLine(x)]
+        )
         return self._unpackPointLabelInfoDict(pointLabelInfoDict)
         
     def _processInfoLine(self, line):
@@ -96,16 +103,16 @@ class Core_Annotation:
 
     ##############################
     def _initPointLabels(self):
-        lines = self._tryReadLines(f'{self.sampleName}.pos')
-        pointLabels = [ self._processPositionLine(x) for x in lines  \
-                                              if self._isPositionLine(x) 
-                                              and not self._isGapLine(x) ]
+        pointLabels = [self._processPositionLine(x) for x in self.label_lines]
         return pointLabels
 
     def _processPositionLine(self, line):
         lineSplit = line.split(' ')
-        lineSplit = [ x for x in lineSplit if ( x not in ['','\n','.'] ) ]
-        return [ self._positionStringToFloatArray(x) for x in lineSplit ]
+        positionStrings = [ 
+            self._positionStringToFloatArray(x) for x in lineSplit \
+                if x not in ['','\n','.']
+        ]
+        return positionStrings
  
     def _positionStringToFloatArray(self, positionString):
         positionStringSplit = positionString.split(',')
@@ -113,47 +120,41 @@ class Core_Annotation:
 
 
     ##############################
+    #TODO: need to debug this with a manually annotated core that has gaps in pos file
     def _initGapLabels(self):
-        lines = self._tryReadLines(f'{self.sampleName}.pos')
-        gapLabels = [ self._processGapPositionLine(x) for x in lines  \
-                                                 if self._isPositionLine(x) ]
-        gapLabels = [ x for x in gapLabels if ( len(x) != 0 )] # Empty array returned if no gap, hence needs to be removed, TODO: maybe maket this cleaner
+        gapLabels = [ 
+            self._processGapPositionLine(x) for x in self.gap_lines
+        ]
+        gapLabels = [ x for x in gapLabels if ( len(x) != 0 )] 
+        # Empty array returned if no gap, hence needs to be removed, 
+        # TODO: maybe maket this cleaner
         return gapLabels      
 
     def _processGapPositionLine(self, line):
         lineSplit = line.split(' ')
-        lineSplit = [ self._processGaps(x) for x in lineSplit \
-                                           if ( self._isGapLine(x)) ] # Remove unwanted elements and only process gaps
-        return [ self._positionStringToFloatArray(x) for x in lineSplit ]
+        gapStrings = [ self._processGaps(x) for x in lineSplit \
+            if x.startswith("D") and "#%gap" not in x]
+        return [ self._positionStringToFloatArray(x) for x in gapStrings ]
         
     def _processGaps(self, element):
         element = self._safeRegexSearch(element,'D(\d+\.\d+,\d+\.\d+)')
         return element
 
-    def _isGapLine(self, label):
-        # Gaps are labeled as:   D138.112,17.716 #%gap\n
-        # NOTE: #%gap\n already removed by _unwantedElems 
-        if ( 'D' in label ): return True
-        return False
-
-    def _isPositionLine(self, line):
-        return not line[0] in ["#", "S"]
-
-
     ##############################
     # Helpers
-    def _tryReadLines(self, file):
-        f = None
-        try:
-            f = open(os.path.join(self.pointLabelDirectoryPath, file))
+    def _getLines(self):
+        """ Reads pos file and splits lines into three categories,
+        adding them to corresponding lists
+        """
+        with open(self.corePosPath) as f:
             lines = f.readlines()
-        except:
-            print(f'Cannot open { file }')
-            lines = []
-        finally:
-            if f is not None:
-                f.close()
-        return lines
+        for line in lines:
+            if line.startswith("#") or line.startswith("SCALE"):
+                self.header_lines.append(line)
+            elif line.startswith("D"): #and "#%gap" in line
+                self.gap_lines.append(line)
+            else:
+                self.label_lines.append(line)
 
     def _safeRegexSearch(self,string,pattern):
         try:

@@ -2,11 +2,13 @@ from cmath import rect
 import os
 import numpy as np
 import cv2
-from preprocessing.Image_Annotation import Image_Annotation
+from preprocessing.ImageAnnotation import ImageAnnotation
 from preprocessing.geometry import mm_to_pixel
-from preprocessing.Paths import GENERATED_DATASETS_INNER, LABELME_JSONS, IMAGES, POINT_LABELS, GENERATED_DATASETS_INNER
+from preprocessing.Paths import GENERATED_DATASETS_INNER, IMAGES, POINT_LABELS
+import logging
 
-class Dataset_Extractor:
+
+class DatasetExtractor:
 # Class to extract datasets from image and core annotations
 
     def __init__(self):
@@ -14,10 +16,12 @@ class Dataset_Extractor:
 
     def _initCoreAnnotations(self):
         coreAnnotations = []
-        for file in os.listdir(LABELME_JSONS):
-            coreAnnotations = coreAnnotations + Image_Annotation(LABELME_JSONS+file, POINT_LABELS).core_annotations
+        for file in os.listdir(IMAGES):
+            if file.endswith(".json"):
+                coreAnnotations.append(
+                    ImageAnnotation(IMAGES+file, POINT_LABELS).core_annotations
+                )
         return coreAnnotations
-
 
     ########################################
     def createInnerDataset(self):
