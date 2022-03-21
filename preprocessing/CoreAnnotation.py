@@ -35,6 +35,7 @@ class CoreAnnotation:
         self.header_lines = []
         self.label_lines = []
         self.gap_lines = []
+        self._getLines()
 
         # Point/Gap Labels: [ [ [x,y], ... ], ... ]
         self.pointLabels = self._initPointLabels()
@@ -74,8 +75,9 @@ class CoreAnnotation:
         return False
 
     def _findShape(self, label, default):
-        return next((shape['points'] for shape in self.labelmeAnnotations['shapes'] \
-                                     if shape["label"] == f'{self.sampleName}_{label}'), default)
+        return next(
+            (shape['points'] for shape in self.labelmeAnnotations['shapes'] \
+            if shape["label"] == f'{self.sampleName}_{label}'), default)
 
 
     ##############################
@@ -90,7 +92,10 @@ class CoreAnnotation:
         if '#DPI' in line:
             return [('dpi', float(self._safeRegexSearch(line, '#DPI (\d+\.\d+)')))]
         if 'Pith' in line:
-            pithCoordinates = float(self._safeRegexSearch(line, 'PithCoordinates=(\d+\.\d+)'))
+            pithCoordinates = self._positionStringToFloatArray(
+                self._safeRegexSearch(
+                    line, 'PithCoordinates=(\d+\.\d+,\d+\.\d+)')
+            )
             distanceToPith = float(self._safeRegexSearch(line, 'DistanceToPith=(\d+\.\d+)'))
             yearsToPith = float(self._safeRegexSearch(line, 'YearsToPith=(\d+)'))
             return [('pithCoordinates', pithCoordinates), ('distanceToPith', distanceToPith), ('yearsToPith', yearsToPith)]
@@ -120,7 +125,6 @@ class CoreAnnotation:
 
 
     ##############################
-    #TODO: need to debug this with a manually annotated core that has gaps in pos file
     def _initGapLabels(self):
         gapLabels = [ 
             self._processGapPositionLine(x) for x in self.gap_lines
