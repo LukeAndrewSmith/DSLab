@@ -9,7 +9,8 @@ from preprocessing.CoreAnnotation import CoreAnnotation
 class ImageAnnotation:
     def __init__(self, json_path, pos_path):
         # read in a json and construct
-        with open(json_path) as f:
+        self.json_path = json_path
+        with open(self.json_path) as f:
             self.pos_path = pos_path
             self.annotations = json.load(f)
             self.image_path = self.get_image_path()
@@ -53,6 +54,11 @@ class ImageAnnotation:
 
     def get_image_path(self):
         return self.annotations['imagePath']
+
+    def __repr__(self) -> str:
+        return (f"Image annotation with JSON: {self.json_path}, "
+        f"and cores: {self.cores}")
+
 
 
 

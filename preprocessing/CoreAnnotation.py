@@ -38,11 +38,20 @@ class CoreAnnotation:
         self._getLines()
 
         # Point/Gap Labels: [ [ [x,y], ... ], ... ]
-        self.pointLabels = self._initPointLabels()
-        self.gapLabels = self._initGapLabels()
+        self.mmPointLabels = self._initPointLabels()
+        self.mmGapLabels = self._initGapLabels()
+        self.pointLabels = []
+        self.gapLabels = []
 
         # Point Label Info:
-        self.dpi, self.pith, self.distToPith, self.yearsToPith = self._initPointLabelInfo()
+        self.dpi, self.mmPith, self.mmDistToPith, self.yearsToPith = self._initPointLabelInfo()
+
+        self.pith = []
+        self.distToPith = 0
+
+    def __repr__(self) -> str:
+        return (f"CoreAnnotation for {self.sampleName} with in "
+                f"{self.imagePath}")
 
     ######################
     # labelme Annotations

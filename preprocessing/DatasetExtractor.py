@@ -42,17 +42,17 @@ class DatasetExtractor:
     def _convertMMToPX(self, core):
         core.pointLabels = [[[mm_to_pixel(coord, core.dpi) for coord in coords]
                                                            for coords in shape] 
-                                                           for shape in core.pointLabels]
+                                                           for shape in core.mmPointLabels]
         core.gapLabels = [[[mm_to_pixel(coord, core.dpi) for coord in coords]
                                                          for coords in shape] 
-                                                         for shape in core.gapLabels]
-        core.distToPith = mm_to_pixel(core.distToPith, core.dpi)
+                                                         for shape in core.mmGapLabels]
+        core.distToPith = mm_to_pixel(core.mmDistToPith, core.dpi)
+        core.pith = [mm_to_pixel(coord, core.dpi) for coord in core.mmPith]
         return core
 
     #################
     def _getImage(self,core):
-        # imagePath = self.coreAnnotations.imagePath # TODO: Wrong Image path for now as I changed the file structure
-        imagePath = IMAGES + "KunA08.jpg" # TODO: Hardcode for testing
+        imagePath = os.path.join(IMAGES, core.imagePath)
         img = cv2.imread(imagePath, cv2.IMREAD_COLOR)
         return img
 
