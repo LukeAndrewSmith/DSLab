@@ -13,12 +13,12 @@ class ImageAnnotation:
         with open(self.json_path) as f:
             self.pos_path = pos_path
             self.annotations = json.load(f)
-            self.image_path = self.get_image_path()
-            self.cores = self.get_cores()
-            self.core_annotations = self.annotate_cores()
+            self.image_path = self.__get_image_path()
+            self.cores = self.__get_cores()
+            self.core_annotations = self.__annotate_cores()
             self.unmatched_pos_count = 0
 
-    def get_cores(self):
+    def __get_cores(self):
         cores = list()
         for shape in self.annotations['shapes']:
             s = shape['label'].split('_')
@@ -26,10 +26,10 @@ class ImageAnnotation:
                 cores.append(s[0])
         return cores
 
-    def annotate_cores(self):
+    def __annotate_cores(self):
         core_annotations = list()
         for core in self.cores:
-            core_pos_path = self._get_core_pos_path(core)
+            core_pos_path = self.__get_core_pos_path(core)
             #TODO: could be cleaner to filter to annotations only for the specific core before passing to Core_Annotation
             if core_pos_path is not None:
                 core_annotation = CoreAnnotation(
@@ -41,7 +41,7 @@ class ImageAnnotation:
             core_annotations.append(core_annotation)
         return core_annotations
 
-    def _get_core_pos_path(self, core):
+    def __get_core_pos_path(self, core):
         core_pos_path = os.path.join(
             self.pos_path, core+".pos"
         )
@@ -52,7 +52,7 @@ class ImageAnnotation:
             f" in {self.image_path}")
             return None
 
-    def get_image_path(self):
+    def __get_image_path(self):
         return self.annotations['imagePath']
 
     def __repr__(self) -> str:

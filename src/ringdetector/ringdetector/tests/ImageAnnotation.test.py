@@ -1,9 +1,9 @@
-from preprocessing.Image_Annotation import Image_Annotation
+from preprocessing.ImageAnnotation import ImageAnnotation
 import cv2
 import os
 import numpy as np
 
-def draw_all_image_annotations(annotation: Image_Annotation):
+def draw_all_ImageAnnotations(annotation: ImageAnnotation):
     image = cv2.imread(os.path.join("/Users/fredericboesel/Documents/master/frühling22/ds_lab/data/labels",annotation.image_path))
 
     for core in annotation.core_annotations:
@@ -29,11 +29,11 @@ def draw_all_image_annotations(annotation: Image_Annotation):
 if __name__ == "__main__":
     pos_path = "/Users/fredericboesel/Documents/master/frühling22/ds_lab/data/Data label pos files"
     json_path = "/Users/fredericboesel/Documents/master/frühling22/ds_lab/data/labels/KunA08.json"
-    annotation = Image_Annotation(json_path, pos_path)
+    annotation = ImageAnnotation(json_path, pos_path)
 
     # plot image
 
     # draw rectangles and points
     print(annotation)
-    draw_all_image_annotations(annotation)
+    draw_all_ImageAnnotations(annotation)
 

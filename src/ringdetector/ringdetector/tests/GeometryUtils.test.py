@@ -1,30 +1,7 @@
 import numpy as np
 import cv2
 import json
-
-
-def min_bounding_rectangle(points):
-    # converts a list of points into the min are rectangle containing all points
-    points = np.int0(np.asarray(points)) # TODO: understand why np.int0 works
-    rect = cv2.minAreaRect(points)
-    box = cv2.boxPoints(rect)
-    box = np.int0(box)
-    return box
-
-
-def mm_to_pixel(mm, dpi):
-    # 25.4 mm is one inch
-    # formula:
-    pixel = (mm * dpi) / 25.4
-    return pixel
-
-
-def pixel_to_mm(pixel, dpi):
-    # 25.4 mm is one inch
-    # formula:
-    mm = (pixel * 25.4) / dpi
-    return mm
-
+from preprocessing.GeometryUtils import min_bounding_rectangle
 
 if __name__ == "__main__":
     # read a polygon in and plot it
@@ -53,4 +30,3 @@ if __name__ == "__main__":
     #optional saving to inspect
     #cv2.imwrite('goodbutt.jpg', image)
     cv2.waitKey()
-

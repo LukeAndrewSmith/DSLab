@@ -8,7 +8,7 @@ testAll:
 	testDatasetExtractor
 
 testCoreAnnotation:
-	python tests/Core_Annotation.test.py
+	python tests/CoreAnnotation.test.py
 
 testDatasetExtractor:
-	python tests/Dataset_Extractor.test.py
+	python tests/DatasetExtractor.test.py
