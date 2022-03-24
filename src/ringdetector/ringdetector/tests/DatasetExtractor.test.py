@@ -1,16 +1,12 @@
-# TODO: using syspath trick for now for import, setup nicer structure and use unittest 
 import os
 import sys
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-os.chdir("/Users/cguerner/Documents/classes/dslab/dslabtreering/src/ringdetector/ringdetector")
-
 
 import copy as cp
 import cv2
 import numpy as np
-from preprocessing.DatasetExtractor import DatasetExtractor
-from preprocessing.ImageAnnotation import ImageAnnotation
-from Paths import IMAGES, POINT_LABELS
+from ringdetector.preprocessing.DatasetExtractor import DatasetExtractor
+from ringdetector.preprocessing.ImageAnnotation import ImageAnnotation
+from ringdetector.Paths import IMAGES, POINT_LABELS
 
 def getTestCoreAnnotation():
     labelmeJson = os.path.join(IMAGES, 'KunA08.json')

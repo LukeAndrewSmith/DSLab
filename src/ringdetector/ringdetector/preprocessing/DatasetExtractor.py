@@ -6,9 +6,9 @@ from itertools import chain
 import logging
 import copy
 
-from preprocessing.ImageAnnotation import ImageAnnotation
-from preprocessing.GeometryUtils import mm_to_pixel
-from Paths import GENERATED_DATASETS_INNER, IMAGES, POINT_LABELS
+from ringdetector.preprocessing.ImageAnnotation import ImageAnnotation
+from ringdetector.preprocessing.GeometryUtils import mm_to_pixel
+from ringdetector.Paths import GENERATED_DATASETS_INNER, IMAGES, POINT_LABELS
 
 
 class DatasetExtractor:

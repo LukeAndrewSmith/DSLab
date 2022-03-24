@@ -1,11 +1,10 @@
-# TODO: using syspath trick for now for import, setup nicer structure and use unittest 
-from ctypes.wintypes import POINT
 import os
 import sys
-#sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from preprocessing.ImageAnnotation import ImageAnnotation
-from Paths import IMAGES, POINT_LABELS
+from ctypes.wintypes import POINT
+
+from ringdetector.preprocessing.ImageAnnotation import ImageAnnotation
+from ringdetector.Paths import IMAGES, POINT_LABELS
 
 def getTestCoreAnnotation():
     labelmeJson = os.path.join(IMAGES, 'KunA08.json')

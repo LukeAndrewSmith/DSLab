@@ -3,7 +3,7 @@ import os
 import re
 import logging
 
-from preprocessing.GeometryUtils import min_bounding_rectangle
+from ringdetector.preprocessing.GeometryUtils import min_bounding_rectangle
 
 class CoreAnnotation:
     def __init__(self, labelmeAnnotations, sampleName, corePosPath, imagePath):

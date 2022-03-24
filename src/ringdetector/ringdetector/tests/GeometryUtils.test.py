@@ -1,7 +1,7 @@
 import numpy as np
 import cv2
 import json
-from preprocessing.GeometryUtils import min_bounding_rectangle
+from ringdetector.preprocessing.GeometryUtils import min_bounding_rectangle
 
 if __name__ == "__main__":
     # read a polygon in and plot it

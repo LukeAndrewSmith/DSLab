@@ -1,7 +1,7 @@
 import json
 import os
 import logging
-from preprocessing.CoreAnnotation import CoreAnnotation
+from ringdetector.preprocessing.CoreAnnotation import CoreAnnotation
 
 # this is a class that reads in a json annotation of an image and creates a class for each core with all relevant
 # annotations

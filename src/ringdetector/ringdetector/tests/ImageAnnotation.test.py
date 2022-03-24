@@ -1,7 +1,8 @@
-from preprocessing.ImageAnnotation import ImageAnnotation
 import cv2
 import os
 import numpy as np
+
+from ringdetector.preprocessing.ImageAnnotation import ImageAnnotation
 
 def draw_all_ImageAnnotations(annotation: ImageAnnotation):
     image = cv2.imread(os.path.join("/Users/fredericboesel/Documents/master/frühling22/ds_lab/data/labels",annotation.image_path))
