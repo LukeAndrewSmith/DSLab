@@ -52,7 +52,7 @@ class CoreAnnotation:
     ######################
     # labelme Annotations
     def __initRectangle(self, type):
-        points = self.__findShape(type, None)
+        points = self.__findShape(type, [])
         boundingRect = min_bounding_rectangle(points)
         return boundingRect
 
@@ -60,13 +60,13 @@ class CoreAnnotation:
         return self.__findShape('crack', [])
 
     def __initBark(self):
-        return self.__findShape('bark', None)
+        return self.__findShape('bark', [])
 
     def __initCtrmid(self):
-        return self.__findShape('ctrmid', None)
+        return self.__findShape('ctrmid', [])
 
     def __initCtrend(self):
-        return self.__findShape('ctrend', None)
+        return self.__findShape('ctrend', [])
 
     def __initTricky(self):
         if self.__findShape('tricky', False): return True
