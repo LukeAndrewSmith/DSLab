@@ -1,6 +1,6 @@
 import os
 
-DATA = '../../../data'
+DATA = '/Users/fredericboesel/Documents/master/frühling22/ds_lab/dslabtreering/data'
 GENERATED_DATASETS = os.path.join(DATA, "generated_datasets")
 GENERATED_DATASETS_INNER = os.path.join(DATA, 'generated_datasets/inner/')
 IMAGES = os.path.join(DATA, 'annotated_images/')

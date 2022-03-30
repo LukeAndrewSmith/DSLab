@@ -44,7 +44,7 @@ class DatasetExtractor:
         core             = self.__shiftAllPoints(core)
         self.__saveImage(
             croppedImg, 
-            os.path.join(GENERATED_DATASETS_INNER, core.imageName)
+            os.path.join(GENERATED_DATASETS_INNER, core.sampleName + '.jpg')
         )
         self.__savePosFile(core) # TODO: should we convertPXToMM() before saving
         #TODO: save core annotations
