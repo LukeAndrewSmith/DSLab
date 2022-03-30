@@ -44,7 +44,7 @@ class DatasetExtractor:
         core             = self.__shiftAllPoints(core)
         self.__saveImage(
             croppedImg, 
-            os.path.join(GENERATED_DATASETS_INNER, core.imageName)
+            os.path.join(GENERATED_DATASETS_INNER, core.sampleName+".jpg")
         )
         self.__savePosFile(core) # TODO: should we convertPXToMM() before saving
         #TODO: save core annotations
@@ -59,8 +59,10 @@ class DatasetExtractor:
             [[mm_to_pixel(coord, core.dpi) for coord in coords]
             for coords in shape] for shape in core.mmGapLabels
         ]
-        core.distToPith = mm_to_pixel(core.mmDistToPith, core.dpi)
-        core.pith = [mm_to_pixel(coord, core.dpi) for coord in core.mmPith]
+        if core.mmDistToPith is not None:
+            core.distToPith = mm_to_pixel(core.mmDistToPith, core.dpi)
+        if core.mmPith: # empty list
+            core.pith = [mm_to_pixel(coord, core.dpi) for coord in core.mmPith]
         return core
 
     #################
@@ -105,10 +107,10 @@ class DatasetExtractor:
         ]        
         return rectangles
 
-    def __rotateListOfCoords(self, list, rotMat):
+    def __rotateListOfCoords(self, coordList, rotMat):
         shapes = [
             [self.__rotateCoords(coords, rotMat) 
-            for coords in shape] for shape in list
+            for coords in shape] for shape in coordList
         ]
         return shapes
 

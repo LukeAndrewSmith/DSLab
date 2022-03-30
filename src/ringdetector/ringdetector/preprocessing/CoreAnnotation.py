@@ -43,7 +43,7 @@ class CoreAnnotation:
         self.dpi, self.mmPith, self.mmDistToPith, self.yearsToPith = self.__initPointLabelInfo()
 
         self.pith = []
-        self.distToPith = 0
+        self.distToPith = None
 
     def __repr__(self) -> str:
         return (f"CoreAnnotation for {self.sampleName} in "
@@ -57,7 +57,7 @@ class CoreAnnotation:
         return boundingRect
 
     def __initCracks(self):
-        return self.__findShape('crack', None)
+        return self.__findShape('crack', [])
 
     def __initBark(self):
         return self.__findShape('bark', None)
@@ -94,11 +94,19 @@ class CoreAnnotation:
                 self.__safeRegexSearch(
                     line, 'PithCoordinates=(\d+\.\d+,\d+\.\d+)')
             )
-            distanceToPith = float(self.__safeRegexSearch(line, 'DistanceToPith=(\d+\.\d+)'))
-            yearsToPith = float(self.__safeRegexSearch(line, 'YearsToPith=(\d+)'))
+            # TODO: clean this up, doing quick cuz some pith lines have no years)
+            distanceToPith = self.__getPithNumbers(line, 'DistanceToPith=(\d+\.\d+)')
+            yearsToPith = self.__getPithNumbers(line, 'YearsToPith=(\d+)')
             return [('pithCoordinates', pithCoordinates), ('distanceToPith', distanceToPith), ('yearsToPith', yearsToPith)]
         else:
             return [('',None)]
+
+    def __getPithNumbers(self, line, regex):
+        regexStr = self.__safeRegexSearch(line, regex)
+        floatResult = None
+        if regexStr: 
+            floatResult = float(regexStr)
+        return floatResult
 
     def __unpackPointLabelInfoDict(self, d):
         return [ d.get('dpi'), d.get('pithCoordinates'), d.get('distanceToPith'), d.get('yearsToPith') ]
@@ -118,8 +126,12 @@ class CoreAnnotation:
         return positionStrings
  
     def __positionStringToFloatArray(self, positionString):
-        positionStringSplit = positionString.split(',')
-        return [float(x) for x in positionStringSplit]
+        if positionString is None:
+            return []
+        else:
+            positionStringSplit = positionString.split(',')
+            return [float(x) for x in positionStringSplit]
+
 
 
     ##############################
