@@ -15,18 +15,25 @@ class ImageProcessor:
         self.gX, self.gY = None, None
         self.gXY = None
 
-    def computeGradients(self, ksize=3, method='Sobel'):
-        self.gX = self.__computeDirectionalGradient(direction='x', ksize=ksize, method=method)
-        self.gY = self.__computeDirectionalGradient(direction='y', ksize=ksize, method=method)
-        self.gXY = self.__add(self.gX, self.gY)
+    def computeGradients(self, method='Sobel', **kwargs):
+        if method == 'Sobel':
+            self.gX = self.__computeDirectionalGradient(direction='x', ksize=ksize, method=method)
+            self.gY = self.__computeDirectionalGradient(direction='y', ksize=ksize, method=method)
+            self.gXY = self.__add(self.gX, self.gY)
+        elif method == 'Canny':
+            self.gXY = cv2.Canny(self.image, **kwargs)
 
     def denoiseImage(self, hVal=10, templateWindowSize=7, searchWindowSize=21):
         self.image = cv2.fastNlMeansDenoising(self.image, None, hVal, templateWindowSize, searchWindowSize)
 
     def normalizeGradients(self):
-        self.gX = self.__normalize(self.gX)
-        self.gY = self.__normalize(self.gY)
-        self.gXY = self.__normalize(self.gXY)
+        if self.gX is not None:
+            self.gX = self.__normalize(self.gX)
+        if self.gY is not None:
+            self.gY = self.__normalize(self.gY)
+        if self.gXY is not None:
+            self.gXY = self.__normalize(self.gXY)
+
 
     def absValGradients(self):
         self.gX = self.__absVal(self.gX)
@@ -55,18 +62,16 @@ class ImageProcessor:
         return imAbs
 
     def __computeDirectionalGradient(self, direction, ksize=3, method='Sobel'):
-        if method == 'Sobel':
-            if direction == 'x':
-                g = cv2.Sobel(self.image, ddepth=cv2.CV_16S, dx=1, dy=0, ksize=ksize)
-            elif direction == 'y':
-                g = cv2.Sobel(self.image, ddepth=cv2.CV_16S, dx=0, dy=1, ksize=ksize)
-            else:
-                print('please provide direction: x or y?')
-                return None
-            return g
+        # might need method in future if we want to support other methods
+        if direction == 'x':
+            g = cv2.Sobel(self.image, ddepth=cv2.CV_16S, dx=1, dy=0, ksize=ksize)
+        elif direction == 'y':
+            g = cv2.Sobel(self.image, ddepth=cv2.CV_16S, dx=0, dy=1, ksize=ksize)
         else:
-            print('method not supported yet')
+            print('please provide direction: x or y?')
             return None
+        return g
+
 
     def __normalize(self, im):
         """
