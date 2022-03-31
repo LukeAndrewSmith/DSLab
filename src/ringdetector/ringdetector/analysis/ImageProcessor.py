@@ -9,7 +9,6 @@ class ImageProcessor:
     class that takes an image and computes all sorts of processing
     """
     def __init__(self, path):
-
         self.name = path.split('/')[-1][:-4]
         # reads grayscale for now
         self.image = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
@@ -19,13 +18,10 @@ class ImageProcessor:
     def computeGradients(self, ksize=3, method='Sobel'):
         self.gX = self.__computeDirectionalGradient(direction='x', ksize=ksize, method=method)
         self.gY = self.__computeDirectionalGradient(direction='y', ksize=ksize, method=method)
-
+        self.gXY = self.__add(self.gX, self.gY)
 
     def denoiseImage(self, hVal=10, templateWindowSize=7, searchWindowSize=21):
         self.image = cv2.fastNlMeansDenoising(self.image, None, hVal, templateWindowSize, searchWindowSize)
-
-    def addGradients(self):
-        self.gXY = self.__add(self.gX, self.gY)
 
     def normalizeGradients(self):
         self.gX = self.__normalize(self.gX)

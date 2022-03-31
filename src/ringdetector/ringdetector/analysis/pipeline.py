@@ -8,7 +8,6 @@ if __name__ == "__main__":
     Im = ImageProcessor(impath)
     Im.denoiseImage()
     Im.computeGradients()
-    Im.addGradients()
     Im.normalizeGradients()
     Im.plotGradientTimeSeries(Im.gXY)
     Im.saveImage(Im.gXY, os.path.join(DATA, f"{Im.name}_grad.jpg"))
