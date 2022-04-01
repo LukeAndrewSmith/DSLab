@@ -3,6 +3,8 @@ import cv2
 import json
 from ringdetector.preprocessing.GeometryUtils import min_bounding_rectangle
 
+
+# TODO: this is not a real test, just put Freddy's main method here.
 if __name__ == "__main__":
     # read a polygon in and plot it
     # then find the rect

@@ -2,6 +2,7 @@ from operator import truediv
 import os
 import re
 import logging
+import pickle
 
 from ringdetector.preprocessing.GeometryUtils import min_bounding_rectangle
 
@@ -154,6 +155,12 @@ class CoreAnnotation:
     def __processGaps(self, element):
         element = self.__safeRegexSearch(element,'D(\d+\.\d+,\d+\.\d+)')
         return element
+
+    ######################
+    def toPickle(self, dir):
+        filePath = os.path.join(dir, self.sampleName + ".pkl")
+        with open(filePath, 'wb') as f:
+            pickle.dump(self, f, pickle.HIGHEST_PROTOCOL)
 
     ##############################
     # Helpers
