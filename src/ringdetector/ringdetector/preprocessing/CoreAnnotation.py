@@ -95,7 +95,6 @@ class CoreAnnotation:
                 self.__safeRegexSearch(
                     line, 'PithCoordinates=(\d+\.\d+,\d+\.\d+)')
             )
-            # TODO: clean this up, doing quick cuz some pith lines have no years)
             distanceToPith = self.__getPithNumbers(line, 'DistanceToPith=(\d+\.\d+)')
             yearsToPith = self.__getPithNumbers(line, 'YearsToPith=(\d+)')
             return [('pithCoordinates', pithCoordinates), ('distanceToPith', distanceToPith), ('yearsToPith', yearsToPith)]
@@ -141,9 +140,6 @@ class CoreAnnotation:
             self.__processGapPositionLine(x) for x in self.gapLines
         ]
         gapLabels = [ x for x in gapLabels if ( len(x) != 0 )] 
-        # Empty array returned if no gap, hence needs to be removed, 
-        # TODO: maybe maket this cleaner
-        # clem: not sure what you're wanting here, empty list seems fine to me
         return gapLabels      
 
     def __processGapPositionLine(self, line):
