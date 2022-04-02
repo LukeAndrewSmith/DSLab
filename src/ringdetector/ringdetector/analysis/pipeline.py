@@ -13,4 +13,6 @@ if __name__ == "__main__":
     Im.plotGradientTimeSeries(Im.gXY)
     #Im.saveImage(Im.gXY, os.path.join(DATA, f"{Im.name}_grad_canny.jpg"))
     edgeProcessor = EdgeProcessor(Im.gXY)
-    print(edgeProcessor.edgeInstances)
+    edgeProcessor.processEdgeInstances(minLength=50)
+    instancepath = os.path.join(DATA, f"{Im.name}_grad_canny_instances_filtered_50.jpg")
+    edgeProcessor.saveEdgeInstanceImage(instancepath)

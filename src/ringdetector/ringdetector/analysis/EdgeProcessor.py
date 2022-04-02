@@ -1,4 +1,5 @@
 import numpy as np
+from PIL import Image
 
 class EdgeProcessor():
     def __init__(self, edges):
@@ -19,6 +20,29 @@ class EdgeProcessor():
                     newShape = self.__findShape(i, j,shape)
                     detectedShapes.append(newShape)
         return detectedShapes
+
+    def processEdgeInstances(self, minLength):
+        # we can filter and do further processing on the edgeinstances here
+        self.filterEdgeInstances(minLength)
+        # her we can have :
+        # self.linkEdgeInstances
+        # self.fitEdgeInstances or whatever...
+
+    def filterEdgeInstances(self, minLength):
+        self.edgeInstances = [instance for instance in self.edgeInstances if len(instance) >= minLength]
+
+
+    def ImageFromEdgeInstances(self):
+        im = np.zeros((self.dim1, self.dim2))
+        for instance in self.edgeInstances:
+            for point in instance:
+                im[point] = 255
+        return im
+
+    def saveEdgeInstanceImage(self, path):
+        im = self.ImageFromEdgeInstances()
+        gradImage = Image.fromarray(im.astype(np.uint8))
+        gradImage.save(path)
 
     def __findShape(self, i, j, shape):
         # explore the 3x3 grid (i,j as well but it will be ignored anyway:
