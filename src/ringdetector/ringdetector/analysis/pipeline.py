@@ -1,6 +1,7 @@
 from ringdetector.analysis.ImageProcessor import ImageProcessor
 from ringdetector.Paths import GENERATED_DATASETS_INNER, DATA
 import os
+from ringdetector.analysis.EdgeProcessor import EdgeProcessor
 
 
 if __name__ == "__main__":
@@ -10,4 +11,6 @@ if __name__ == "__main__":
     Im.computeGradients(method='Canny', threshold1=50, threshold2=100)
     #Im.normalizeGradients()
     Im.plotGradientTimeSeries(Im.gXY)
-    Im.saveImage(Im.gXY, os.path.join(DATA, f"{Im.name}_grad_canny.jpg"))
+    #Im.saveImage(Im.gXY, os.path.join(DATA, f"{Im.name}_grad_canny.jpg"))
+    edgeProcessor = EdgeProcessor(Im.gXY)
+    print(edgeProcessor.edgeInstances)
