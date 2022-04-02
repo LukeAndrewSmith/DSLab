@@ -6,7 +6,7 @@ import cv2
 import numpy as np
 from ringdetector.preprocessing.DatasetExtractor import DatasetExtractor
 from ringdetector.preprocessing.ImageAnnotation import ImageAnnotation
-from ringdetector.Paths import IMAGES, POINT_LABELS
+from ringdetector.Paths import GENERATED_DATASETS_TEST_INNER, IMAGES, POINT_LABELS
 
 def getTestCoreAnnotation():
     labelmeJson = os.path.join(IMAGES, 'KunA08.json')
@@ -50,21 +50,29 @@ def testRotateCoords():
 
     pointsImage = __addAllAnnotations(rotatedImage, core)
 
-    cv2.imshow("testRotateCoords", pointsImage)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    cv2.imwrite(
+        os.path.join(GENERATED_DATASETS_TEST_INNER, "testRotateCoords.jpg"),
+        pointsImage
+    )
+    #cv2.waitKey(0)
+    #cv2.destroyAllWindows()
 
 def testCropImage():
     extractor = DatasetExtractor()
     core = getTestCoreAnnotation()
 
+    core = extractor._DatasetExtractor__convertMMToPX(core)
     img = extractor._DatasetExtractor__getImage(core)
     core, rotatedImage = extractor._DatasetExtractor__rotateImagePointsShapes(core, img)
-    croppedImage = extractor._DatasetExtractor__cropImage(core, rotatedImage)
+    croppedImage = extractor._DatasetExtractor__cropImage(
+        rotatedImage, core.innerRectangle
+        )
 
-    cv2.imshow("testCropImage", croppedImage)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    cv2.imwrite(
+        os.path.join(GENERATED_DATASETS_TEST_INNER, "testCropImage.jpg"), croppedImage
+    )
+    #cv2.waitKey(0)
+    #cv2.destroyAllWindows()
     
 def testShiftCoords():
     extractor = DatasetExtractor()
@@ -73,17 +81,23 @@ def testShiftCoords():
     core = extractor._DatasetExtractor__convertMMToPX(core)
     img = extractor._DatasetExtractor__getImage(core)
     core, rotatedImage = extractor._DatasetExtractor__rotateImagePointsShapes(core, img)
-    croppedImage = extractor._DatasetExtractor__cropImage(core, rotatedImage)
+    croppedImage = extractor._DatasetExtractor__cropImage(
+    rotatedImage, core.innerRectangle
+    )
     core = extractor._DatasetExtractor__shiftAllPoints(core)
 
     pointsImage = __addAllAnnotations(croppedImage, core)
 
-    cv2.imshow("testCropImage", pointsImage)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    cv2.imwrite(
+        os.path.join(GENERATED_DATASETS_TEST_INNER, 
+                     "testCropImagewPoints.jpg"), 
+        pointsImage
+    )
+    #cv2.waitKey(0)
+    #cv2.destroyAllWindows()
     
 if __name__ == "__main__":
-    testCreateInnerDataset()
+    #testCreateInnerDataset()
     testRotateCoords()
     testCropImage()
     testShiftCoords()

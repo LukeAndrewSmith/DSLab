@@ -5,11 +5,16 @@ import cv2
 from itertools import chain
 import logging
 import copy
+from tqdm import tqdm
 
 from ringdetector.preprocessing.ImageAnnotation import ImageAnnotation
 from ringdetector.preprocessing.GeometryUtils import mm_to_pixel
 from ringdetector.Paths import GENERATED_DATASETS_INNER, IMAGES, POINT_LABELS
 
+GENERATED_DATASETS_INNER_CROPS = os.path.join(
+    GENERATED_DATASETS_INNER, "cropped_core_images")
+GENERATED_DATASETS_INNER_PICKLES = os.path.join(
+    GENERATED_DATASETS_INNER, "pickled_cores")
 
 class DatasetExtractor:
 # Class to extract datasets from image and core annotations
@@ -18,6 +23,7 @@ class DatasetExtractor:
         self.coreAnnotations = self.__initCoreAnnotations()
 
     def __initCoreAnnotations(self):
+        logging.info(f"Collecting cores from images in {IMAGES}")
         coreAnnotations = []
         for file in os.listdir(IMAGES):
             if file.endswith(".json"):
@@ -28,11 +34,23 @@ class DatasetExtractor:
 
     ########################################
     def createInnerDataset(self):
-        for core in self.coreAnnotations:
+        paths = [
+            GENERATED_DATASETS_INNER,
+            GENERATED_DATASETS_INNER_CROPS,
+            GENERATED_DATASETS_INNER_PICKLES
+        ]
+        for path in paths:
+            if not os.path.exists(path):
+                os.mkdir(path)
+                logging.info(f"Created directory {path} for inner dataset.")
+            else:
+                logging.info(
+                    f"Directory {path} already exists, overwriting any "
+                    "existing files.")
+        
+        for core in tqdm(self.coreAnnotations, desc="Processing core annos:"):
             self.__processCore(core)
-        # TODO: clean up
-        #self._apply(self._processCore, self.coreAnnotations)
-        #self._apply(self._processCore, [self.coreAnnotations[0]])
+
 
     def __processCore(self, core):
         # TODO: all these functions have side effects as they modify core variables directly, not clean, should update
@@ -44,10 +62,10 @@ class DatasetExtractor:
         core             = self.__shiftAllPoints(core)
         self.__saveImage(
             croppedImg, 
-            os.path.join(GENERATED_DATASETS_INNER, core.sampleName + '.jpg')
+            os.path.join(
+                GENERATED_DATASETS_INNER_CROPS, core.sampleName+".jpg") 
         )
-        self.__savePosFile(core) # TODO: should we convertPXToMM() before saving
-        #TODO: save core annotations
+        core.toPickle(GENERATED_DATASETS_INNER_PICKLES)
 
     #################
     def __convertMMToPX(self, core):
@@ -59,8 +77,10 @@ class DatasetExtractor:
             [[mm_to_pixel(coord, core.dpi) for coord in coords]
             for coords in shape] for shape in core.mmGapLabels
         ]
-        core.distToPith = mm_to_pixel(core.mmDistToPith, core.dpi)
-        core.pith = [mm_to_pixel(coord, core.dpi) for coord in core.mmPith]
+        if core.mmDistToPith is not None:
+            core.distToPith = mm_to_pixel(core.mmDistToPith, core.dpi)
+        if core.mmPith: # empty list
+            core.pith = [mm_to_pixel(coord, core.dpi) for coord in core.mmPith]
         return core
 
     #################
@@ -105,10 +125,10 @@ class DatasetExtractor:
         ]        
         return rectangles
 
-    def __rotateListOfCoords(self, list, rotMat):
+    def __rotateListOfCoords(self, coordList, rotMat):
         shapes = [
             [self.__rotateCoords(coords, rotMat) 
-            for coords in shape] for shape in list
+            for coords in shape] for shape in coordList
         ]
         return shapes
 
@@ -162,15 +182,4 @@ class DatasetExtractor:
     def __saveImage(self, img, path):
         cv2.imwrite(path,img)
     
-    #################
-    def __savePosFile(self, core):
-        # TODO:
-        pass
-
-
-    ########################################
-    #TODO: remove this
-    # Helpers
-    def __apply(self, func, list):
-        for item in list:
-            func(item)
+    

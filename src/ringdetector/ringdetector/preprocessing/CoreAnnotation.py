@@ -2,6 +2,7 @@ from operator import truediv
 import os
 import re
 import logging
+import pickle
 
 from ringdetector.preprocessing.GeometryUtils import min_bounding_rectangle
 
@@ -43,7 +44,7 @@ class CoreAnnotation:
         self.dpi, self.mmPith, self.mmDistToPith, self.yearsToPith = self.__initPointLabelInfo()
 
         self.pith = []
-        self.distToPith = 0
+        self.distToPith = None
 
     def __repr__(self) -> str:
         return (f"CoreAnnotation for {self.sampleName} in "
@@ -52,21 +53,21 @@ class CoreAnnotation:
     ######################
     # labelme Annotations
     def __initRectangle(self, type):
-        points = self.__findShape(type, None)
+        points = self.__findShape(type, [])
         boundingRect = min_bounding_rectangle(points)
         return boundingRect
 
     def __initCracks(self):
-        return self.__findShape('crack', None)
+        return self.__findShape('crack', [])
 
     def __initBark(self):
-        return self.__findShape('bark', None)
+        return self.__findShape('bark', [])
 
     def __initCtrmid(self):
-        return self.__findShape('ctrmid', None)
+        return self.__findShape('ctrmid', [])
 
     def __initCtrend(self):
-        return self.__findShape('ctrend', None)
+        return self.__findShape('ctrend', [])
 
     def __initTricky(self):
         if self.__findShape('tricky', False): return True
@@ -94,11 +95,18 @@ class CoreAnnotation:
                 self.__safeRegexSearch(
                     line, 'PithCoordinates=(\d+\.\d+,\d+\.\d+)')
             )
-            distanceToPith = float(self.__safeRegexSearch(line, 'DistanceToPith=(\d+\.\d+)'))
-            yearsToPith = float(self.__safeRegexSearch(line, 'YearsToPith=(\d+)'))
+            distanceToPith = self.__getPithNumbers(line, 'DistanceToPith=(\d+\.\d+)')
+            yearsToPith = self.__getPithNumbers(line, 'YearsToPith=(\d+)')
             return [('pithCoordinates', pithCoordinates), ('distanceToPith', distanceToPith), ('yearsToPith', yearsToPith)]
         else:
             return [('',None)]
+
+    def __getPithNumbers(self, line, regex):
+        regexStr = self.__safeRegexSearch(line, regex)
+        floatResult = None
+        if regexStr: 
+            floatResult = float(regexStr)
+        return floatResult
 
     def __unpackPointLabelInfoDict(self, d):
         return [ d.get('dpi'), d.get('pithCoordinates'), d.get('distanceToPith'), d.get('yearsToPith') ]
@@ -118,8 +126,12 @@ class CoreAnnotation:
         return positionStrings
  
     def __positionStringToFloatArray(self, positionString):
-        positionStringSplit = positionString.split(',')
-        return [float(x) for x in positionStringSplit]
+        if positionString is None:
+            return []
+        else:
+            positionStringSplit = positionString.split(',')
+            return [float(x) for x in positionStringSplit]
+
 
 
     ##############################
@@ -128,9 +140,6 @@ class CoreAnnotation:
             self.__processGapPositionLine(x) for x in self.gapLines
         ]
         gapLabels = [ x for x in gapLabels if ( len(x) != 0 )] 
-        # Empty array returned if no gap, hence needs to be removed, 
-        # TODO: maybe maket this cleaner
-        # clem: not sure what you're wanting here, empty list seems fine to me
         return gapLabels      
 
     def __processGapPositionLine(self, line):
@@ -142,6 +151,12 @@ class CoreAnnotation:
     def __processGaps(self, element):
         element = self.__safeRegexSearch(element,'D(\d+\.\d+,\d+\.\d+)')
         return element
+
+    ######################
+    def toPickle(self, dir):
+        filePath = os.path.join(dir, self.sampleName + ".pkl")
+        with open(filePath, 'wb') as f:
+            pickle.dump(self, f, pickle.HIGHEST_PROTOCOL)
 
     ##############################
     # Helpers
