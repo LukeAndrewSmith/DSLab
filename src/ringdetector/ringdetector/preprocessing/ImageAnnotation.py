@@ -27,7 +27,7 @@ class ImageAnnotation:
         return cores
 
     def __annotate_cores(self):
-        core_annotations = list()
+        core_annos = list()
         for core in self.cores:
             core_pos_path = self.__get_core_pos_path(core)
             #TODO: could be cleaner to filter to annotations only for the specific core before passing to Core_Annotation
@@ -38,8 +38,8 @@ class ImageAnnotation:
                     core_pos_path, 
                     self.image_path
                 )
-            core_annotations.append(core_annotation)
-        return core_annotations
+                core_annos.append(core_annotation)
+        return core_annos
 
     def __get_core_pos_path(self, core):
         core_pos_path = os.path.join(
