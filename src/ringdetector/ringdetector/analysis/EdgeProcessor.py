@@ -1,19 +1,21 @@
 import numpy as np
 from PIL import Image
+from tqdm import trange
 
 class EdgeProcessor():
     def __init__(self, edges):
-        # gets an ouput from one of the Edge detection algos and postprocesses to find edges
+        # gets an ouput from one of the Edge detection algos and postprocesses to find edges, e.g. the output of the cv2.Canny function
         self.edges = self.__getEdges(edges)
         self.dim1 = np.shape(edges)[0]
         self.dim2 = np.shape(edges)[1]
-        self.edgeInstances = self.collectEdgeInstances()
+        self.edgeInstances = self.__collectEdgeInstances()
+        self.processedEdges = None
 
-    def collectEdgeInstances(self):
+    def __collectEdgeInstances(self):
         # loop through the entire matrix and look for a signal
         detectedShapes = list()
         # definitely not the fastest
-        for i in range(self.dim1):
+        for i in trange(self.dim1, desc= "Collecting edge instances"):
             for j in range(self.dim2):
                 if (self.edges[i, j] == 1 and 
                     (i, j) not in self.__flatten(detectedShapes)):
@@ -24,17 +26,17 @@ class EdgeProcessor():
 
     def processEdgeInstances(self, minLength):
         # we can filter and do further processing on the edgeinstances here
-        self.filterEdgeInstances(minLength)
+        self.processedEdges = self.filterEdgeInstances(minLength)
         # her we can have :
         # self.linkEdgeInstances
         # self.fitEdgeInstances or whatever...
 
     def filterEdgeInstances(self, minLength):
-        self.edgeInstances = [
+        filteredEdges = [
             instance for instance in self.edgeInstances 
                 if len(instance) >= minLength
         ]
-
+        return filteredEdges
 
     def ImageFromEdgeInstances(self):
         im = np.zeros((self.dim1, self.dim2))
