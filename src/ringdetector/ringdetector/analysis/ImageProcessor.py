@@ -17,8 +17,8 @@ class ImageProcessor:
 
     def computeGradients(self, method='Sobel', **kwargs):
         if method == 'Sobel':
-            self.gX = self.__computeDirectionalGradient(direction='x', ksize=ksize, method=method)
-            self.gY = self.__computeDirectionalGradient(direction='y', ksize=ksize, method=method)
+            self.gX = self.__computeDirectionalGradient(direction='x', **kwargs)
+            self.gY = self.__computeDirectionalGradient(direction='y', **kwargs)
             self.gXY = self.__add(self.gX, self.gY)
         elif method == 'Canny':
             self.gXY = cv2.Canny(self.image, **kwargs)
