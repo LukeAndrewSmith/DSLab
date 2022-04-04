@@ -32,22 +32,32 @@ class EdgeProcessor():
         # self.fitEdgeInstances or whatever...
 
     def filterEdgeInstances(self, minLength):
+        #TODO: either this needs to be made private or ProcessEdgeInstances 
+        # has to be made private (and called with default args in init)
         filteredEdges = [
             instance for instance in self.edgeInstances 
                 if len(instance) >= minLength
         ]
         return filteredEdges
 
-    def ImageFromEdgeInstances(self):
-        im = np.zeros((self.dim1, self.dim2))
-        for instance in self.edgeInstances:
+    def ImageFromEdgeInstances(self, edgeType="all"):
+        """ Create black and white image displaying edge instances. 
+        -- edgeType: "all" for all edgeInstances, "processed" for 
+        processedEdgeInstances.
+        """
+        im = np.zeros((self.dim1, self.dim2), dtype=np.uint8)
+        if edgeType == "all": 
+            edges = self.edgeInstances
+        else: 
+            edges = self.processedEdges
+        for instance in edges:
             for point in instance:
                 im[point] = 255
         return im
 
     def saveEdgeInstanceImage(self, path):
         im = self.ImageFromEdgeInstances()
-        gradImage = Image.fromarray(im.astype(np.uint8))
+        gradImage = Image.fromarray(im)
         gradImage.save(path)
 
     def __findShape(self, i, j, shape):

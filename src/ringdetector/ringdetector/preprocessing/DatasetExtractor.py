@@ -9,12 +9,10 @@ from tqdm import tqdm
 
 from ringdetector.preprocessing.ImageAnnotation import ImageAnnotation
 from ringdetector.preprocessing.GeometryUtils import mm_to_pixel
-from ringdetector.Paths import GENERATED_DATASETS_INNER, IMAGES, POINT_LABELS
-
-GENERATED_DATASETS_INNER_CROPS = os.path.join(
-    GENERATED_DATASETS_INNER, "cropped_core_images")
-GENERATED_DATASETS_INNER_PICKLES = os.path.join(
-    GENERATED_DATASETS_INNER, "pickled_cores")
+from ringdetector.Paths import GENERATED_DATASETS_INNER, \
+    GENERATED_DATASETS_INNER_CROPS, GENERATED_DATASETS_INNER_PICKLES, IMAGES, \
+        POINT_LABELS
+        
 
 class DatasetExtractor:
 # Class to extract datasets from image and core annotations
