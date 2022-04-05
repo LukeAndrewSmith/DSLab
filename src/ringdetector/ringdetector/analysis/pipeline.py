@@ -6,12 +6,13 @@ from ringdetector.analysis.EdgeProcessor import EdgeProcessor
 from ringdetector.analysis.CoreProcessor import CoreProcessor
 from ringdetector.Paths import GENERATED_DATASETS_INNER
 
-TEST_SAMPLE = "KunA01SS"
+TEST_SAMPLE = "KunA02SS"
 
 if __name__ == "__main__":
     cp = CoreProcessor(TEST_SAMPLE)
 
     cp.scoreCore()
+    print(f"Sample {TEST_SAMPLE}: prec {cp.precision}, rec {cp.recall}")
     cp.exportCoreImg(os.path.join(GENERATED_DATASETS_INNER, "results"))
 
     # Freddy's old pipeline
