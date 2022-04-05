@@ -5,9 +5,11 @@ from tqdm import trange
 class EdgeProcessor():
     def __init__(self, edges):
         # gets an ouput from one of the Edge detection algos and postprocesses to find edges, e.g. the output of the cv2.Canny function
-        self.edges = self.__getEdges(edges)
         self.dim1 = np.shape(edges)[0]
         self.dim2 = np.shape(edges)[1]
+
+        self.binaryEdgeMatrix = self.__getBinaryEdgeMatrix(edges)
+
         self.edgeInstances = self.__collectEdgeInstances()
         self.processedEdges = None
 
@@ -17,7 +19,7 @@ class EdgeProcessor():
         # definitely not the fastest
         for i in trange(self.dim1, desc= "Collecting edge instances"):
             for j in range(self.dim2):
-                if (self.edges[i, j] == 1 and 
+                if (self.binaryEdgeMatrix[i, j] == 1 and 
                     (i, j) not in self.__flatten(detectedShapes)):
                     shape = [(i, j)]
                     newShape = self.__findShape(i, j,shape)
@@ -26,12 +28,12 @@ class EdgeProcessor():
 
     def processEdgeInstances(self, minLength):
         # we can filter and do further processing on the edgeinstances here
-        self.processedEdges = self.filterEdgeInstances(minLength)
+        self.processedEdges = self.__filterByLength(minLength)
         # her we can have :
         # self.linkEdgeInstances
         # self.fitEdgeInstances or whatever...
 
-    def filterEdgeInstances(self, minLength):
+    def __filterByLength(self, minLength):
         #TODO: either this needs to be made private or ProcessEdgeInstances 
         # has to be made private (and called with default args in init)
         filteredEdges = [
@@ -67,17 +69,18 @@ class EdgeProcessor():
                 # need to check in bounds first:
                 if 0 <= i+addi < self.dim1 and 0 <= j+addj < self.dim2:
                     # if still a 1 => add to the shape!
-                    if (self.edges[i+addi, j+addj] == 1 and 
+                    if (self.binaryEdgeMatrix[i+addi, j+addj] == 1 and 
                         (i+addi, j+addj) not in shape):
                         shape.append((i+addi, j+addj))
                         shape = self.__findShape(i+addi, j+addj, shape)
         return shape
 
-    def __getEdges(self, edges):
+    def __getBinaryEdgeMatrix(self, edges):
         # converts to binary for further processing:
         # assumes edges to be min=0, max=? prob 255
-        binaryEdges = np.around(edges/np.max(edges), decimals=0).astype(int)
-        return binaryEdges
+        binaryEdgeMatrix = np.around(
+            edges/np.max(edges), decimals=0).astype(int)
+        return binaryEdgeMatrix
 
     def __flatten(self, list):
         return [item for sublist in list for item in sublist]
