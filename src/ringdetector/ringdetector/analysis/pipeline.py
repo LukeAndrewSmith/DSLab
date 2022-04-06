@@ -6,7 +6,7 @@ from ringdetector.analysis.EdgeProcessor import EdgeProcessor
 from ringdetector.analysis.CoreProcessor import CoreProcessor
 from ringdetector.Paths import GENERATED_DATASETS_INNER
 
-TEST_SAMPLE = "KunA02SS"
+TEST_SAMPLE = "RUEP03WW"
 
 if __name__ == "__main__":
     cp = CoreProcessor(TEST_SAMPLE)

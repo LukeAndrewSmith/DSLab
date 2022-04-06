@@ -122,6 +122,10 @@ class CoreProcessor:
     def __plotLabels(self, img, labels, color=(0,255,0)):
         for label in labels:
             for point in label:
+                if point[0] < 0:
+                    point[0] = 0
+                if point[1] < 0:
+                    point[1] = 0
                 cv2.circle(
                     img,
                     [point[0], point[1]],
@@ -149,14 +153,23 @@ class CoreProcessor:
         self.__plotEdges(bgnd, self.falsePosEdges, (0,0,255))
         self.__plotLabels(bgnd, self.truePosLabels, (0,255,0))
         self.__plotLabels(bgnd, self.falseNegLabels, (0,165,255))
+        print(self.falseNegLabels)
 
-        verti = np.concatenate([
+        # TODO maybe split into entire thing?
+        splits = np.floor(np.shape(bgnd)[1]/1500.0).astype(int)
+        vertiList = [bgnd[:,(i*1500):(i*1500)+1500,:] for i in range(splits)]
+        verti = np.concatenate(vertiList, axis=0)
+        """verti = np.concatenate([
             bgnd[:,0:1500,:], 
             bgnd[:,1500:3000,:], 
             bgnd[:,3000:4500,:], 
-            bgnd[:,4500:6000,:], 
-        ], axis=0)
+            bgnd[:,4500:6000,:],
+            bgnd[:,6000:7500, :],
+            bgnd[:, 7500:9000, :],
+            bgnd[:, 9000:10500, :],
+        ], axis=0)"""
 
+        # TODO maybe createe dir here
         exportPath = os.path.join(
             dir, f'{self.sampleName}_processed.jpg'
         )
