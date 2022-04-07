@@ -47,7 +47,6 @@ class Edge():
             flipped_point = [point[1], point[0]]
             for pred in self.predCoords:
                 dist = self.__pixelDist(flipped_point, pred)
-                # TODO should this be an or?
                 if dist > 1000 and dist > min_dist:
                     break
                 else:

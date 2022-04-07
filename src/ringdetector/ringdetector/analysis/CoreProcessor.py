@@ -3,11 +3,11 @@ import os
 import logging
 import cv2
 import pickle 
-from tqdm import tqdm
+
 
 from ringdetector.analysis.ImageProcessor import ImageProcessor
 from ringdetector.analysis.EdgeProcessor import EdgeProcessor
-from ringdetector.analysis.Edge import Edge
+
 from ringdetector.Paths import GENERATED_DATASETS_INNER_CROPS, \
     GENERATED_DATASETS_INNER_PICKLES
 
@@ -34,18 +34,15 @@ class CoreProcessor:
         self.procImg = ImageProcessor(impath, self.cfg)
         self.procImg.computeGradients()
     
-        self.procEdges = EdgeProcessor(self.procImg.gXY)
-        self.procEdges.processEdgeInstances(minLength=self.cfg.minedgelen)
-
-        self.edges = []
-        for shape in tqdm(self.procEdges.processedEdges, desc="Fitting edges"):
-            edge = Edge(shape, self.procImg.denoisedImage)
-            edge.fitPredict()
-            edge.scoreEdge(self.core.pointLabels)
-            self.edges.append(edge)
-
+        self.procEdges = EdgeProcessor(self.procImg.gXY, self.cfg)
+        self.procEdges.processEdgeInstances()
+        # TODO: i split the scoring from processing, need to think about how
+        # to set this up for inference
+        self.procEdges.scoreEdges(self.core.pointLabels)
+        
         # TODO: placeholder for some function where we remove edges with 
-        # high MSE
+        # high MSE, or generally filter edges further 
+        # (could be in EdgeProcessor)
         self.filteredEdges = self.edges
 
         self.truePosEdges = []
@@ -152,22 +149,11 @@ class CoreProcessor:
         self.__plotEdges(bgnd, self.falsePosEdges, (0,0,255))
         self.__plotLabels(bgnd, self.truePosLabels, (0,255,0))
         self.__plotLabels(bgnd, self.falseNegLabels, (0,165,255))
-        print(self.falseNegLabels)
 
-        # TODO maybe split into entire thing?
         splits = np.floor(np.shape(bgnd)[1]/1500.0).astype(int)
         vertiList = [bgnd[:,(i*1500):(i*1500)+1500,:] for i in range(splits)]
         verti = np.concatenate(vertiList, axis=0)
-        """verti = np.concatenate([
-            bgnd[:,0:1500,:], 
-            bgnd[:,1500:3000,:], 
-            bgnd[:,3000:4500,:], 
-            bgnd[:,4500:6000,:],
-            bgnd[:,6000:7500, :],
-            bgnd[:, 7500:9000, :],
-            bgnd[:, 9000:10500, :],
-        ], axis=0)"""
-
+        
         # TODO maybe createe dir here
         exportPath = os.path.join(
             dir, f'{self.sampleName}_processed.jpg'
