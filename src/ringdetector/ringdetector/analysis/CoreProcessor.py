@@ -156,7 +156,11 @@ class CoreProcessor:
         
         # TODO maybe createe dir here
         exportPath = os.path.join(
-            dir, f'{self.sampleName}_processed.jpg'
+            dir, f'{self.sampleName}_edgeplot.jpg'
         )
         cv2.imwrite(exportPath, verti)
 
+    def toPickle(self, dir):
+        filePath = os.path.join(dir, self.sampleName + "_processed.pkl")
+        with open(filePath, 'wb') as f:
+            pickle.dump(self, f, pickle.HIGHEST_PROTOCOL)

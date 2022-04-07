@@ -6,6 +6,7 @@ import coloredlogs
 from tqdm import tqdm
 import numpy as np
 import matplotlib.pyplot as plt
+import pickle
 
 from ringdetector.Paths import GENERATED_DATASETS_INNER, \
     GENERATED_DATASETS_INNER_PICKLES
@@ -42,11 +43,17 @@ if __name__ == "__main__":
 
     cores = []    
     for sample in tqdm(samples, "Cores:"):
-        cp = CoreProcessor(sample, cfg)
-        cp.scoreCore()
-        cp.exportCoreImg(resultDir)
-        # TODO: could also pickle the CoreProcessor object
-        cores.append(cp)
+        try:
+            cp = CoreProcessor(sample, cfg)
+        except RecursionError:
+            #NOTE: this error occurs in ImageProcessor.__findShape
+            logging.warn(f"Sample {sample} has recursion error.")
+            continue
+        else: 
+            cp.scoreCore()
+            cp.exportCoreImg(resultDir)
+            cp.toPickle(resultDir)
+            cores.append(cp)
 
     prec = np.array([cp.precision for cp in cores])
     rec = np.array([cp.recall for cp in cores])
