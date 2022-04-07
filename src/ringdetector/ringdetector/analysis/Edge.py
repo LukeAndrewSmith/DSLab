@@ -6,7 +6,7 @@ from sklearn.metrics import mean_squared_error
 
 class Edge():
     
-    def __init__(self, edgeCoords, denoisedImage):
+    def __init__(self, edgeCoords, imgDims):
         """ Input is a list of pixel coordinates that constitute an edge in 
         an image. 
         """
@@ -17,13 +17,8 @@ class Edge():
         self.horiz_min = min(self.y)
         self.horiz_max = max(self.y)
 
-        self.imgheight, self.imgwidth = denoisedImage.shape
-        self.edgeim_gbr = np.zeros(
-            (self.imgheight, self.imgwidth, 3), 
-            dtype=np.uint8
-        )
-        for point in self.edge:
-            self.edgeim_gbr[point] = (255,255,255)
+        # TODO: don't need to give denoised image, just dims of img
+        self.imgheight, self.imgwidth = imgDims
         
         self.model = None
         self.predCoords = None
@@ -44,7 +39,7 @@ class Edge():
         return math.sqrt(dx2 + dy2)
 
     # TODO: this flipped point handling kinda sucks, need to pick an order of
-    # of coordinates.
+    # of coordinates. i think the point label order is correct wrt cv2 plotting.
     def __findClosestLabel(self, flattened_points):
         min_dist = 100000
         min_label_point = (0,0)
@@ -80,6 +75,12 @@ class Edge():
         self.mse = mean_squared_error(self.y, mse_pred)
 
     def showEdge(self):
+        self.edgeim_gbr = np.zeros(
+            (self.imgheight, self.imgwidth, 3), 
+            dtype=np.uint8
+        )
+        for point in self.edge:
+            self.edgeim_gbr[point] = (255,255,255)
 
         for coord in self.predCoords:
             self.edgeim_gbr[coord[0], coord[1],:] = (0,0,255)

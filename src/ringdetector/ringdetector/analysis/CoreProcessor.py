@@ -9,12 +9,13 @@ from ringdetector.analysis.ImageProcessor import ImageProcessor
 from ringdetector.analysis.EdgeProcessor import EdgeProcessor
 from ringdetector.analysis.Edge import Edge
 from ringdetector.Paths import GENERATED_DATASETS_INNER_CROPS, \
-    GENERATED_DATASETS_INNER_PICKLES, IMAGES, POINT_LABELS
+    GENERATED_DATASETS_INNER_PICKLES
 
 class CoreProcessor:
 
-    def __init__(self, sampleName):
+    def __init__(self, sampleName, cfg):
         self.sampleName = sampleName
+        self.cfg = cfg
 
         picklePath = os.path.join(
             GENERATED_DATASETS_INNER_PICKLES, f"{sampleName}.pkl"
@@ -30,13 +31,11 @@ class CoreProcessor:
 
         impath = os.path.join(GENERATED_DATASETS_INNER_CROPS, 
             f"{sampleName}.jpg")
-        self.procImg = ImageProcessor(impath)
-        self.procImg.computeGradients(
-            method='Canny', threshold1=50, threshold2=100
-        )
+        self.procImg = ImageProcessor(impath, self.cfg)
+        self.procImg.computeGradients()
     
         self.procEdges = EdgeProcessor(self.procImg.gXY)
-        self.procEdges.processEdgeInstances(minLength=80)
+        self.procEdges.processEdgeInstances(minLength=self.cfg.minedgelen)
 
         self.edges = []
         for shape in tqdm(self.procEdges.processedEdges, desc="Fitting edges"):
