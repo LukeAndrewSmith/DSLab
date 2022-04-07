@@ -18,8 +18,8 @@ def getArgs(parser):
     #TODO: experiment with args, pick best default
     parser.add_argument("-ipread", type=str, choices=['grayscale', 'hsv'],
         default='hsv', help="ImageProcessor: grayscale or hsv value component before processing")
-    parser.add_argument("-denoisehval", type=int, default=10, 
-        help="ImageProcessor: hVal arg for cv2.fastNlMeansDenoising")
+    parser.add_argument("-denoiseh", type=int, default=10, 
+        help="ImageProcessor: h arg for cv2.fastNlMeansDenoising")
     parser.add_argument("-denoisetempwind", type=int, default=7, 
         help="ImageProcessor: templateWindowSize arg for cv2.fastNlMeansDenoising")
     parser.add_argument("-denoisesearchwind", type=int, default=21, 

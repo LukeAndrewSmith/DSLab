@@ -42,12 +42,10 @@ if __name__ == "__main__":
 
     cores = []    
     for sample in tqdm(samples, "Cores:"):
-        cp = CoreProcessor(sample)
+        cp = CoreProcessor(sample, cfg)
         cp.scoreCore()
-        logging.info(
-            f"Sample {sample}: prec {cp.precision}, rec {cp.recall}"
-        )
         cp.exportCoreImg(resultDir)
+        # TODO: could also pickle the CoreProcessor object
         cores.append(cp)
 
     prec = np.array([cp.precision for cp in cores])
@@ -59,5 +57,5 @@ if __name__ == "__main__":
         logging.info(summary)
         plt.hist(data, bins=15)
         plt.title(f"{name} across samples")
-        plt.savefig(os.path.join(resultDir, f'{name}.png')
+        plt.savefig(os.path.join(resultDir, f'{name}.png'))
     

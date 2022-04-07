@@ -43,7 +43,7 @@ class CoreProcessor:
         # TODO: placeholder for some function where we remove edges with 
         # high MSE, or generally filter edges further 
         # (could be in EdgeProcessor)
-        self.filteredEdges = self.edges
+        self.filteredEdges = self.procEdges.edges
 
         self.truePosEdges = []
         self.truePosLabels = []

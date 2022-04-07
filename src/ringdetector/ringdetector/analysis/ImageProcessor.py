@@ -43,7 +43,7 @@ class ImageProcessor:
     def __denoiseImage(self):
         #TODO: investigate impact of all three params
         denoisedImage = cv2.fastNlMeansDenoising(
-            self.image, None, hVal=self.cfg.denoisehval, 
+            self.image, None, h=self.cfg.denoiseh, 
             templateWindowSize=self.cfg.denoisetempwind, 
             searchWindowSize=self.cfg.denoisesearchwind
         )

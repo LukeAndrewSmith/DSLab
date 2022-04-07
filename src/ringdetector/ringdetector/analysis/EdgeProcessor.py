@@ -24,7 +24,7 @@ class EdgeProcessor():
         """
         detectedShapes = list()
         # definitely not the fastest
-        for i in trange(self.dim1, desc= "Collecting edge instances"):
+        for i in trange(self.dim1, desc= "Collecting shape instances"):
             for j in range(self.dim2):
                 if (self.binaryEdgeMatrix[i, j] == 1 and 
                     (i, j) not in self.__flatten(detectedShapes)):
