@@ -10,7 +10,7 @@ import pickle
 
 from ringdetector.Paths import GENERATED_DATASETS_INNER, \
     GENERATED_DATASETS_INNER_PICKLES
-from ringdetector.utils.configArgs import getArgs
+from ringdetector.utils.ConfigArgs import getArgs
 from ringdetector.analysis.CoreProcessor import CoreProcessor
 
 coloredlogs.install(level=logging.INFO)
