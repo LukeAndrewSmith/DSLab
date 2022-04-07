@@ -12,5 +12,4 @@ Then, open Paths.py and set absolute path to the folder where you have the data 
 Execute `python preprocessing/CreateInnerDataset.py`
 
 ### Core Prediction and Scoring
-Execute `python analysis/pipeline.py` with optional args documented in 
-`utils/ConfigArgs.py`.
+Execute `python analysis/pipeline.py` with optional args documented in `utils/ConfigArgs.py`. Quite slow for the moment, consider running for a single core first with `python analysis/pipeline.py -sample KunA01SS`, replacing the sample name with a sample in your inner dataset directory.
