@@ -58,6 +58,7 @@ if __name__ == "__main__":
     prec = np.array([cp.precision for cp in cores])
     rec = np.array([cp.recall for cp in cores])
 
+    #TODO: log each core scoring into wandb, avoid this bs
     for name, data in [("Precision", prec), ("Recall", rec)]:
         summary = (f"{name}: mean {np.mean(data)}, median: {np.median(data)}"
             f"std {np.std(data)}, min: {np.min(data)}, max: {np.max(data)}")
