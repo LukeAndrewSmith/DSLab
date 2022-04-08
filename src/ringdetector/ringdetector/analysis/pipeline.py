@@ -51,6 +51,8 @@ if __name__ == "__main__":
             continue
         else: 
             cp.scoreCore()
+            logging.info(f"Sample {sample}: prec {cp.precision}, "
+                "rec {cp.recall}")
             cp.exportCoreImg(resultDir)
             cp.toPickle(resultDir)
             cores.append(cp)

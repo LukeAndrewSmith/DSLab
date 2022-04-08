@@ -24,7 +24,8 @@ class EdgeProcessor():
         """
         detectedShapes = list()
         # definitely not the fastest
-        for i in trange(self.dim1, desc= "Collecting shape instances"):
+        #for i in trange(self.dim1, desc= "Collecting shape instances"):
+        for i in range(self.dim1):
             for j in range(self.dim2):
                 if (self.binaryEdgeMatrix[i, j] == 1 and 
                     (i, j) not in self.__flatten(detectedShapes)):
@@ -59,7 +60,7 @@ class EdgeProcessor():
         self.filteredShapes = self.__filterByLength(self.cfg.minedgelen)
         #TODO: try linking edge instances like in the paper
         self.edges = []
-        for shape in tqdm(self.filteredShapes, desc="Fitting edges"):
+        for shape in self.filteredShapes:
             edge = Edge(shape, self.binaryEdgeMatrix.shape)
             edge.fitPredict(model=self.cfg.edgemodel)
             self.edges.append(edge)
@@ -72,7 +73,7 @@ class EdgeProcessor():
         return filteredShapes
 
     def scoreEdges(self, pointLabels):
-        for edge in tqdm(self.edges, desc="Scoring edges"):
+        for edge in self.edges:
             edge.scoreEdge(pointLabels)
 
     ### Plotting functions
