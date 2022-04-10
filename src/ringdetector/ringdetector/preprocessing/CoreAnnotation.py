@@ -20,10 +20,10 @@ class CoreAnnotation:
         self.innerRectangle  = self.__initRectangle("inner")
         self.outerRectangle  = self.__initRectangle("outer")
         self.rectangles      = [self.innerRectangle, self.outerRectangle]
-        self.cracks = self.__initCracks()
-        self.bark   = self.__initBark()
-        self.ctrmid = self.__initCtrmid()
-        self.ctrend = self.__initCtrend()
+        self.cracks = self.__findShape('crack', [])
+        self.bark   = self.__findShape('bark', [])
+        self.ctrmid = self.__findShape('ctrmid', [])
+        self.ctrend = self.__findShape('ctrend', [])
         self.shapes = [self.cracks, self.bark, self.ctrmid, self.ctrend]
         
         self.tricky   = self.__initTricky()
@@ -57,18 +57,6 @@ class CoreAnnotation:
         boundingRect = min_bounding_rectangle(points)
         return boundingRect
 
-    def __initCracks(self):
-        return self.__findShape('crack', [])
-
-    def __initBark(self):
-        return self.__findShape('bark', [])
-
-    def __initCtrmid(self):
-        return self.__findShape('ctrmid', [])
-
-    def __initCtrend(self):
-        return self.__findShape('ctrend', [])
-
     def __initTricky(self):
         if self.__findShape('tricky', False): return True
         return False
@@ -93,7 +81,7 @@ class CoreAnnotation:
         if 'Pith' in line:
             pithCoordinates = self.__positionStringToFloatArray(
                 self.__safeRegexSearch(
-                    line, 'PithCoordinates=(\d+\.\d+,\d+\.\d+)')
+                    line, 'PithCoordinates=(-?\d+\.\d+,-?\d+\.\d+)')
             )
             distanceToPith = self.__getPithNumbers(line, 'DistanceToPith=(\d+\.\d+)')
             yearsToPith = self.__getPithNumbers(line, 'YearsToPith=(\d+)')
@@ -178,5 +166,5 @@ class CoreAnnotation:
         try:
             return re.search(pattern, string).group(1)
         except:
-            print(f'Error: { pattern } not found in { string }')
+            print(f'Note: { pattern } not found in { string }')
             return None
