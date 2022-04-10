@@ -1,10 +1,11 @@
 import os
 
 # Set absolute path to your own data folder.
-DATA = '/Users/cguerner/Documents/classes/dslab/dslabtreering/data'
+DATA = '/Users/lukeasmi/Documents/ETHZ/dslabtreering/data'
 
 GENERATED_DATASETS = os.path.join(DATA, "generated_datasets")
-IMAGES = os.path.join(DATA, 'annotated_images/')
+IMAGES = os.path.join(DATA, 'images/')
+LABELME_JSONS = os.path.join(DATA, 'labelme_jsons/')
 POINT_LABELS = os.path.join(DATA, 'point_labels/')
 WIDTH_MEASUREMENTS = os.path.join(DATA, '/width_measurements')
 

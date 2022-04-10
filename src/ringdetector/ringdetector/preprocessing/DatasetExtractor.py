@@ -9,9 +9,9 @@ from tqdm import tqdm
 
 from ringdetector.preprocessing.ImageAnnotation import ImageAnnotation
 from ringdetector.preprocessing.GeometryUtils import mm_to_pixel
-from ringdetector.Paths import GENERATED_DATASETS_INNER, \
+from ringdetector.Paths import GENERATED_DATASETS_INNER, LABELME_JSONS, \
     GENERATED_DATASETS_INNER_CROPS, GENERATED_DATASETS_INNER_PICKLES, IMAGES, \
-        POINT_LABELS
+    POINT_LABELS
         
 
 class DatasetExtractor:
@@ -21,12 +21,12 @@ class DatasetExtractor:
         self.coreAnnotations = self.__initCoreAnnotations()
 
     def __initCoreAnnotations(self):
-        logging.info(f"Collecting cores from images in {IMAGES}")
+        logging.info(f"Collecting cores from labelme jsons in {LABELME_JSONS}")
         coreAnnotations = []
-        for file in os.listdir(IMAGES):
+        for file in os.listdir(LABELME_JSONS):
             if file.endswith(".json"):
                 coreAnnotations.append(
-                    ImageAnnotation(IMAGES+file, POINT_LABELS).core_annotations
+                    ImageAnnotation(LABELME_JSONS+file, POINT_LABELS).core_annotations
                 )
         return list(chain(*coreAnnotations))
 
@@ -52,7 +52,6 @@ class DatasetExtractor:
 
     def __processCore(self, core):
         # TODO: all these functions have side effects as they modify core variables directly, not clean, should update
-        oldCore = copy.deepcopy(core)
         core             = self.__convertMMToPX(core)
         img              = self.__getImage(core)
         core, rotatedImg = self.__rotateImagePointsShapes(core, img)
