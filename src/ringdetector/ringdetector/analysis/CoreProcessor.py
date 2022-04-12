@@ -35,7 +35,6 @@ class CoreProcessor:
         self.procImg.computeGradients()
     
         self.procEdges = EdgeProcessor(self.procImg.gXY, self.cfg)
-        self.procEdges.processEdgeInstances()
         # TODO: i split the scoring from processing, need to think about how
         # to set this up for inference
         self.procEdges.scoreEdges(self.core.pointLabels)

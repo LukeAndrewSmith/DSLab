@@ -9,23 +9,20 @@ from ringdetector.analysis.Edge import Edge
 class EdgeProcessor():
     def __init__(self, edges, cfg):
         # gets an ouput from one of the Edge detection algos and postprocesses to find edges, e.g. the output of the cv2.Canny function
-        dim1 = np.shape(edges)[0]
-        dim2 = np.shape(edges)[1]
-
-        self.binaryEdgeMatrix = self.__getBinaryEdgeMatrix(edges)
+        # dim1 = np.shape(edges)[0]
+        # dim2 = np.shape(edges)[1]
+        binaryEdgeMatrix = self.__getBinaryEdgeMatrix(edges)
         
-        self.cfg = cfg
-
         s = [[1,1,1],                                                # neighborhood definition
             [1,1,1],
             [1,1,1]]
-        labels, numL = label(self.binaryEdgeMatrix, structure=s)     # Label the contiguous shapes
+        labels, numL = label(binaryEdgeMatrix, structure=s)     # Label the contiguous shapes
         shapes = [[] for _ in range(numL+1)]                         # Create an array per shape
-        [[shapes[labels[i,j]].append((i,j)) for i in range(dim1)] for j in range(dim2)] # Append index to the shapes array
+        [[shapes[labels[i,j]].append((i,j)) for i in range(edges.shape[0])] 
+                                            for j in range(edges.shape[1])] # Append index to the shapes array
         self.shapes = shapes[1:]                                     # 0 label => no shape, didn't but an 'if' in the previous line as it's much slower
 
-        self.filteredShapes = None
-        self.edges = None
+        self.edges = self.processEdgeInstances(binaryEdgeMatrix, shapes, cfg)
 
 
     def __getBinaryEdgeMatrix(self, edges):
@@ -36,19 +33,19 @@ class EdgeProcessor():
         return binaryEdgeMatrix
 
     ### Process shapes into Edges
-    def processEdgeInstances(self):
-        # we can filter and do further processing on the edgeinstances here
-        self.filteredShapes = self.__filterByLength(self.cfg.minedgelen)
+    def processEdgeInstances(self, binaryEdgeMatrix, shapes, cfg):
         #TODO: try linking edge instances like in the paper
-        self.edges = []
-        for shape in self.filteredShapes:
-            edge = Edge(shape, self.binaryEdgeMatrix.shape)
-            edge.fitPredict(model=self.cfg.edgemodel)
-            self.edges.append(edge)
+        filteredShapes = self.__filterByLength(shapes, cfg.minedgelen)
+        edges = []
+        for shape in filteredShapes:
+            edge = Edge(shape, binaryEdgeMatrix.shape)
+            edge.fitPredict(model=cfg.edgemodel)
+            edges.append(edge)
+        return edges
 
-    def __filterByLength(self, minLength):
+    def __filterByLength(self, shapes, minLength):
         filteredShapes = [
-            instance for instance in self.shapes 
+            instance for instance in shapes 
                 if len(instance) >= minLength
         ]
         return filteredShapes
@@ -77,7 +74,3 @@ class EdgeProcessor():
         im = self.ImageFromEdgeInstances()
         gradImage = Image.fromarray(im)
         gradImage.save(path)
-
-    ### Utils
-    def __flatten(self, list):
-        return [item for sublist in list for item in sublist]
