@@ -1,51 +1,32 @@
 import numpy as np
 from PIL import Image
 from tqdm import trange, tqdm
+import time
+from scipy.ndimage import label
 
 from ringdetector.analysis.Edge import Edge
 
 class EdgeProcessor():
     def __init__(self, edges, cfg):
         # gets an ouput from one of the Edge detection algos and postprocesses to find edges, e.g. the output of the cv2.Canny function
-        self.dim1 = np.shape(edges)[0]
-        self.dim2 = np.shape(edges)[1]
+        dim1 = np.shape(edges)[0]
+        dim2 = np.shape(edges)[1]
 
         self.binaryEdgeMatrix = self.__getBinaryEdgeMatrix(edges)
         
         self.cfg = cfg
 
-        self.shapes = self.__collectShapeInstances()
+        s = [[1,1,1],                                                # neighborhood definition
+            [1,1,1],
+            [1,1,1]]
+        labels, numL = label(self.binaryEdgeMatrix, structure=s)     # Label the contiguous shapes
+        shapes = [[] for _ in range(numL+1)]                         # Create an array per shape
+        [[shapes[labels[i,j]].append((i,j)) for i in range(dim1)] for j in range(dim2)] # Append index to the shapes array
+        self.shapes = shapes[1:]                                     # 0 label => no shape, didn't but an 'if' in the previous line as it's much slower
+
         self.filteredShapes = None
         self.edges = None
 
-    ### Identify shapes
-    def __collectShapeInstances(self):
-        """ Collects continuous shapes
-        """
-        detectedShapes = list()
-        # definitely not the fastest
-        #for i in trange(self.dim1, desc= "Collecting shape instances"):
-        for i in range(self.dim1):
-            for j in range(self.dim2):
-                if (self.binaryEdgeMatrix[i, j] == 1 and 
-                    (i, j) not in self.__flatten(detectedShapes)):
-                    shape = [(i, j)]
-                    newShape = self.__findShape(i, j,shape)
-                    detectedShapes.append(newShape)
-        return detectedShapes
-    
-    def __findShape(self, i, j, shape):
-        # explore the 3x3 grid (i,j) as well but it will be ignored anyway:
-        for addi in [-1, 0, 1]:
-            for addj in [-1, 0, 1]:
-                # need to check in bounds first:
-                if 0 <= i+addi < self.dim1 and 0 <= j+addj < self.dim2:
-                    # if still a 1 => add to the shape!
-                    if (self.binaryEdgeMatrix[i+addi, j+addj] == 1 and 
-                        (i+addi, j+addj) not in shape):
-                        shape.append((i+addi, j+addj))
-                        shape = self.__findShape(i+addi, j+addj, shape)
-        return shape
 
     def __getBinaryEdgeMatrix(self, edges):
         # converts to binary for further processing:
