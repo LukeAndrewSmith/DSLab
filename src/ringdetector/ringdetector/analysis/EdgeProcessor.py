@@ -7,22 +7,28 @@ from scipy.ndimage import label
 from ringdetector.analysis.Edge import Edge
 
 class EdgeProcessor():
-    def __init__(self, edges, cfg):
-        # gets an ouput from one of the Edge detection algos and postprocesses to find edges, e.g. the output of the cv2.Canny function
-        # dim1 = np.shape(edges)[0]
-        # dim2 = np.shape(edges)[1]
-        binaryEdgeMatrix = self.__getBinaryEdgeMatrix(edges)
+    '''
+        Gets an candidate edges from one of the Edge detection algos and postprocesses 
+        to find edges
+    '''
+    def __init__(self, candidateEdges, cfg):
+        self.edges = self.__getEdges(candidateEdges, cfg)
+
         
-        s = [[1,1,1],                                                # neighborhood definition
+    def __getEdges(self, candidateEdges, cfg):
+        binaryEdgeMatrix = self.__getBinaryEdgeMatrix(candidateEdges)
+        
+        s = [[1,1,1],                                       # neighborhood definition
             [1,1,1],
             [1,1,1]]
-        labels, numL = label(binaryEdgeMatrix, structure=s)     # Label the contiguous shapes
-        shapes = [[] for _ in range(numL+1)]                         # Create an array per shape
-        [[shapes[labels[i,j]].append((i,j)) for i in range(edges.shape[0])] 
-                                            for j in range(edges.shape[1])] # Append index to the shapes array
-        self.shapes = shapes[1:]                                     # 0 label => no shape, didn't but an 'if' in the previous line as it's much slower
+        labels, numL = label(binaryEdgeMatrix, structure=s) # Label the contiguous shapes
+        shapes = [[] for _ in range(numL+1)]                # Create an array per shape
+        [[shapes[labels[i,j]].append((i,j)) for i in range(candidateEdges.shape[0])] 
+                                            for j in range(candidateEdges.shape[1])] # Append index to the shapes array
+        shapes = shapes[1:]                            # 0 label => no shape, didn't but an 'if' in the previous line as it's much slower
 
-        self.edges = self.processEdgeInstances(binaryEdgeMatrix, shapes, cfg)
+        return self.processEdgeInstances(binaryEdgeMatrix, shapes, cfg)
+    
 
 
     def __getBinaryEdgeMatrix(self, edges):
