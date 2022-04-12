@@ -6,7 +6,7 @@ import pickle
 
 
 from ringdetector.analysis.ImageProcessor import ImageProcessor
-from ringdetector.analysis.EdgeProcessor import EdgeProcessor
+from ringdetector.analysis.EdgeProcessing import getEdges, scoreEdges
 
 from ringdetector.Paths import GENERATED_DATASETS_INNER_CROPS, \
     GENERATED_DATASETS_INNER_PICKLES
@@ -34,15 +34,13 @@ class CoreProcessor:
         self.procImg = ImageProcessor(impath, self.cfg)
         self.procImg.computeGradients()
     
-        self.procEdges = EdgeProcessor(self.procImg.gXY, self.cfg)
-        # TODO: i split the scoring from processing, need to think about how
-        # to set this up for inference
-        self.procEdges.scoreEdges(self.core.pointLabels)
+        edges = getEdges(self.procImg.gXY, self.cfg)
+        edges = scoreEdges(edges, self.core.pointLabels)
         
         # TODO: placeholder for some function where we remove edges with 
         # high MSE, or generally filter edges further 
         # (could be in EdgeProcessor)
-        self.filteredEdges = self.procEdges.edges
+        self.filteredEdges = edges
 
         self.truePosEdges = []
         self.truePosLabels = []
