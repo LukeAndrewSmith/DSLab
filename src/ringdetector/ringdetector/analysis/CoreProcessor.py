@@ -31,8 +31,18 @@ class CoreProcessor:
 
         impath = os.path.join(GENERATED_DATASETS_INNER_CROPS, 
             f"{sampleName}.jpg")
-        self.procImg = ImageProcessor(impath, self.cfg)
-        self.procImg.computeGradients()
+        self.procImg = ImageProcessor(
+            impath, 
+            self.cfg.ipread, 
+            self.cfg.denoiseh,
+            self.cfg.denoisetempwind,
+            self.cfg.denoisesearchwind
+            )
+        self.procImg.computeGradients(
+            method=self.cfg.ipgrad, 
+            threshold1=self.cfg.cannymin, 
+            threshold2=self.cfg.cannymax
+        )
     
         self.procEdges = EdgeProcessor(self.procImg.gXY, self.cfg)
         self.procEdges.processEdgeInstances()

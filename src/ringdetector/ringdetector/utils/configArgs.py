@@ -24,8 +24,8 @@ def getArgs(parser):
         help="ImageProcessor: templateWindowSize arg for cv2.fastNlMeansDenoising")
     parser.add_argument("-denoisesearchwind", type=int, default=21, 
         help="ImageProcessor: searchWindowSize arg for cv2.fastNlMeansDenoising")
-    parser.add_argument("-ipgrad", type=str, default="Canny", 
-        choices=["Canny", "Sobel"], 
+    parser.add_argument("-ipgrad", type=str, default="canny", 
+        choices=["canny", "sobel"], 
         help="ImageProcessor: gradient-based edge detection method")
     parser.add_argument("-sobelksize", type=int, default=3, 
         help="ImageProcessor: Ksize arg for cv2.Sobel")

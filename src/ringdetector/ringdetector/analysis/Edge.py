@@ -56,7 +56,7 @@ class Edge():
         return min_dist, min_label_point
 
     def fitPredict(self, model="linear"):
-        pred_domain = np.arange(self.imgheight)
+        pred_domain = np.arange(-10, self.imgheight+10, 1)
         
         if model == "linear":
             self.model = LinearRegression()
