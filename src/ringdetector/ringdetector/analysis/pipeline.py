@@ -55,7 +55,7 @@ if __name__ == "__main__":
                             edgeModel=cfg.edgemodel)
         cp.scoreCore()
         logging.info(f"Sample {sample}: prec {cp.precision}, "
-            "rec {cp.recall}")
+            f"rec {cp.recall}")
         cp.exportCoreImg(resultDir)
         cp.toPickle(resultDir)
         cores.append(cp)
