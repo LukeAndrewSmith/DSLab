@@ -7,7 +7,8 @@ import wandb
 
 
 from ringdetector.analysis.ImageProcessor import ImageProcessor
-from ringdetector.analysis.EdgeProcessing import getEdges, scoreEdges
+from ringdetector.analysis.EdgeProcessing import getEdges, scoreEdges, \
+    showEdgeInstanceImage, showCandidateEdges
 from ringdetector.preprocessing.GeometryUtils import pixel_to_mm,\
     rotateCoords, rotateListOfCoords, shiftListOfCoords, roundCoords
 
@@ -53,10 +54,14 @@ class CoreProcessor:
             threshold1=cannyMin, 
             threshold2=cannyMax
         )
-    
-        edges = getEdges(self.procImg.gXY, minEdgeLen, edgeModel)
+
+        candidateEdges = self.procImg.gXY
+        edges = getEdges(candidateEdges, self.cfg)
         edges = scoreEdges(edges, self.core.pointLabels)
-        
+
+        showCandidateEdges(candidateEdges)
+        showEdgeInstanceImage(edges, candidateEdges.shape[0], candidateEdges.shape[1])
+
         # TODO: placeholder for some function where we remove edges with 
         # high MSE, or generally filter edges further 
         # (could be in EdgeProcessor)

@@ -58,24 +58,26 @@ def scoreEdges(edges, pointLabels):
         edge.scoreEdge(pointLabels)
     return edges
 
-    # ###########################################################
-    # ### Plotting functions
-    # def ImageFromEdgeInstances(self, edgeType="all"):
-    #     """ Create black and white image displaying edge instances. 
-    #     -- edgeType: "all" for all edgeInstances, "processed" for 
-    #     processedEdgeInstances.
-    #     """
-    #     im = np.zeros((self.dim1, self.dim2), dtype=np.uint8)
-    #     if edgeType == "all": 
-    #         edges = self.edgeInstances
-    #     else: 
-    #         edges = self.processedEdges
-    #     for instance in edges:
-    #         for point in instance:
-    #             im[point] = 255
-    #     return im
+# ###########################################################
+# ### Plotting functions
+def imageFromEdgeInstances(edges, dim1, dim2):
+    im = np.zeros((dim1, dim2), dtype=np.uint8)
+    for instance in edges:
+        for point in instance.edge:
+            im[point] = 255
+    return im
 
-    # def saveEdgeInstanceImage(self, path):
-    #     im = self.ImageFromEdgeInstances()
-    #     gradImage = Image.fromarray(im)
-    #     gradImage.save(path)
+def saveEdgeInstanceImage(path, edges, dim1, dim2):
+    im = imageFromEdgeInstances(edges, dim1, dim2)
+    gradImage = Image.fromarray(im)
+    gradImage.save(path)
+
+def showEdgeInstanceImage(edges, dim1, dim2):
+    im = imageFromEdgeInstances(edges, dim1, dim2)
+    gradImage = Image.fromarray(im)
+    gradImage.show("Edge instances")
+
+def showCandidateEdges(candidateEdgesImg):
+    candidateEdgesMask = (candidateEdgesImg > np.amax(candidateEdgesImg)/2)
+    gradImage = Image.fromarray(candidateEdgesMask)
+    gradImage.show("Candidate edges")
