@@ -43,19 +43,13 @@ if __name__ == "__main__":
 
     cores = []    
     for sample in tqdm(samples, "Cores:"):
-        try:
-            cp = CoreProcessor(sample, cfg)
-        except RecursionError:
-            #NOTE: this error occurs in ImageProcessor.__findShape
-            logging.warn(f"Sample {sample} has recursion error.")
-            continue
-        else: 
-            cp.scoreCore()
-            logging.info(f"Sample {sample}: prec {cp.precision}, "
-                "rec {cp.recall}")
-            cp.exportCoreImg(resultDir)
-            cp.toPickle(resultDir)
-            cores.append(cp)
+        cp = CoreProcessor(sample, cfg)
+        cp.scoreCore()
+        logging.info(f"Sample {sample}: prec {cp.precision}, "
+            "rec {cp.recall}")
+        cp.exportCoreImg(resultDir)
+        cp.toPickle(resultDir)
+        cores.append(cp)
 
     prec = np.array([cp.precision for cp in cores])
     rec = np.array([cp.recall for cp in cores])
