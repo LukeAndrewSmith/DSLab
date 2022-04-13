@@ -7,6 +7,8 @@ from tqdm import tqdm
 import numpy as np
 import matplotlib.pyplot as plt
 import pickle
+import seaborn as sns
+import datetime
 
 from ringdetector.Paths import GENERATED_DATASETS_INNER, \
     GENERATED_DATASETS_INNER_PICKLES
@@ -16,8 +18,12 @@ from ringdetector.analysis.CoreProcessor import CoreProcessor
 coloredlogs.install(level=logging.INFO)
 warnings.filterwarnings("ignore")
 
+sns.set_style("whitegrid")
+
 parser = argparse.ArgumentParser()
 cfg = getArgs(parser)
+
+now = datetime.datetime.now()
 
 if __name__ == "__main__":
 
@@ -42,7 +48,7 @@ if __name__ == "__main__":
             samples.append(fname[:-4])
 
     cores = []    
-    for sample in tqdm(samples, "Cores:"):
+    for sample in tqdm(samples, "Cores"):
         cp = CoreProcessor(sample, 
                             readType=cfg.ipread,
                             denoiseH=cfg.denoiseh, 
@@ -54,8 +60,8 @@ if __name__ == "__main__":
                             minEdgeLen=cfg.minedgelen,
                             edgeModel=cfg.edgemodel)
         cp.scoreCore()
-        logging.info(f"Sample {sample}: prec {cp.precision}, "
-            f"rec {cp.recall}")
+        logging.info(f"Sample {sample}: prec {round(cp.precision,3)}, "
+            f"rec {round(cp.recall, 3)}")
         cp.exportCoreImg(resultDir)
         cp.toPickle(resultDir)
         cores.append(cp)
@@ -65,10 +71,20 @@ if __name__ == "__main__":
 
     #TODO: log each core scoring into wandb, avoid this bs
     for name, data in [("Precision", prec), ("Recall", rec)]:
-        summary = (f"{name}: mean {np.mean(data)}, median: {np.median(data)}"
-            f"std {np.std(data)}, min: {np.min(data)}, max: {np.max(data)}")
+        summary = (f"{name}: mean {round(np.mean(data), 3)}, "
+                f"median: {round(np.median(data), 3)}"
+                f"std {round(np.std(data), 4)}, "
+                f"min: {round(np.min(data),3)}, max: {round(np.max(data),3)}")
         logging.info(summary)
-        plt.hist(data, bins=15)
-        plt.title(f"{name} across samples")
-        plt.savefig(os.path.join(resultDir, f'{name}.png'))
-    
+
+    # Histograms of precision and recall
+    fig, axes = plt.subplots(1, 2)
+    fig.suptitle("Precision and Recall for all Samples")
+    sns.histplot(data=prec, ax=axes[0], bins=30, kde=True)
+    sns.histplot(data=rec, ax=axes[1], bins=30, kde=True)
+
+    axes[0].set_xlabel("Precision")
+    axes[1].set_xlabel("Recall")
+    axes[1].set_ylabel("")
+
+    plt.savefig(os.path.join(resultDir, f'diagnostics_{now}.png'))
