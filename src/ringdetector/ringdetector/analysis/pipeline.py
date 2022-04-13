@@ -43,7 +43,16 @@ if __name__ == "__main__":
 
     cores = []    
     for sample in tqdm(samples, "Cores:"):
-        cp = CoreProcessor(sample, cfg)
+        cp = CoreProcessor(sample, 
+                            readType=cfg.ipread,
+                            denoiseH=cfg.denoiseh, 
+                            denoiseTemplateWindowSize=cfg.denoisetempwind, 
+                            searchWindowSize=cfg.denoisesearchwind,
+                            gradMethod=cfg.ipgrad,
+                            cannyMin=cfg.cannymin,
+                            cannyMax=cfg.cannymax,
+                            minEdgeLen=cfg.minedgelen,
+                            edgeModel=cfg.edgemodel)
         cp.scoreCore()
         logging.info(f"Sample {sample}: prec {cp.precision}, "
             "rec {cp.recall}")

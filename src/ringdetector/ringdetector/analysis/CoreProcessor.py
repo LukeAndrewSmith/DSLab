@@ -13,9 +13,18 @@ from ringdetector.Paths import GENERATED_DATASETS_INNER_CROPS, \
 
 class CoreProcessor:
 
-    def __init__(self, sampleName, cfg):
+    def __init__(self, 
+                sampleName, 
+                readType="hsv", 
+                denoiseH=10, 
+                denoiseTemplateWindowSize=7, 
+                searchWindowSize=21,
+                gradMethod="canny",
+                cannyMin=50,
+                cannyMax=100,
+                minEdgeLen=80,
+                edgeModel="linear"):
         self.sampleName = sampleName
-        self.cfg = cfg
 
         picklePath = os.path.join(
             GENERATED_DATASETS_INNER_PICKLES, f"{sampleName}.pkl"
@@ -33,18 +42,18 @@ class CoreProcessor:
             f"{sampleName}.jpg")
         self.procImg = ImageProcessor(
             impath, 
-            self.cfg.ipread, 
-            self.cfg.denoiseh,
-            self.cfg.denoisetempwind,
-            self.cfg.denoisesearchwind
-            )
+            readType, 
+            denoiseH,
+            denoiseTemplateWindowSize,
+            searchWindowSize
+        )
         self.procImg.computeGradients(
-            method=self.cfg.ipgrad, 
-            threshold1=self.cfg.cannymin, 
-            threshold2=self.cfg.cannymax
+            method=gradMethod, 
+            threshold1=cannyMin, 
+            threshold2=cannyMax
         )
     
-        edges = getEdges(self.procImg.gXY, self.cfg)
+        edges = getEdges(self.procImg.gXY, minEdgeLen, edgeModel)
         edges = scoreEdges(edges, self.core.pointLabels)
         
         # TODO: placeholder for some function where we remove edges with 
