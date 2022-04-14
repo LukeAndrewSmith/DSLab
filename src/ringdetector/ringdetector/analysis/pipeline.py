@@ -29,7 +29,8 @@ if __name__ == "__main__":
 
     logging.info("Processing Cores")
     
-    resultDir = os.path.join(GENERATED_DATASETS_INNER, "results")
+    #TODO: remove test here
+    resultDir = os.path.join(GENERATED_DATASETS_INNER, "test_results")
     if not os.path.exists(resultDir):
         os.mkdir(resultDir)
         logging.info(
@@ -63,6 +64,7 @@ if __name__ == "__main__":
         logging.info(f"Sample {sample}: prec {round(cp.precision,3)}, "
             f"rec {round(cp.recall, 3)}")
         cp.exportCoreImg(resultDir)
+        cp.exportCoreShapeImg(resultDir)
         cp.toPickle(resultDir)
         cores.append(cp)
 

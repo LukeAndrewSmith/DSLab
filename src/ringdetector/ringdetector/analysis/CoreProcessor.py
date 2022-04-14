@@ -170,9 +170,38 @@ class CoreProcessor:
         vertiList = [bgnd[:,(i*1500):(i*1500)+1500,:] for i in range(splits)]
         verti = np.concatenate(vertiList, axis=0)
         
-        # TODO maybe createe dir here
         exportPath = os.path.join(
             dir, f'{self.sampleName}_edgeplot.jpg'
+        )
+        cv2.imwrite(exportPath, verti)
+    
+    def exportCoreShapeImg(self, dir):
+        height, width = self.procImg.image.shape
+        shapeImg = np.zeros(
+            (height, width, 3), 
+            dtype=np.uint8
+        )
+        c1 = (255,255,187)
+        c2 = (159,84,255)
+        
+        for i, edge in enumerate(self.filteredEdges):
+            if i%2 == 0:
+                for point in edge.edge:
+                    shapeImg[point] = c1
+            else:
+                for point in edge.edge:
+                    shapeImg[point] = c2
+        
+        self.__plotLabels(shapeImg, self.truePosLabels, (0,255,0))
+        self.__plotLabels(shapeImg, self.falseNegLabels, (0,165,255))
+        splits = np.floor(np.shape(shapeImg)[1]/1500.0).astype(int)
+        vertiList = [
+            shapeImg[:,(i*1500):(i*1500)+1500,:] for i in range(splits)
+        ]
+        verti = np.concatenate(vertiList, axis=0)
+        
+        exportPath = os.path.join(
+            dir, f'{self.sampleName}_shapeplot.jpg'
         )
         cv2.imwrite(exportPath, verti)
 
