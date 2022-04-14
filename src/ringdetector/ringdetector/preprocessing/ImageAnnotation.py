@@ -34,7 +34,6 @@ class ImageAnnotation:
         core_annos = list()
         for core in self.cores:
             core_pos_path = self.__get_core_pos_path(core)
-            #TODO: could be cleaner to filter to annotations only for the specific core before passing to Core_Annotation
             coreLabelMeAnnotations = self.__processLabelMeAnnos(core)
             if core_pos_path:
                 core_annotation = CoreAnnotation(
