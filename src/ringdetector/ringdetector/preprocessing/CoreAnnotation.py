@@ -17,13 +17,13 @@ class CoreAnnotation:
         # Shapes: [ [x,y], ... ]
             # NOTE: do not modify self.shape or self.rectangles, this 
             # wont modify the original variables
-        self.innerRectangle  = self.__initRectangle("inner")
-        self.outerRectangle  = self.__initRectangle("outer")
+        self.innerRectangle  = self.__initRectangle("INNER")
+        self.outerRectangle  = self.__initRectangle("OUTER")
         self.rectangles      = [self.innerRectangle, self.outerRectangle]
-        self.cracks = self.__findShape('crack', [])
-        self.bark   = self.__findShape('bark', [])
-        self.ctrmid = self.__findShape('ctrmid', [])
-        self.ctrend = self.__findShape('ctrend', [])
+        self.cracks = self.__findShape('CRACK', [])
+        self.bark   = self.__findShape('BARK', [])
+        self.ctrmid = self.__findShape('CTRMID', [])
+        self.ctrend = self.__findShape('CTREND', [])
         self.shapes = [self.cracks, self.bark, self.ctrmid, self.ctrend]
         
         self.tricky   = self.__initTricky()
@@ -52,13 +52,15 @@ class CoreAnnotation:
 
     ######################
     # labelme Annotations
-    def __initRectangle(self, type):
-        points = self.__findShape(type, [])
+    def __initRectangle(self, rectType):
+        points = self.__findShape(rectType, [])
+        assert len(points) > 0, f"Core {self.sampleName} missing inner or "\
+            "outer crop label in JSON."
         boundingRect = min_bounding_rectangle(points)
         return boundingRect
 
     def __initTricky(self):
-        if self.__findShape('tricky', False): return True
+        if self.__findShape('TRICKY', False): return True
         return False
 
     def __findShape(self, label, default):
@@ -67,6 +69,8 @@ class CoreAnnotation:
             if shape["label"] == f'{self.sampleName}_{label}'), default)
 
 
+    ##############################
+    # POS File Processing
     ##############################
     def __initPointLabelInfo(self):
         # Some lines return multiple values (pith), hence return all lines in an array and unpack
