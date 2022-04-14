@@ -8,10 +8,9 @@ import wandb
 
 from ringdetector.analysis.ImageProcessor import ImageProcessor
 from ringdetector.analysis.EdgeProcessing import getEdges, scoreEdges, \
-    showEdgeInstanceImage, showCandidateEdges
+    showEdgeInstanceImage, showCandidateEdges, houghTransform
 from ringdetector.preprocessing.GeometryUtils import pixel_to_mm,\
     rotateCoords, rotateListOfCoords, shiftListOfCoords, roundCoords
-
 from ringdetector.Paths import GENERATED_DATASETS_INNER_CROPS, \
     GENERATED_DATASETS_INNER_PICKLES
 
@@ -60,6 +59,7 @@ class CoreProcessor:
         edges = scoreEdges(edges, self.core.pointLabels)
 
         showCandidateEdges(candidateEdges)
+        showCandidateEdges(houghTransform(candidateEdges))
         showEdgeInstanceImage(edges, candidateEdges.shape[0], candidateEdges.shape[1])
 
         # TODO: placeholder for some function where we remove edges with 
