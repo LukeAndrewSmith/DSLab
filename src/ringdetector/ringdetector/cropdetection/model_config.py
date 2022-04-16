@@ -12,7 +12,7 @@ def generate_config():
     cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url("COCO-Detection/faster_rcnn_R_50_FPN_3x.yaml") 
 
     ## ====Dataset====
-    cfg.DATASETS.TRAIN = ("obj_detection_train")## train_name
+    cfg.DATASETS.TRAIN = ("crop_detection_train")## train_name
     cfg.DATASETS.TEST = ()## test_name
 
     ## ====Dataloader====
@@ -30,7 +30,7 @@ def generate_config():
     cfg.SOLVER.STEPS = [] # do not decay learning rate
 
     ## ===Misc===
-    cfg.OUTPUT_DIR = "./_output_core"
+    cfg.OUTPUT_DIR = "./output_core"
     os.makedirs(cfg.OUTPUT_DIR, exist_ok=True)
     cfg.SEED = 12
 

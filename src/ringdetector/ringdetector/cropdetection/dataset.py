@@ -1,9 +1,8 @@
 import os
 
 from detectron2.structures import BoxMode
-from detectron2.data import MetadataCatalog, DatasetCatalog, DatasetMapper
+from detectron2.data import MetadataCatalog, DatasetCatalog
 
-from augmentation import RatioResize
 from ringdetector.preprocessing.ImageAnnotation import ImageAnnotation
 
 LABELME_JSONS = './json_train/'## TODO(2): original_path
@@ -37,25 +36,18 @@ class CropDataset():
                     "annotations":annos})
         
         return dataset
-    
-    def __generator_test(self):
-        pass
 
-    def __register_dataset(self, generator):
-        DatasetCatalog.register(self.name, generator)
-        MetadataCatalog.get(self.name).set(thing_classes=["inner_core"])
-
-    def generate_dataset(self):## TODO(2):validation
+    def generate_dataset(self):## TODO(1):validation
         if self.is_train:
             generator = self.__generator_train
         else:
             generator = self.__generator_test
+        ## Register the dataset
+        DatasetCatalog.register(self.name, generator)
         
-        self.__register_dataset(generator)
+        data = DatasetCatalog.get(self.name)
         
-        data = generator()
         metadata = MetadataCatalog.get(self.name)
-
-        dataset_mapper = DatasetMapper(self.cfg, is_train=self.is_train, augmentations=[RatioResize(0.15)])## TODO(2): augs
+        metadata.set(thing_classes=["inner_core"])
         
-        return data, metadata, dataset_mapper
+        return data, metadata
