@@ -141,6 +141,7 @@ class CoreAnnotation:
         return element
 
     ######################
+    ## TODO(2): train/test dataset logic: this is not needed once the inner crop detection finishes
     def toPickle(self, dir):
         filePath = os.path.join(dir, self.sampleName + ".pkl")
         with open(filePath, 'wb') as f:

@@ -14,6 +14,8 @@ class ImageAnnotation:
             self.pos_path = pos_path
             self.annotations = json.load(f)
             self.image_path = self.__get_image_path()
+            self.height = self.__get_image_height()
+            self.width = self.__get_image_width()
             self.cores = self.__get_cores()
             self.core_annotations = self.__annotate_cores()
             self.unmatched_pos_count = 0
@@ -41,6 +43,7 @@ class ImageAnnotation:
                 core_annos.append(core_annotation)
         return core_annos
 
+    ## TODO: Test Dataset Pipeline
     def __get_core_pos_path(self, core):
         core_pos_path = os.path.join(
             self.pos_path, core+".pos"
@@ -54,6 +57,12 @@ class ImageAnnotation:
 
     def __get_image_path(self):
         return self.annotations['imagePath']
+
+    def __get_image_height(self):
+        return self.annotations['imageHeight']
+    
+    def __get_image_width(self):
+        return self.annotations['imageWidth']
 
     def __repr__(self) -> str:
         return (f"Image annotation with JSON: {self.json_path}, "
