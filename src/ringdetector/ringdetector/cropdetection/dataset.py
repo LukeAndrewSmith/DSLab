@@ -9,11 +9,6 @@ LABELME_JSONS = './json_train/'## TODO(2): original_path
 POINT_LABELS = './pos_train/'## TODO(2): original_path
 
 class CropDataset():
-    def __init__(self, name, cfg, is_train) -> None:
-        self.name = name
-        self.cfg = cfg
-        self.is_train = is_train
-
     def __generator_train(self):
         dataset = []
         
@@ -37,17 +32,20 @@ class CropDataset():
         
         return dataset
 
-    def generate_dataset(self):## TODO(1):validation
-        if self.is_train:
+    def __generator_evaluate(self):##TODO(1): evaluator
+        pass
+
+    def generate_dataset(self, is_train, name):
+        if is_train:
             generator = self.__generator_train
         else:
-            generator = self.__generator_test
+            generator = self.__generator_evaluate
         ## Register the dataset
-        DatasetCatalog.register(self.name, generator)
+        DatasetCatalog.register(name, generator)
         
-        data = DatasetCatalog.get(self.name)
+        data = DatasetCatalog.get(name)
         
-        metadata = MetadataCatalog.get(self.name)
+        metadata = MetadataCatalog.get(name)
         metadata.set(thing_classes=["inner_core"])
         
         return data, metadata
