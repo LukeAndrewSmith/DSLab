@@ -11,7 +11,7 @@ class CoreAnnotation:
         self.sampleName  = sampleName
         self.corePosPath = corePosPath
         self.imagePath = imagePath
-        self.imageName = os.path.basename(self.imagePath)
+        self.imageName = os.path.basename(self.imagePath) ## this var is not used
         self.labelmeAnnotations = labelmeAnnotations
 
         # Shapes: [ [x,y], ... ]
@@ -120,8 +120,6 @@ class CoreAnnotation:
             positionStringSplit = positionString.split(',')
             return [float(x) for x in positionStringSplit]
 
-
-
     ##############################
     def __initGapLabels(self):
         gapLabels = [ 
@@ -141,7 +139,6 @@ class CoreAnnotation:
         return element
 
     ######################
-    ## TODO(2): train/test dataset logic: this is not needed once the inner crop detection finishes
     def toPickle(self, dir):
         filePath = os.path.join(dir, self.sampleName + ".pkl")
         with open(filePath, 'wb') as f:

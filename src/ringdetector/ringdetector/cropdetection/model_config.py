@@ -4,7 +4,7 @@ from detectron2 import model_zoo
 from detectron2.config import get_cfg
 
 ## TODO(2): model_config refactoring
-def config():
+def generate_config():
     cfg = get_cfg()
 
     ## ====Model====
