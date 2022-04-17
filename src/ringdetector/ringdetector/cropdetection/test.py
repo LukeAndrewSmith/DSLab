@@ -22,7 +22,7 @@ from model_config import generate_config
 from detectron2.engine import DefaultPredictor
 
 ## TODO(2): rotated rect prediction: https://github.com/facebookresearch/detectron2/issues/21, 
-# see https://colab.research.google.com/drive/1JXKl48u1fxC35bBryKlQVyQf8tp-DUpE?usp=sharing for a possible solution
+## see https://colab.research.google.com/drive/1JXKl48u1fxC35bBryKlQVyQf8tp-DUpE?usp=sharing for a possible solution
 
 config = generate_config()## TODO(2): model_config refactoring
 

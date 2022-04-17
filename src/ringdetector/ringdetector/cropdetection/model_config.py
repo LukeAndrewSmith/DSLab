@@ -16,21 +16,22 @@ def generate_config():
     cfg.DATASETS.TEST = ("crop_detection_evaluate",)## test_names
 
     ## ====Dataloader====
-    cfg.DATALOADER.NUM_WORKERS = 2
+    cfg.DATALOADER.NUM_WORKERS = 4
 
     ## ====Model:Hyperparam====
     cfg.MODEL.ROI_HEADS.BATCH_SIZE_PER_IMAGE = 128   # GPU Sensitive (default: 512)
     cfg.MODEL.ROI_HEADS.NUM_CLASSES = 1  # only has one class. (see https://detectron2.readthedocs.io/tutorials/datasets.html#update-the-config-for-new-datasets)
     # NOTE: this config means the number of classes, but a few popular unofficial tutorials incorrect uses num_classes+1 here.
-
+    cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.7  # set a custom testing threshold
+    
     ## ====Solver====
     cfg.SOLVER.IMS_PER_BATCH = 2 #GPU Sensitive 
     cfg.SOLVER.BASE_LR = 0.0025
-    cfg.SOLVER.MAX_ITER = 50
+    cfg.SOLVER.MAX_ITER = 100
     cfg.SOLVER.STEPS = [] # do not decay learning rate
 
     ## ===Misc===
-    cfg.OUTPUT_DIR = "./output_core"
+    cfg.OUTPUT_DIR = "src/output_core"
     os.makedirs(cfg.OUTPUT_DIR, exist_ok=True)
     cfg.SEED = 12
 

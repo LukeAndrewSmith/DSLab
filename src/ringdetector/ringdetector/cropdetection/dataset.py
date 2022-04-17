@@ -1,13 +1,12 @@
 import os
-from black import E
 
 from detectron2.structures import BoxMode
 from detectron2.data import MetadataCatalog, DatasetCatalog
 
 from ringdetector.preprocessing.ImageAnnotation import ImageAnnotation
 
-LABELME_JSONS = './json_files/'
-POINT_LABELS = './pos_files/'
+LABELME_JSONS = 'src/json_files/'
+POINT_LABELS = 'src/pos_files/'
 
 class CropDataset():
     def __init__(self, is_train) -> None:
@@ -44,8 +43,8 @@ class CropDataset():
     def generate_dataset(self, names):
         generator = self.__generator
         
-        data = []## TODO(2): multiple datasets, use list.extnnd()
-        metadata = [] ## TODO(2): multiple datasets, metadata instance
+        data = []## TODO(3): multiple datasets, use list.extnnd()
+        metadata = [] ## TODO(3): multiple datasets, metadata instance
         
         for name in names:
             DatasetCatalog.register(name, generator)
