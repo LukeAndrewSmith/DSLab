@@ -5,17 +5,11 @@ from detectron2.data import MetadataCatalog, DatasetCatalog
 
 from ringdetector.preprocessing.ImageAnnotation import ImageAnnotation
 
-LABELME_JSONS = 'src/json_files/'
-POINT_LABELS = 'src/pos_files/'
-
 class CropDataset():
-    def __init__(self, is_train) -> None:
-        if is_train:
-            self.json_path = os.path.join(LABELME_JSONS, 'train/')
-            self.pos_path = os.path.join(POINT_LABELS, 'train/')
-        else:
-            self.json_path = os.path.join(LABELME_JSONS, 'val/')
-            self.pos_path = os.path.join(POINT_LABELS, 'val/')
+    def __init__(self, is_train, json_path, pos_path) -> None:
+        sub_dir = 'train/' if is_train else 'val/'
+        self.json_path = os.path.join(json_path, sub_dir)
+        self.pos_path = os.path.join(pos_path, sub_dir)
     
     def __generator(self):
         dataset = []

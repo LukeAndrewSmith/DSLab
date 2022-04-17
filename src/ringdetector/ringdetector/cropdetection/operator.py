@@ -6,13 +6,9 @@ from augmentation import RatioResize
 
 class CustomizedTrainer(DefaultTrainer):
     @classmethod
-    def build_evaluator(cls, cfg, dataset_name):
-        # 1. ”instances_predictions.pth” a file that can be loaded with torch.load 
-        # and contains all the results in the format they are produced by the model.
-        # 2. ”coco_instances_results.json” a json file in COCO’s result format.
-        
+    def build_evaluator(cls, cfg, dataset_name): 
         ## NOTE: RotatedCOCOEvaluator uses IOU only and does not consider angle differences.
-        ## TODO(1): RotatedCOCOEvaluator has internal bugs that produce nonsensical evaluation results rn (see colab sample). Customization is needed.
+        ## TODO(1): RotatedCOCOEvaluator has internal bugs(?) that produce nonsensical evaluation results rn (see colab sample). Customization is needed.
         return RotatedCOCOEvaluator(dataset_name, output_dir=cfg.OUTPUT_DIR)
 
     @classmethod
@@ -24,7 +20,7 @@ class CustomizedTrainer(DefaultTrainer):
     
     @classmethod
     def build_test_loader(cls, cfg, dataset_name):
-        mapper_test = DatasetMapper(cfg, is_train=False, augmentations=[RatioResize(0.15)])## TODO(2): augs
+        mapper_test = DatasetMapper(cfg, is_train=True, augmentations=[RatioResize(0.15)])## TODO(2): augs
         test_loader  = build_detection_test_loader(cfg, dataset_name, mapper=mapper_test)
         
         return test_loader

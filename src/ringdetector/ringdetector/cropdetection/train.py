@@ -1,61 +1,50 @@
-##########################
-import torch
+import os
 
-TORCH_VERSION = torch.__version__
-CUDA_VERSION = torch.version.cuda # runtime ver
-
-##TODO(1): better way to handle torch
-##TODO(2): Distributed Training
-#torch.cuda.get_arch_list()  will return the compute capabilities used in your current PyTorch build
-#torch.cuda.is_available()
-#torch.cuda.device_count()
-DEVICE_NAME = torch.cuda.get_device_name(torch.cuda.current_device())
-
-print("torch: ", TORCH_VERSION, 
-      "; cuda: ", CUDA_VERSION,
-      "; device: ", DEVICE_NAME)
-
-########################
-
-from detectron2.checkpoint import DetectionCheckpointer
 from detectron2.utils.logger import setup_logger
 
-from model_config import generate_config
 from dataset import CropDataset
+from model_config import generate_config
 from ringdetector.cropdetection.operator import CustomizedTrainer
 
-setup_logger()##TODO(2): use wandb logger instead
-config = generate_config()##TODO(2): model_config refactoring
+LABELME_JSONS = 'src/json_files/'
+POINT_LABELS = 'src/pos_files/'
+OUTPUT_DIR = 'src/output/'
 
-data_train, metadata_train = CropDataset(is_train=True).generate_dataset(config.DATASETS.TRAIN)
-data_evaluate, metadata_evaluate = CropDataset(is_train=False).generate_dataset(config.DATASETS.TEST)
-## TODO(2): metadata_train.evaluator_type is None. currently using rotated coco eval as default
+##NOTE: current implementation does not support returning concatenated dataset (see the TODO in `dataset.py`), so this should only contain one element each!
+DATASET_TRAIN = ("crop_detection_train",)
+DATASET_VAL = ("crop_detection_evaluate",)
 
-## TODO(2): rotated rect prediction: https://github.com/facebookresearch/detectron2/issues/21, 
-## see https://colab.research.google.com/drive/1JXKl48u1fxC35bBryKlQVyQf8tp-DUpE?usp=sharing for a possible solution
+def training(is_resume):
+      # TODO(2): logging of val metrics upon training. see https://github.com/facebookresearch/detectron2/issues/810 
+      # and https://eidos-ai.medium.com/training-on-detectron2-with-a-validation-set-and-plot-loss-on-it-to-avoid-overfitting-6449418fbf4e
 
-is_eval_only = True
+      ##setup config
+      ##TODO(2): model_config refactoring using lazy config: https://detectron2.readthedocs.io/en/latest/tutorials/lazyconfigs.html#lazy-configs
+      ##TODO(2): config argparse
+      cfg = generate_config(OUTPUT_DIR, DATASET_TRAIN, DATASET_VAL)
 
-if is_eval_only:
-      model = CustomizedTrainer.build_model(config)
-      ckpt = DetectionCheckpointer(model, save_dir=config.OUTPUT_DIR)
-      ckpt.resume_or_load(config.MODEL.WEIGHTS, resume=True)
-      
-      # NOTE: do we need test-time augmentation? diff from build_test_loader?
-      # if config.TEST.AUG.ENABLED:
-      #       result.update(CustomizedTrainer.test_with_TTA(config, model))##
-      # if comm.is_main_process(): ##TODO(2): Distributed Training 
-      #       verify_results(config, result)
-      
-      CustomizedTrainer.test(config, model)
-else:
-      trainer = CustomizedTrainer(config)
-      trainer.resume_or_load(resume=True)
-      
+      ##create and register dataset, the returned dataset is for visualization purpose. type(dataset) is list[dicts], type(metatdata) is metatdata instance.
+      ##NOTE: metadata_train.evaluator_type is None cuz currently using rotated coco eval as default
+      data_train, metadata_train = CropDataset(is_train=True, json_path=LABELME_JSONS, pos_path=POINT_LABELS).generate_dataset(DATASET_TRAIN)
+      data_evaluate, metadata_evaluate = CropDataset(is_train=False, json_path=LABELME_JSONS, pos_path=POINT_LABELS).generate_dataset(DATASET_VAL)
+
+      trainer = CustomizedTrainer(cfg)
+      trainer.resume_or_load(resume=is_resume)
       # NOTE: do we need test-time augmentation? diff from build_test_loader?
       #     if config.TEST.AUG.ENABLED:
       #         trainer.register_hooks(
       #             [hooks.EvalHook(0, lambda: trainer.test_with_TTA(config, trainer.model))]
       #         )
       
+      ##train
       trainer.train()
+
+      ##TODO(2): visualization
+
+if __name__ == "__main__":
+      ##setup logger
+      ##TODO(2): use wandb logger instead: https://github.com/wandb/artifacts-examples/blob/master/detectron2/wandb_train_net.py
+      setup_logger()
+
+      os.makedirs(OUTPUT_DIR, exist_ok=True)
+      training(is_resume=True)
