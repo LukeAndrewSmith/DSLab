@@ -44,3 +44,5 @@ class CustomizedTrainer(DefaultTrainer):
     #     res = cls.test(cfg, model, evaluators)
     #     res = OrderedDict({k + "_TTA": v for k, v in res.items()})
     #     return res
+
+    ##TODO(2): use a class for testing purpose only

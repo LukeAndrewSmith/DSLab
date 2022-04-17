@@ -1,6 +1,7 @@
 from detectron2.utils.logger import setup_logger
 from detectron2.checkpoint import DetectionCheckpointer
 
+from utils import get_cuda_info
 from dataset import CropDataset
 from model_config import generate_config
 from ringdetector.cropdetection.operator import CustomizedTrainer
@@ -38,6 +39,7 @@ def validate():
     ##TODO(2): visualization
 
 if __name__ == "__main__":
+    print(get_cuda_info())
     ##setup logger
     ##TODO(2): use wandb logger instead: https://github.com/wandb/artifacts-examples/blob/master/detectron2/wandb_train_net.py
     setup_logger()
