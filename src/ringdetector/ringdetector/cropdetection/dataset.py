@@ -1,20 +1,29 @@
 import os
+from black import E
 
 from detectron2.structures import BoxMode
 from detectron2.data import MetadataCatalog, DatasetCatalog
 
 from ringdetector.preprocessing.ImageAnnotation import ImageAnnotation
 
-LABELME_JSONS = './json_train/'## TODO(2): original_path
-POINT_LABELS = './pos_train/'## TODO(2): original_path
+LABELME_JSONS = './json_files/'
+POINT_LABELS = './pos_files/'
 
 class CropDataset():
-    def __generator_train(self):
+    def __init__(self, is_train) -> None:
+        if is_train:
+            self.json_path = os.path.join(LABELME_JSONS, 'train/')
+            self.pos_path = os.path.join(POINT_LABELS, 'train/')
+        else:
+            self.json_path = os.path.join(LABELME_JSONS, 'val/')
+            self.pos_path = os.path.join(POINT_LABELS, 'val/')
+    
+    def __generator(self):
         dataset = []
-        
-        for file in os.listdir(LABELME_JSONS):
+
+        for file in os.listdir(self.json_path):
             if file.endswith(".json"):
-                img = ImageAnnotation(LABELME_JSONS+file, POINT_LABELS)
+                img = ImageAnnotation(self.json_path+file, self.pos_path)
                 
                 annos = []
                 for core in img.core_annotations:
@@ -24,7 +33,7 @@ class CropDataset():
                         "category_id": 0})
 
                 dataset.append({
-                    "file_name":LABELME_JSONS+img.image_path,
+                    "file_name":self.json_path+img.image_path,
                     "height": img.height,#TODO(3): integer
                     "width": img.width,#TODO(3): integer
                     "image_id": img.image_path,
@@ -32,20 +41,16 @@ class CropDataset():
         
         return dataset
 
-    def __generator_evaluate(self):##TODO(1): evaluator
-        pass
-
-    def generate_dataset(self, is_train, name):
-        if is_train:
-            generator = self.__generator_train
-        else:
-            generator = self.__generator_evaluate
-        ## Register the dataset
-        DatasetCatalog.register(name, generator)
+    def generate_dataset(self, names):
+        generator = self.__generator
         
-        data = DatasetCatalog.get(name)
+        data = []## TODO(2): multiple datasets, use list.extnnd()
+        metadata = [] ## TODO(2): multiple datasets, metadata instance
         
-        metadata = MetadataCatalog.get(name)
-        metadata.set(thing_classes=["inner_core"])
+        for name in names:
+            DatasetCatalog.register(name, generator)
+            data = DatasetCatalog.get(name)
+            metadata = MetadataCatalog.get(name)
+            metadata.set(thing_classes=["inner_core"])
         
         return data, metadata

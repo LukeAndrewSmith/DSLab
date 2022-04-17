@@ -12,8 +12,8 @@ def generate_config():
     cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url("COCO-Detection/faster_rcnn_R_50_FPN_3x.yaml") 
 
     ## ====Dataset====
-    cfg.DATASETS.TRAIN = ("crop_detection_train")## train_name
-    cfg.DATASETS.TEST = ("crop_detection_evaluate")## test_name
+    cfg.DATASETS.TRAIN = ("crop_detection_train",)## train_names
+    cfg.DATASETS.TEST = ("crop_detection_evaluate",)## test_names
 
     ## ====Dataloader====
     cfg.DATALOADER.NUM_WORKERS = 2
@@ -26,7 +26,7 @@ def generate_config():
     ## ====Solver====
     cfg.SOLVER.IMS_PER_BATCH = 2 #GPU Sensitive 
     cfg.SOLVER.BASE_LR = 0.0025
-    cfg.SOLVER.MAX_ITER = 100
+    cfg.SOLVER.MAX_ITER = 50
     cfg.SOLVER.STEPS = [] # do not decay learning rate
 
     ## ===Misc===
