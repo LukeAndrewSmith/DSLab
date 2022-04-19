@@ -2,7 +2,8 @@ import numpy as np
 import os
 import logging
 import cv2
-import pickle 
+import pickle
+import wandb 
 
 
 from ringdetector.analysis.ImageProcessor import ImageProcessor
@@ -129,6 +130,21 @@ class CoreProcessor:
 
         self.precision = self.truePos / (self.truePos + self.falsePos)
         self.recall = self.truePos / (self.truePos + self.falseNeg)
+
+    ### Wandb reporting
+    def reportCore(self):
+        """ Logs core processor metrics to wandb (only run after scoreCore)
+        """
+        report = dict(
+            core=self.sampleName,
+            edgeCount=len(self.filteredEdges),
+            truePos=self.truePos,
+            falsePos=self.falsePos,
+            falseNeg=self.falseNeg,
+            precision=self.precision,
+            recall=self.recall
+        )
+        wandb.log(report)
 
     ### Plotting the processed Core
     def __plotLabels(self, img, labels, color=(0,255,0)):

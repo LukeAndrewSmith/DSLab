@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 import pickle
 import seaborn as sns
 import datetime
+import wandb
 
 from ringdetector.Paths import GENERATED_DATASETS_INNER, \
     GENERATED_DATASETS_INNER_PICKLES
@@ -26,6 +27,12 @@ cfg = getArgs(parser)
 now = datetime.datetime.now()
 
 if __name__ == "__main__":
+
+    if cfg.wb:
+        wandb.init(
+                entity='treering', project="analysis", name=cfg.wbname
+            )
+        wandb.config.update(cfg)
 
     logging.info("Processing Cores")
     
@@ -48,8 +55,8 @@ if __name__ == "__main__":
         for fname in os.listdir(GENERATED_DATASETS_INNER_PICKLES):
             samples.append(fname[:-4])
 
-    cores = []    
-    for sample in tqdm(samples, "Cores"):
+    wbMetrics = []
+    for sample in tqdm(samples[:5], "Cores"):
         cp = CoreProcessor(sample, 
                             readType=cfg.ipread,
                             denoiseH=cfg.denoiseh, 
@@ -63,21 +70,41 @@ if __name__ == "__main__":
         cp.scoreCore()
         logging.info(f"Sample {sample}: prec {round(cp.precision,3)}, "
             f"rec {round(cp.recall, 3)}")
+        if cfg.wb:
+            cp.reportCore()
+        wbMetrics.append([cp.sampleName, cp.precision, cp.recall])
         cp.exportCoreImg(resultDir)
         cp.exportCoreShapeImg(resultDir)
         cp.toPickle(resultDir)
-        cores.append(cp)
 
-    prec = np.array([cp.precision for cp in cores])
-    rec = np.array([cp.recall for cp in cores])
+    if cfg.wb:
+        wbTable = wandb.Table(
+            data=wbMetrics, columns=["core", "precision", "recall"]
+        )
+        precHist = wandb.plot.histogram(
+            wbTable, value='precision', title='Precision')
+        recHist = wandb.plot.histogram(
+            wbTable, value='recall', title='Recall')
+        scatter = wandb.plot.scatter(
+            wbTable, x='recall', y='precision', title='Precision vs. Recall')
+    
+        wandb.log({'precision_hist': precHist, 
+                'recall_hist': recHist, 
+                'scatter': scatter})
 
-    #TODO: log each core scoring into wandb, avoid this bs
-    for name, data in [("Precision", prec), ("Recall", rec)]:
+    wbMetrics = np.array(wbMetrics)
+    prec = wbMetrics[:,1].astype(np.double)
+    rec = wbMetrics[:,2].astype(np.double)
+    
+    for name, data in [("precision", prec), ("recall", rec)]:
         summary = (f"{name}: mean {round(np.mean(data), 3)}, "
-                f"median: {round(np.median(data), 3)}"
+                f"median: {round(np.median(data), 3)}, "
                 f"std {round(np.std(data), 4)}, "
                 f"min: {round(np.min(data),3)}, max: {round(np.max(data),3)}")
         logging.info(summary)
+        if cfg.wb:
+            wandb.run.summary[f"{name}_mean"] = round(np.mean(data), 4)
+            wandb.run.summary[f"{name}_std"] = round(np.median(data), 4)
 
     # Histograms of precision and recall
     fig, axes = plt.subplots(1, 2)
@@ -90,3 +117,4 @@ if __name__ == "__main__":
     axes[1].set_ylabel("")
 
     plt.savefig(os.path.join(resultDir, f'diagnostics_{now}.png'))
+    

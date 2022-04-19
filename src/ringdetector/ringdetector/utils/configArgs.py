@@ -3,6 +3,13 @@ def getArgs(parser):
     """
     
     ###########################################################################
+    # Logging and Wands
+    ###########################################################################
+    parser.add_argument('-wb', '--wandb', dest='wb', action='store_true')
+    parser.add_argument('-wbn', dest='wbname', default="", type=str, 
+        help="Name of wandb run.")
+
+    ###########################################################################
     # Dataset
     ########################################################################### 
     #NOTE: placeholder for a potential future arg for datasets, right now
