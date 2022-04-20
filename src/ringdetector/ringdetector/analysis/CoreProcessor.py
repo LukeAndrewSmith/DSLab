@@ -6,8 +6,7 @@ import pickle
 import wandb 
 
 
-from ringdetector.analysis.ImageProcessor import ImageProcessor
-from ringdetector.analysis.EdgeProcessing import processImg, scoreEdges
+from ringdetector.analysis.RingDetection import findRings
 from ringdetector.preprocessing.GeometryUtils import pixel_to_mm,\
     rotateCoords, rotateListOfCoords, shiftListOfCoords, roundCoords
 
@@ -41,22 +40,23 @@ class CoreProcessor:
 
         impath = os.path.join(GENERATED_DATASETS_INNER_CROPS, 
             f"{sampleName}.jpg")
-        self.procImg = ImageProcessor(
-            impath, 
-            readType, 
-            denoiseH,
-            denoiseTemplateWindowSize,
-            searchWindowSize
-        )
-        self.procImg.computeGradients(
-            method=gradMethod, 
-            threshold1=cannyMin, 
-            threshold2=cannyMax
-        )
 
 
-        edges = processImg(impath)
-        edges = scoreEdges(edges, self.core.pointLabels)
+        # TODO: pass args to findRings: kept this in comments here to see what args were previously passed
+        # self.procImg =  ImageProcessor(
+        #     impath, 
+        #     readType, 
+        #     denoiseH,
+        #     denoiseTemplateWindowSize,
+        #     searchWindowSize
+        # )
+        # self.procImg.computeGradients(
+        #     method=gradMethod, 
+        #     threshold1=cannyMin, 
+        #     threshold2=cannyMax
+        # )
+        edges = findRings(impath)
+        edges = self.__scoreEdges(edges, self.core.pointLabels)
 
         # TODO: placeholder for some function where we remove edges with 
         # high MSE, or generally filter edges further 
@@ -71,6 +71,11 @@ class CoreProcessor:
         self.falseNegLabels = []
         self.falseNeg = 0
 
+    
+    def __scoreEdges(self, edges, pointLabels): # TODO: this should find another home
+        for edge in edges:
+            edge.scoreEdge(pointLabels)
+        return edges
         
     def __collectEdges(self, ringLabel):
         """ General idea: each edge has picked a closest point. With a specific set of ring points (one ring can be indicated by two ground truth points), we loop through the edges and find edges that have picked one of the ring points as their closest label. We add any edge that has picked this ring label to the list of matched edges (later, edges that are matched but not closest will count as false positives). If a matched edge is also the closest (or equally close) seen so far for this ring, it is added to closestEdges. 

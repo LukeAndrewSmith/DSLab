@@ -4,18 +4,16 @@ from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error
 
 from ringdetector.preprocessing.GeometryUtils import pixelDist
-
-class Edge():
+class Ring():
     
-    def __init__(self, edgeCoords, imgDims):
-        """ Input is a list of pixel coordinates that constitute an edge in 
+    def __init__(self, ringCoords, imgDims):
+        """ Input is a list of pixel coordinates that constitute an ring in 
         an image. 
         """
         # NOTE: shape finding inverts our coordinates. Here we set them back
         # to (x,y)
-        self.edge = [(coord[1],coord[0]) for coord in edgeCoords]
+        self.ring = [(x,y) for (y,x) in ringCoords]
 
-        # TODO: don't need to give denoised image, just dims of img
         self.imgheight, self.imgwidth = imgDims
         
         self.model = None
@@ -84,7 +82,7 @@ class Edge():
             (self.imgheight, self.imgwidth, 3), 
             dtype=np.uint8
         )
-        for point in self.edge:
+        for point in self.ring:
             img[point] = (255,255,255)
 
         if pred:

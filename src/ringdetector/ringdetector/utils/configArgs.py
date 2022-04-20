@@ -26,22 +26,22 @@ def getArgs(parser):
     ########################################################################### 
     #TODO: experiment with args, pick best default
     parser.add_argument("-ipread", type=str, choices=['grayscale', 'hsv'],
-        default='hsv', help="ImageProcessor: grayscale or hsv value component before processing")
+        default='hsv', help="EdgeDetection: grayscale or hsv value component before processing")
     parser.add_argument("-denoiseh", type=int, default=10, 
-        help="ImageProcessor: h arg for cv2.fastNlMeansDenoising")
+        help="EdgeDetection: h arg for cv2.fastNlMeansDenoising")
     parser.add_argument("-denoisetempwind", type=int, default=7, 
-        help="ImageProcessor: templateWindowSize arg for cv2.fastNlMeansDenoising")
+        help="EdgeDetection: templateWindowSize arg for cv2.fastNlMeansDenoising")
     parser.add_argument("-denoisesearchwind", type=int, default=21, 
-        help="ImageProcessor: searchWindowSize arg for cv2.fastNlMeansDenoising")
+        help="EdgeDetection: searchWindowSize arg for cv2.fastNlMeansDenoising")
     parser.add_argument("-ipgrad", type=str, default="canny", 
         choices=["canny", "sobel"], 
-        help="ImageProcessor: gradient-based edge detection method")
+        help="EdgeDetection: gradient-based edge detection method")
     parser.add_argument("-sobelksize", type=int, default=3, 
-        help="ImageProcessor: Ksize arg for cv2.Sobel")
+        help="EdgeDetection: Ksize arg for cv2.Sobel")
     parser.add_argument("-cannymin", type=int, default=50, 
-        help="ImageProcessor: Minimum threshold (threshold1 arg) for cv2.Canny")
+        help="EdgeDetection: Minimum threshold (threshold1 arg) for cv2.Canny")
     parser.add_argument("-cannymax", type=int, default=100, 
-        help="ImageProcessor: Maximum threshold (threshold2 arg) for cv2.Canny")
+        help="EdgeDetection: Maximum threshold (threshold2 arg) for cv2.Canny")
 
     ###########################################################################
     # Edge Processor and Edges
