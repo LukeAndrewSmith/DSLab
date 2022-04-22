@@ -152,3 +152,6 @@ src/ringdetector/ringdetector.egg-info
 # Ignore .vscoe
 /.vscode
 *.code-workspace
+
+# wandb
+*wandb/

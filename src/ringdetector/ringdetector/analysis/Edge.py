@@ -56,7 +56,7 @@ class Edge():
         return min_dist, min_label_point
 
     def fitPredict(self, model="linear"):
-        pred_domain = np.arange(self.imgheight)
+        pred_domain = np.arange(-10, self.imgheight+10, 1)
         
         if model == "linear":
             self.model = LinearRegression()
@@ -73,16 +73,19 @@ class Edge():
 
         self.mse = mean_squared_error(self.y, mse_pred)
 
-    def showEdge(self):
+    # TODO: fix this to something that makes sense, I want to keep 
+    # plotting capability within the class
+    def showEdge(self, img, pred=False):
         self.edgeim_gbr = np.zeros(
             (self.imgheight, self.imgwidth, 3), 
             dtype=np.uint8
         )
         for point in self.edge:
-            self.edgeim_gbr[point] = (255,255,255)
+            img[point] = (255,255,255)
 
-        for coord in self.predCoords:
-            self.edgeim_gbr[coord[0], coord[1],:] = (0,0,255)
+        if pred:
+            for coord in self.predCoords:
+                img[coord[0], coord[1],:] = (0,0,255)
 
         cv2.imshow(
             'EdgeGBR', self.edgeim_gbr[:,self.horiz_min-60:self.horiz_max+60,:]

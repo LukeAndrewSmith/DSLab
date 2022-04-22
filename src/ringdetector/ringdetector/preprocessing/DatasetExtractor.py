@@ -26,7 +26,10 @@ class DatasetExtractor:
         for file in os.listdir(LABELME_JSONS):
             if file.endswith(".json"):
                 coreAnnotations.append(
-                    ImageAnnotation(LABELME_JSONS+file, POINT_LABELS).core_annotations
+                    ImageAnnotation(
+                        os.path.join(LABELME_JSONS, file), 
+                        POINT_LABELS
+                    ).core_annotations
                 )
         return list(chain(*coreAnnotations))
 
@@ -82,7 +85,7 @@ class DatasetExtractor:
 
     #################
     def __getImage(self,core):
-        imagePath = os.path.join(IMAGES, core.imagePath)
+        imagePath = os.path.join(IMAGES, core.imageName)
         img = cv2.imread(imagePath, cv2.IMREAD_COLOR)
         return img
 
