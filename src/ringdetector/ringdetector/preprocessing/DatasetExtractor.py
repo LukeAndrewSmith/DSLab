@@ -91,8 +91,9 @@ class DatasetExtractor:
 
     #################
     def __rotateImagePointsShapes(self, core, img):
-        rotMat = self.__getRotationMatrix(core.innerRectangle)
+        core.center, core.angle = self.__getRotation(core.innerRectangle)
 
+        rotMat = cv2.getRotationMatrix2D(core.center, core.angle, 1.0)
         rotatedImg = cv2.warpAffine(img, rotMat, img.shape[1::-1])
         # ------ TODO: find a more elegant way of assigning the new variables, such that the lists are automatically updated----
         # e.g. use a dict
@@ -106,14 +107,13 @@ class DatasetExtractor:
 
         return core, rotatedImg
 
-    def __getRotationMatrix(self,rectangle):
+    def __getRotation(self,rectangle):
         bottomLeft, topLeft, topRight, bottomRight = rectangle
         run  = topRight[0] - topLeft[0]
         rise = topRight[1] - topLeft[1]
         center = (topLeft + bottomRight) / 2
         angle = np.degrees(np.arctan(rise/run))
-        rotMat = cv2.getRotationMatrix2D(center, angle, 1.0)
-        return rotMat
+        return center, angle
 
     def __rotateRectangles(self, rectangles, rotMat):
         rectangles = [
@@ -154,15 +154,19 @@ class DatasetExtractor:
 
     #################
     def __shiftAllPoints(self, core):
-        [_,topLeft, _, _] = core.innerRectangle # Should now be (0,0), hence shift all points by topLeft
+        """ Shift s.t. topLeft is now (0,0), hence shift all points by 
+        topLeft"""
         # ------ TODO: find a more elegant way of assigning the new variables, such that the lists are automatically updated----
-        core.innerRectangle, core.outerRectangle         = [self.__shiftListOfCoords(list, topLeft) for list in core.rectangles] 
-        core.cracks, core.bark, core.ctrmid, core.ctrend = [self.__shiftListOfCoords(list, topLeft) for list in core.shapes]
+        [_,topLeft, _, _] = core.innerRectangle 
+        core.shift = topLeft
+
+        core.innerRectangle, core.outerRectangle         = [self.__shiftListOfCoords(list, core.shift) for list in core.rectangles] 
+        core.cracks, core.bark, core.ctrmid, core.ctrend = [self.__shiftListOfCoords(list, core.shift) for list in core.shapes]
         core.rectangles = [core.innerRectangle, core.outerRectangle] 
         core.shapes     = [core.cracks, core.bark, core.ctrmid, core.ctrend]
         # ----------------------------------------------------------------------------------------------------------------------
-        core.pointLabels = [self.__shiftListOfCoords(list, topLeft) for list in core.pointLabels]
-        core.gapLabels   = [self.__shiftListOfCoords(list, topLeft) for list in core.gapLabels]
+        core.pointLabels = [self.__shiftListOfCoords(list, core.shift) for list in core.pointLabels]
+        core.gapLabels   = [self.__shiftListOfCoords(list, core.shift) for list in core.gapLabels]
         return core
 
     def __shiftListOfCoords(self, shape, shift):

@@ -3,6 +3,7 @@ import os
 import re
 import logging
 import pickle
+from copy import deepcopy
 
 from ringdetector.preprocessing.GeometryUtils import min_bounding_rectangle
 
@@ -17,8 +18,10 @@ class CoreAnnotation:
         # Shapes: [ [x,y], ... ]
             # NOTE: do not modify self.shape or self.rectangles, this 
             # wont modify the original variables
-        self.innerRectangle  = self.__initRectangle("INNER")
-        self.outerRectangle  = self.__initRectangle("OUTER")
+        self.origInnerRectangle  = self.__initRectangle("INNER")
+        self.innerRectangle = deepcopy(self.origInnerRectangle)
+        self.origOuterRectangle  = self.__initRectangle("OUTER")
+        self.outerRectangle = deepcopy(self.origOuterRectangle)
         self.rectangles      = [self.innerRectangle, self.outerRectangle]
         self.cracks = self.__findShape('CRACK', [])
         self.bark   = self.__findShape('BARK', [])
@@ -46,6 +49,12 @@ class CoreAnnotation:
 
         self.pith = []
         self.distToPith = None
+
+        # Saving rotation info
+        self.shift = None
+        self.rotAngle = None
+        self.rotCenter = None
+
 
     def __repr__(self) -> str:
         return (f"CoreAnnotation for {self.sampleName} in "
