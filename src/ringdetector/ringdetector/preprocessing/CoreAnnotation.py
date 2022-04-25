@@ -22,7 +22,7 @@ class CoreAnnotation:
         self.innerRectangle = deepcopy(self.origInnerRectangle)
         self.origOuterRectangle  = self.__initRectangle("OUTER")
         self.outerRectangle = deepcopy(self.origOuterRectangle)
-        self.rectangles      = [self.innerRectangle, self.outerRectangle]
+        self.rectangles = [self.innerRectangle, self.outerRectangle]
         self.cracks = self.__findShape('CRACK', [])
         self.bark   = self.__findShape('BARK', [])
         self.ctrmid = self.__findShape('CTRMID', [])
