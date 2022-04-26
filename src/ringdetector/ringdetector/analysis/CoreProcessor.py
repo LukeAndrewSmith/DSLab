@@ -253,7 +253,7 @@ class CoreProcessor:
             pos.append(self.__coordListToString(coords) + "\n")
         return pos
 
-    def __plotPosImage(self, coords):
+    def __plotPosImage(self, dir, coords):
         """ Plots edge candidate coordinates onto original scanned image """
         roundedCoords = roundCoords(coords)
         sc = self.core.getOriginalImage()
@@ -287,7 +287,7 @@ class CoreProcessor:
 
         # sanity check: round pixel coords and display on orig image
         if sanityCheck:
-            self.__plotPosImage(rotatedCoords)
+            self.__plotPosImage(dir, rotatedCoords)
 
         # pos file export
         mmCoords = [

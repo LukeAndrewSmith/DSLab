@@ -5,27 +5,18 @@ import logging
 import coloredlogs
 from tqdm import tqdm
 import numpy as np
-import matplotlib.pyplot as plt
-import pickle
-import seaborn as sns
-import datetime
 import wandb
 
-from ringdetector.Paths import GENERATED_DATASETS_INNER, \
-    GENERATED_DATASETS_INNER_PICKLES, GENERATED_DATASETS_TEST_INNER,\
-        GENERATED_DATASETS_INNER_POS
+from ringdetector.Paths import GENERATED_DATASETS_INNER_PICKLES,\
+    RESULTS, RESULTS_PKL, RESULTS_POS, RESULTS_DIAG
 from ringdetector.utils.configArgs import getArgs
 from ringdetector.analysis.CoreProcessor import CoreProcessor
 
 coloredlogs.install(level=logging.INFO)
 warnings.filterwarnings("ignore")
 
-sns.set_style("whitegrid")
-
 parser = argparse.ArgumentParser()
 cfg = getArgs(parser)
-
-now = datetime.datetime.now()
 
 if __name__ == "__main__":
 
@@ -35,16 +26,15 @@ if __name__ == "__main__":
             )
         wandb.config.update(cfg)
     
-    resultDir = os.path.join(GENERATED_DATASETS_INNER, "results")
-    if not os.path.exists(resultDir):
-        os.mkdir(resultDir)
-        logging.info(
-            f"Created directory {resultDir} for inner dataset results."
-        )
-    else:
-        logging.info(
-            f"Directory {resultDir} already exists, overwriting "
-            "existing result files.")
+    paths = [RESULTS, RESULTS_PKL, RESULTS_POS, RESULTS_DIAG]
+    for path in paths:
+        if not os.path.exists(path):
+            os.mkdir(path)
+            logging.info(f"Created directory {path}")
+        else:
+            logging.info(
+                f"Directory {path} already exists, overwriting any "
+                "existing files.")
 
     samples = []
     if cfg.sample:
@@ -71,10 +61,10 @@ if __name__ == "__main__":
         if cfg.wb:
             cp.reportCore()
         wbMetrics.append([cp.sampleName, cp.precision, cp.recall])
-        cp.exportCoreImg(resultDir)
-        cp.exportCoreShapeImg(resultDir)
-        cp.exportPos(resultDir, sanityCheck=True)
-        cp.toPickle(resultDir)
+        cp.exportCoreImg(RESULTS_DIAG)
+        cp.exportCoreShapeImg(RESULTS_DIAG)
+        cp.exportPos(RESULTS_POS, sanityCheck=True)
+        cp.toPickle(RESULTS_PKL)
 
     if cfg.wb:
         wbTable = wandb.Table(
