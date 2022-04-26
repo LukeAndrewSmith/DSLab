@@ -43,8 +43,11 @@ if __name__ == "__main__":
         for fname in os.listdir(GENERATED_DATASETS_INNER_PICKLES):
             samples.append(fname[:-4])
 
+    if cfg.n:
+        samples = samples[:cfg.n]
+
     wbMetrics = []
-    for sample in tqdm(samples[:5], "Cores"):
+    for sample in tqdm(samples, "Cores"):
         cp = CoreProcessor(sample, 
                             readType=cfg.ipread,
                             denoiseH=cfg.denoiseh, 
