@@ -12,7 +12,8 @@ import datetime
 import wandb
 
 from ringdetector.Paths import GENERATED_DATASETS_INNER, \
-    GENERATED_DATASETS_INNER_PICKLES
+    GENERATED_DATASETS_INNER_PICKLES, GENERATED_DATASETS_TEST_INNER,\
+        GENERATED_DATASETS_INNER_POS
 from ringdetector.utils.configArgs import getArgs
 from ringdetector.analysis.CoreProcessor import CoreProcessor
 
@@ -33,11 +34,8 @@ if __name__ == "__main__":
                 entity='treering', project="analysis", name=cfg.wbname
             )
         wandb.config.update(cfg)
-
-    logging.info("Processing Cores")
     
-    #TODO: remove test here
-    resultDir = os.path.join(GENERATED_DATASETS_INNER, "test_results")
+    resultDir = os.path.join(GENERATED_DATASETS_INNER, "results")
     if not os.path.exists(resultDir):
         os.mkdir(resultDir)
         logging.info(
@@ -75,6 +73,7 @@ if __name__ == "__main__":
         wbMetrics.append([cp.sampleName, cp.precision, cp.recall])
         cp.exportCoreImg(resultDir)
         cp.exportCoreShapeImg(resultDir)
+        cp.exportPos(resultDir, sanityCheck=True)
         cp.toPickle(resultDir)
 
     if cfg.wb:
@@ -105,16 +104,3 @@ if __name__ == "__main__":
         if cfg.wb:
             wandb.run.summary[f"{name}_mean"] = round(np.mean(data), 4)
             wandb.run.summary[f"{name}_std"] = round(np.median(data), 4)
-
-    # Histograms of precision and recall
-    fig, axes = plt.subplots(1, 2)
-    fig.suptitle("Precision and Recall for all Samples")
-    sns.histplot(data=prec, ax=axes[0], bins=30, kde=True)
-    sns.histplot(data=rec, ax=axes[1], bins=30, kde=True)
-
-    axes[0].set_xlabel("Precision")
-    axes[1].set_xlabel("Recall")
-    axes[1].set_ylabel("")
-
-    plt.savefig(os.path.join(resultDir, f'diagnostics_{now}.png'))
-    

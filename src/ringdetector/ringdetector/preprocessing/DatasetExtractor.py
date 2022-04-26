@@ -9,7 +9,7 @@ from tqdm import tqdm
 
 from ringdetector.preprocessing.ImageAnnotation import ImageAnnotation
 from ringdetector.preprocessing.GeometryUtils import mm_to_pixel,\
-    rotateCoords, rotateListOfCoords, shiftCoords, shiftListOfCoords
+    rotateCoords, rotateListOfCoords, shiftListOfCoords
 from ringdetector.Paths import GENERATED_DATASETS_INNER, LABELME_JSONS, \
     GENERATED_DATASETS_INNER_CROPS, GENERATED_DATASETS_INNER_PICKLES, IMAGES, \
     POINT_LABELS
@@ -57,7 +57,7 @@ class DatasetExtractor:
     def __processCore(self, core):
         # TODO: all these functions have side effects as they modify core variables directly, not clean, should update
         core             = self.__convertMMToPX(core)
-        img              = self.__getImage(core)
+        img              = core.getOriginalImage()
         core, rotatedImg = self.__rotateImagePointsShapes(core, img)
         croppedImg       = self.__cropImage(rotatedImg, core.innerRectangle)
         core             = self.__shiftAllPoints(core)
@@ -83,12 +83,6 @@ class DatasetExtractor:
         if core.mmPith: # empty list
             core.pith = [mm_to_pixel(coord, core.dpi) for coord in core.mmPith]
         return core
-
-    #################
-    def __getImage(self,core):
-        imagePath = os.path.join(IMAGES, core.imageName)
-        img = cv2.imread(imagePath, cv2.IMREAD_COLOR)
-        return img
 
     #################
     def __rotateImagePointsShapes(self, core, img):

@@ -3,9 +3,11 @@ import os
 import re
 import logging
 import pickle
+import cv2
 from copy import deepcopy
 
 from ringdetector.preprocessing.GeometryUtils import min_bounding_rectangle
+from ringdetector.Paths import IMAGES
 
 class CoreAnnotation:
     def __init__(self, labelmeAnnotations, sampleName, corePosPath, imagePath):
@@ -59,6 +61,12 @@ class CoreAnnotation:
     def __repr__(self) -> str:
         return (f"CoreAnnotation for {self.sampleName} in "
                 f"{self.imagePath}")
+
+    ####
+    def getOriginalImage(self):
+        imagePath = os.path.join(IMAGES, self.imageName)
+        img = cv2.imread(imagePath, cv2.IMREAD_COLOR)
+        return img
 
     ######################
     # labelme Annotations

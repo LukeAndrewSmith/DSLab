@@ -50,4 +50,12 @@ def getArgs(parser):
         default="linear", help="Edge: model type for edge fitting.")
     
     cfg = parser.parse_args()
+
+    ###########################################################################
+    # Additional logic
+    ###########################################################################
+    # turn on wandb automatically if running on entire dataset
+    if not cfg.sample:
+        cfg.wb = True
+        
     return cfg
