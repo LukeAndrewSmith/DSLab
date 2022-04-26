@@ -76,10 +76,10 @@ class ImageAnnotation:
         return self.labelMeAnnotations['imagePath']
 
     def __get_image_height(self): ## new
-        return self.annotations['imageHeight']
+        return self.labelMeAnnotations['imageHeight']
     
     def __get_image_width(self): ## new
-        return self.annotations['imageWidth']
+        return self.labelMeAnnotations['imageWidth']
 
     def __repr__(self) -> str:
         return (f"Image annotation with JSON: {self.json_path}, "

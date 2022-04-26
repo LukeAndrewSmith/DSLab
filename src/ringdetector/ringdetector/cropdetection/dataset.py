@@ -37,7 +37,7 @@ class CropDataset():
     def generate_dataset(self, names):
         generator = self.__generator
         
-        data = []## TODO(3): multiple datasets, use list.extnnd()
+        data = []## TODO(3): multiple datasets, use list.extend()
         metadata = [] ## TODO(3): multiple datasets, metadata instance
         
         for name in names:

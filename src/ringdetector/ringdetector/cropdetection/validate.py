@@ -6,9 +6,9 @@ from dataset import CropDataset
 from model_config import generate_config
 from ringdetector.cropdetection.operator import CustomizedTrainer
 
-LABELME_JSONS = 'src/json_files/'
-POINT_LABELS = 'src/pos_files/'
-CKPT_DIR = 'src/output/'
+LABELME_JSONS = '/home/leona/Documents/ds_lab/dslabtreering/src/json_files/'
+POINT_LABELS = '/home/leona/Documents/ds_lab/dslabtreering/src/pos_files/'
+CKPT_DIR = '/home/leona/Documents/ds_lab/dslabtreering/src/output/'
 
 ##NOTE: current implementation does not support returning concatenated dataset (see the TODO in `dataset.py`), so this should only contain one element each!
 DATASET_VAL = ("crop_detection_evaluate",)
