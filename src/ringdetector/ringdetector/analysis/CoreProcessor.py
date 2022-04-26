@@ -2,7 +2,8 @@ import numpy as np
 import os
 import logging
 import cv2
-import pickle 
+import pickle
+import wandb 
 
 
 from ringdetector.analysis.ImageProcessor import ImageProcessor
@@ -13,9 +14,18 @@ from ringdetector.Paths import GENERATED_DATASETS_INNER_CROPS, \
 
 class CoreProcessor:
 
-    def __init__(self, sampleName, cfg):
+    def __init__(self, 
+                sampleName, 
+                readType="hsv", 
+                denoiseH=10, 
+                denoiseTemplateWindowSize=7, 
+                searchWindowSize=21,
+                gradMethod="canny",
+                cannyMin=50,
+                cannyMax=100,
+                minEdgeLen=80,
+                edgeModel="linear"):
         self.sampleName = sampleName
-        self.cfg = cfg
 
         picklePath = os.path.join(
             GENERATED_DATASETS_INNER_PICKLES, f"{sampleName}.pkl"
@@ -31,10 +41,20 @@ class CoreProcessor:
 
         impath = os.path.join(GENERATED_DATASETS_INNER_CROPS, 
             f"{sampleName}.jpg")
-        self.procImg = ImageProcessor(impath, self.cfg)
-        self.procImg.computeGradients()
+        self.procImg = ImageProcessor(
+            impath, 
+            readType, 
+            denoiseH,
+            denoiseTemplateWindowSize,
+            searchWindowSize
+        )
+        self.procImg.computeGradients(
+            method=gradMethod, 
+            threshold1=cannyMin, 
+            threshold2=cannyMax
+        )
     
-        edges = getEdges(self.procImg.gXY, self.cfg)
+        edges = getEdges(self.procImg.gXY, minEdgeLen, edgeModel)
         edges = scoreEdges(edges, self.core.pointLabels)
         
         # TODO: placeholder for some function where we remove edges with 
@@ -111,6 +131,21 @@ class CoreProcessor:
         self.precision = self.truePos / (self.truePos + self.falsePos)
         self.recall = self.truePos / (self.truePos + self.falseNeg)
 
+    ### Wandb reporting
+    def reportCore(self):
+        """ Logs core processor metrics to wandb (only run after scoreCore)
+        """
+        report = dict(
+            core=self.sampleName,
+            edgeCount=len(self.filteredEdges),
+            truePos=self.truePos,
+            falsePos=self.falsePos,
+            falseNeg=self.falseNeg,
+            precision=self.precision,
+            recall=self.recall
+        )
+        wandb.log(report)
+
     ### Plotting the processed Core
     def __plotLabels(self, img, labels, color=(0,255,0)):
         for label in labels:
@@ -151,9 +186,38 @@ class CoreProcessor:
         vertiList = [bgnd[:,(i*1500):(i*1500)+1500,:] for i in range(splits)]
         verti = np.concatenate(vertiList, axis=0)
         
-        # TODO maybe createe dir here
         exportPath = os.path.join(
             dir, f'{self.sampleName}_edgeplot.jpg'
+        )
+        cv2.imwrite(exportPath, verti)
+    
+    def exportCoreShapeImg(self, dir):
+        height, width = self.procImg.image.shape
+        shapeImg = np.zeros(
+            (height, width, 3), 
+            dtype=np.uint8
+        )
+        c1 = (255,255,187)
+        c2 = (159,84,255)
+        
+        for i, edge in enumerate(self.filteredEdges):
+            if i%2 == 0:
+                for point in edge.edge:
+                    shapeImg[point] = c1
+            else:
+                for point in edge.edge:
+                    shapeImg[point] = c2
+        
+        self.__plotLabels(shapeImg, self.truePosLabels, (0,255,0))
+        self.__plotLabels(shapeImg, self.falseNegLabels, (0,165,255))
+        splits = np.floor(np.shape(shapeImg)[1]/1500.0).astype(int)
+        vertiList = [
+            shapeImg[:,(i*1500):(i*1500)+1500,:] for i in range(splits)
+        ]
+        verti = np.concatenate(vertiList, axis=0)
+        
+        exportPath = os.path.join(
+            dir, f'{self.sampleName}_shapeplot.jpg'
         )
         cv2.imwrite(exportPath, verti)
 

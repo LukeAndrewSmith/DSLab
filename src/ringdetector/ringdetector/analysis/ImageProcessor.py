@@ -9,43 +9,46 @@ class ImageProcessor:
     """
     class that takes an image and computes all sorts of processing
     """
-    def __init__(self, path, cfg):
+    def __init__(self, path, 
+                       readType="hsv", 
+                       denoiseH=10, 
+                       denoiseTemplateWindowSize=7, 
+                       searchWindowSize=21):
         self.name = path.split('/')[-1][:-4]
-        self.cfg = cfg
         
-        if self.cfg.ipread == "grayscale":
+        if readType == "grayscale":
             self.image = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
-        elif self.cfg.ipread == "hsv":
+        elif readType == "hsv":
             gbr_img = cv2.imread(path, cv2.IMREAD_UNCHANGED)
             hsv_img = cv2.cvtColor(gbr_img, cv2.COLOR_BGR2HSV)
             self.image = hsv_img[:,:,2]
         else: 
             self.image = None
 
-        self.denoisedImage = self.__denoiseImage()
+        self.denoisedImage = self.__denoiseImage(
+            denoiseH, denoiseTemplateWindowSize, searchWindowSize
+        )
 
         self.gX, self.gY = None, None
         self.gXY = None
 
 
-    def computeGradients(self):
-        if self.cfg.ipgrad == 'Sobel':
-            self.gX = self.__computeSobelGradient(direction='x')
-            self.gY = self.__computeSobelGradient(direction='y')
+    def computeGradients(self, method="canny", **kwargs):
+        if method == 'sobel':
+            self.gX = self.__computeSobelGradient(direction='x', **kwargs)
+            self.gY = self.__computeSobelGradient(direction='y', **kwargs)
             self.gXY = self.__add(self.gX, self.gY)
-        elif self.cfg.ipgrad == 'Canny':
+        elif method == 'canny':
             self.gXY = cv2.Canny(
-                self.denoisedImage, 
-                threshold1=self.cfg.cannymin, 
-                threshold2=self.cfg.cannymax
+                self.denoisedImage, **kwargs
             )
 
-    def __denoiseImage(self):
+    def __denoiseImage(self, h=10, templateWindowSize=7, searchWindowSize=21):
         #TODO: investigate impact of all three params
         denoisedImage = cv2.fastNlMeansDenoising(
-            self.image, None, h=self.cfg.denoiseh, 
-            templateWindowSize=self.cfg.denoisetempwind, 
-            searchWindowSize=self.cfg.denoisesearchwind
+            self.image, None, h=h, 
+            templateWindowSize=templateWindowSize, 
+            searchWindowSize=searchWindowSize
         )
         return denoisedImage
 
@@ -83,16 +86,16 @@ class ImageProcessor:
         imAbs = cv2.convertScaleAbs(im)
         return imAbs
 
-    def __computeSobelGradient(self, direction):
+    def __computeSobelGradient(self, direction, ksize=3):
         if direction == 'x':
             g = cv2.Sobel(
                 self.denoisedImage, ddepth=cv2.CV_16S, dx=1, dy=0, 
-                ksize=self.cfg.sobelksize
+                ksize=ksize
             )
         elif direction == 'y':
             g = cv2.Sobel(
                 self.denoisedImage, ddepth=cv2.CV_16S, dx=0, dy=1,
-                ksize=self.cfg.sobelksize
+                ksize=ksize
             )
         else:
             print('please provide direction: x or y?')

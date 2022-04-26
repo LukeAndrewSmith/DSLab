@@ -1,7 +1,10 @@
 import json
 import os
 import logging
+from copy import deepcopy
+
 from ringdetector.preprocessing.CoreAnnotation import CoreAnnotation
+
 
 # this is a class that reads in a json annotation of an image and creates a class for each core with all relevant
 # annotations
@@ -12,7 +15,7 @@ class ImageAnnotation:
         self.json_path = json_path
         with open(self.json_path) as f:
             self.pos_path = pos_path
-            self.annotations = json.load(f)
+            self.labelMeAnnotations = json.load(f)
             self.image_path = self.__get_image_path()
             self.height = self.__get_image_height() ## new
             self.width = self.__get_image_width() ## new
@@ -22,20 +25,21 @@ class ImageAnnotation:
 
     def __get_cores(self):
         cores = list()
-        for shape in self.annotations['shapes']:
+        for shape in self.labelMeAnnotations['shapes']:
             s = shape['label'].split('_')
-            if s[0] not in cores:
-                cores.append(s[0])
+            coreName = s[0].upper()
+            if coreName not in cores:
+                cores.append(coreName)
         return cores
 
     def __annotate_cores(self):
         core_annos = list()
         for core in self.cores:
             core_pos_path = self.__get_core_pos_path(core)
-            #TODO: could be cleaner to filter to annotations only for the specific core before passing to Core_Annotation
-            if core_pos_path is not None:
+            coreLabelMeAnnotations = self.__processLabelMeAnnos(core)
+            if core_pos_path:
                 core_annotation = CoreAnnotation(
-                    self.annotations, 
+                    coreLabelMeAnnotations, 
                     core, 
                     core_pos_path, 
                     self.image_path
@@ -44,18 +48,32 @@ class ImageAnnotation:
         return core_annos
 
     def __get_core_pos_path(self, core):
-        core_pos_path = os.path.join(
-            self.pos_path, core+".pos"
-        )
-        if os.path.exists(core_pos_path):
+        core_pos_path = ""
+        for file in os.listdir(self.pos_path):
+            if file[:-4].upper() == core:
+                core_pos_path = os.path.join(
+                    self.pos_path, file
+                )
+                break
+        if core_pos_path and os.path.exists(core_pos_path):
             return core_pos_path
         else:
             logging.warn(f"Could not find pos file for core {core}"
             f" in {self.image_path}")
             return None
 
+    def __processLabelMeAnnos(self, core):
+        coreShapes = []
+        coreLabelMeAnnotations = deepcopy(self.labelMeAnnotations)
+        for shape in coreLabelMeAnnotations["shapes"]:
+            shape['label'] = shape['label'].upper()
+            if shape['label'].split("_")[0] == core:
+                coreShapes.append(shape)
+        coreLabelMeAnnotations["shapes"] = coreShapes 
+        return coreLabelMeAnnotations
+
     def __get_image_path(self):
-        return self.annotations['imagePath']
+        return self.labelMeAnnotations['imagePath']
 
     def __get_image_height(self): ## new
         return self.annotations['imageHeight']

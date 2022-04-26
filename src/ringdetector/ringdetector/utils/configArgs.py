@@ -3,6 +3,13 @@ def getArgs(parser):
     """
     
     ###########################################################################
+    # Logging and Wands
+    ###########################################################################
+    parser.add_argument('-wb', '--wandb', dest='wb', action='store_true')
+    parser.add_argument('-wbn', dest='wbname', default="", type=str, 
+        help="Name of wandb run.")
+
+    ###########################################################################
     # Dataset
     ########################################################################### 
     #NOTE: placeholder for a potential future arg for datasets, right now
@@ -24,8 +31,8 @@ def getArgs(parser):
         help="ImageProcessor: templateWindowSize arg for cv2.fastNlMeansDenoising")
     parser.add_argument("-denoisesearchwind", type=int, default=21, 
         help="ImageProcessor: searchWindowSize arg for cv2.fastNlMeansDenoising")
-    parser.add_argument("-ipgrad", type=str, default="Canny", 
-        choices=["Canny", "Sobel"], 
+    parser.add_argument("-ipgrad", type=str, default="canny", 
+        choices=["canny", "sobel"], 
         help="ImageProcessor: gradient-based edge detection method")
     parser.add_argument("-sobelksize", type=int, default=3, 
         help="ImageProcessor: Ksize arg for cv2.Sobel")

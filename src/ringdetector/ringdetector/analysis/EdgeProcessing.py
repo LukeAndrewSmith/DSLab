@@ -6,32 +6,39 @@ from scipy.ndimage import label
 
 from ringdetector.analysis.Edge import Edge
 
-def getEdges(candidateEdgesImg, cfg):
+def getEdges(candidateEdgesImg, minEdgeLen, edgeModel):
     '''
-        Gets an candidateEdges (grascale image) from one of the Edge detection algos 
-        and postprocesses to identify edges
+        Gets an candidateEdges (grascale image) from one of the Edge detection
+        algos and postprocesses to identify edges
     '''
-    def __getEdges(candidateEdgesImg, cfg):
+    def __getEdges(candidateEdgesImg, minEdgeLen, edgeModel):
         candidateEdgesMask = (candidateEdgesImg > np.amax(candidateEdgesImg)/2)
         shapes = __getShapes(candidateEdgesMask)
-        return identifyEdges(shapes, candidateEdgesMask.shape, cfg)
+        return identifyEdges(
+            shapes, candidateEdgesMask.shape, minEdgeLen, edgeModel
+        )
 
     def __getShapes(candidateEdgesMask):
-        s = [[1,1,1], [1,1,1], [1,1,1]]                       # Neighborhood definition
-        labels, numL = label(candidateEdgesMask, structure=s) # Label the contiguous shapes
-        shapes = [[] for _ in range(numL+1)]                  # Create an array per shape
-        [[shapes[labels[i,j]].append((i,j)) for i in range(candidateEdgesMask.shape[0])] 
-                                            for j in range(candidateEdgesMask.shape[1])] # Append index to the shapes array
-        shapes = shapes[1:]                                   # 0 label => no shape, didn't but an 'if' in the previous line as it's much slower
+        # Neighborhood definition
+        s = [[1,1,1], [1,1,1], [1,1,1]]  
+        # Label the contiguous shapes
+        labels, numL = label(candidateEdgesMask, structure=s) 
+        # Create an array per shape
+        shapes = [[] for _ in range(numL+1)]
+        # Append index to the shapes array
+        [[shapes[labels[i,j]].append((i,j)) for i in range(candidateEdgesMask.shape[0])] for j in range(candidateEdgesMask.shape[1])]
+        # 0 label => no shape, didn't but an 'if' in the previous line 
+        # as it's much slower 
+        shapes = shapes[1:]                                   
         return shapes
 
-    def identifyEdges(shapes, maskShape, cfg):
+    def identifyEdges(shapes, maskShape, minEdgeLen, edgeModel):
         #TODO: try linking edge instances like in the paper
-        filteredShapes = __filterByLength(shapes, cfg.minedgelen)
+        filteredShapes = __filterByLength(shapes, minEdgeLen)
         edges = []
         for shape in filteredShapes:
             edge = Edge(shape, maskShape)
-            edge.fitPredict(model=cfg.edgemodel)
+            edge.fitPredict(model=edgeModel)
             edges.append(edge)
         return edges
 
@@ -40,7 +47,7 @@ def getEdges(candidateEdgesImg, cfg):
                                                  if len(instance) >= minLength]
         return filteredShapes
 
-    return __getEdges(candidateEdgesImg, cfg)
+    return __getEdges(candidateEdgesImg, minEdgeLen, edgeModel)
 
 
 def scoreEdges(edges, pointLabels):

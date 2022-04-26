@@ -5,8 +5,8 @@ import cv2
 
 def min_bounding_rectangle(points):
     # converts a list of points into the min are rectangle containing all points
-    points = np.int0(np.asarray(points))
-    rect = cv2.minAreaRect(points)
+    intpoints = np.int0(np.round_(np.asarray(points)))
+    rect = cv2.minAreaRect(intpoints)
     box = __order_points(cv2.boxPoints(rect))
     # NOTE: Rectangle points are stored clockwise from the bottom left:
         # 1 ----- 2

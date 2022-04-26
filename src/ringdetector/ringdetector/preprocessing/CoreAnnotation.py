@@ -17,16 +17,16 @@ class CoreAnnotation:
         # Shapes: [ [x,y], ... ]
             # NOTE: do not modify self.shape or self.rectangles, this 
             # wont modify the original variables
-        self.innerRectangle  = self.__initRectangle("inner")
-        self.outerRectangle  = self.__initRectangle("outer")
+        self.innerRectangle  = self.__initRectangle("INNER")
+        self.outerRectangle  = self.__initRectangle("OUTER")
         self.rectangles      = [self.innerRectangle, self.outerRectangle]
-        self.cracks = self.__findShape('crack', [])
-        self.bark   = self.__findShape('bark', [])
-        self.ctrmid = self.__findShape('ctrmid', [])
-        self.ctrend = self.__findShape('ctrend', [])
+        self.cracks = self.__findShape('CRACK', [])
+        self.bark   = self.__findShape('BARK', [])
+        self.ctrmid = self.__findShape('CTRMID', [])
+        self.ctrend = self.__findShape('CTREND', [])
         self.shapes = [self.cracks, self.bark, self.ctrmid, self.ctrend]
         
-        self.tricky   = self.__initTricky()
+        self.tricky = self.__initTricky()
         
         # Parsing the pos file, splitting lines into groups
         self.headerLines = []
@@ -41,7 +41,8 @@ class CoreAnnotation:
         self.gapLabels = []
 
         # Point Label Info:
-        self.dpi, self.mmPith, self.mmDistToPith, self.yearsToPith = self.__initPointLabelInfo()
+        self.dpi = self.__getDPI() 
+        self.mmPith, self.mmDistToPith, self.yearsToPith = self.__getPithData()
 
         self.pith = []
         self.distToPith = None
@@ -52,13 +53,15 @@ class CoreAnnotation:
 
     ######################
     # labelme Annotations
-    def __initRectangle(self, type):
-        points = self.__findShape(type, [])
+    def __initRectangle(self, rectType):
+        points = self.__findShape(rectType, [])
+        assert len(points) > 0, f"Core {self.sampleName} missing inner or "\
+            "outer crop label in JSON."
         boundingRect = min_bounding_rectangle(points)
         return boundingRect
 
     def __initTricky(self):
-        if self.__findShape('tricky', False): return True
+        if self.__findShape('TRICKY', False): return True
         return False
 
     def __findShape(self, label, default):
@@ -68,26 +71,35 @@ class CoreAnnotation:
 
 
     ##############################
-    def __initPointLabelInfo(self):
-        # Some lines return multiple values (pith), hence return all lines in an array and unpack
-        pointLabelInfoDict = dict(
-            [ i for x in self.headerLines for i in self.__processInfoLine(x)]
-        )
-        return self.__unpackPointLabelInfoDict(pointLabelInfoDict)
-        
-    def __processInfoLine(self, line):
-        if '#DPI' in line:
-            return [('dpi', float(self.__safeRegexSearch(line, '#DPI (\d+\.\d+)')))]
-        if 'Pith' in line:
-            pithCoordinates = self.__positionStringToFloatArray(
-                self.__safeRegexSearch(
-                    line, 'PithCoordinates=(-?\d+\.\d+,-?\d+\.\d+)')
-            )
-            distanceToPith = self.__getPithNumbers(line, 'DistanceToPith=(\d+\.\d+)')
-            yearsToPith = self.__getPithNumbers(line, 'YearsToPith=(\d+)')
-            return [('pithCoordinates', pithCoordinates), ('distanceToPith', distanceToPith), ('yearsToPith', yearsToPith)]
-        else:
-            return [('',None)]
+    # POS File Processing
+    ##############################
+    def __getDPI(self):
+        """ Loop through header lines and extract DPI"""
+        result = None
+        for line in self.headerLines:
+            if '#DPI' in line:
+                result = float(self.__safeRegexSearch(line, '#DPI (\d+\.\d+)'))
+                break
+        return result
+    
+    def __getPithData(self):
+        """ Loop through header lines and extract pith info"""
+        pithCoordinates = None
+        distanceToPith = None
+        yearsToPith = None
+        for line in self.headerLines:
+            if 'PithCoordinates' in line:
+                pithCoordinates = self.__positionStringToFloatArray(
+                    self.__safeRegexSearch(
+                        line, 'PithCoordinates=(-?\d+\.\d+,-?\d+\.\d+)')
+                )
+            if 'DistanceToPith' in line:
+                distanceToPith = self.__getPithNumbers(
+                    line, 'DistanceToPith=(\d+\.\d+)'
+                )
+            if 'YearsToPith' in line:
+                yearsToPith = self.__getPithNumbers(line, 'YearsToPith=(\d+)')
+        return pithCoordinates, distanceToPith, yearsToPith
 
     def __getPithNumbers(self, line, regex):
         regexStr = self.__safeRegexSearch(line, regex)
@@ -95,10 +107,6 @@ class CoreAnnotation:
         if regexStr: 
             floatResult = float(regexStr)
         return floatResult
-
-    def __unpackPointLabelInfoDict(self, d):
-        return [ d.get('dpi'), d.get('pithCoordinates'), d.get('distanceToPith'), d.get('yearsToPith') ]
-
 
     ##############################
     def __initPointLabels(self):
@@ -163,6 +171,7 @@ class CoreAnnotation:
     def __safeRegexSearch(self,string,pattern):
         try:
             return re.search(pattern, string).group(1)
-        except:
-            print(f'Note: { pattern } not found in { string }')
+        except AttributeError:
+            print(f'{self.sampleName}: {pattern} not found in {string}')
             return None
+        
