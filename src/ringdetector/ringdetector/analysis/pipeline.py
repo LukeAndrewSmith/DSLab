@@ -66,7 +66,7 @@ if __name__ == "__main__":
         wbMetrics.append([cp.sampleName, cp.precision, cp.recall])
         cp.exportCoreImg(RESULTS_DIAG)
         cp.exportCoreShapeImg(RESULTS_DIAG)
-        cp.exportPos(RESULTS_POS, sanityCheck=True)
+        cp.exportPos(RESULTS_POS, sanityCheck=False)
         cp.toPickle(RESULTS_PKL)
 
     if cfg.wb:
