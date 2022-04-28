@@ -18,9 +18,8 @@ def min_bounding_rectangle(points):
             box[0][0]<=box[2][0] and # check left vs right
             box[0][0]<=box[3][0]), "Assumed rectangle order wrong"
     
-    bounding_box = __transform_to_xywha(box)
-    
-    return bounding_box
+    return box
+
 
 def __order_points(points):
     xSorted = points[np.argsort(points[:, 0]), :]
@@ -31,6 +30,7 @@ def __order_points(points):
     rightPoints = rightPoints[np.argsort(rightPoints[:, 1]), :]
     (tr, br) = rightPoints
     return np.array([bl, tl, tr, br], dtype="float32")
+
 
 def __transform_to_xywha(box): # transform into compatible format for detectron2
     xc, yc = (box[0] + box[2])/2 # center point
@@ -43,6 +43,22 @@ def __transform_to_xywha(box): # transform into compatible format for detectron2
         a = - degrees(2 * atan2(h, w))
 
     return [xc, yc, w, h, a]
+
+
+def __transform_to_xywh(box):  # transform into compatible format for detectron2 no angle
+    # determine max outer coords:
+    xmin = np.min(box[:][0])
+    xmax = np.max(box[:][0])
+    ymin = np.min(box[:][1])
+    ymax = np.max(box[:][1])
+
+    xc = (xmin + xmax) / 2
+    yc = (ymin + ymax) / 2
+    w = xmax - xmin  # width
+    h = ymax - ymin  # height
+
+    return [xc, yc, w, h]
+
 
 def mm_to_pixel(mm, dpi):
     # 25.4 mm is one inch

@@ -3,6 +3,8 @@ import os
 import re
 import logging
 import pickle
+from math import dist, atan2, degrees
+import numpy as np
 
 from ringdetector.preprocessing.GeometryUtils import min_bounding_rectangle
 
@@ -17,8 +19,10 @@ class CoreAnnotation:
         # Shapes: [ [x,y], ... ]
             # NOTE: do not modify self.shape or self.rectangles, this 
             # wont modify the original variables
-        self.innerRectangle  = self.__initRectangle("inner")
-        self.outerRectangle  = self.__initRectangle("outer")
+        self.innerRectangle = self.__initRectangle("inner")
+        self.innerRectangleAngle = self.__transform_to_xywha(self.innerRectangle)
+        self.outerRectangle = self.__initRectangle("outer")
+        self.outerRectangleNoAngle = self.__transform_to_xywh(self.outerRectangle)
         self.rectangles      = [self.innerRectangle, self.outerRectangle]
         self.cracks = self.__findShape('crack', [])
         self.bark   = self.__findShape('bark', [])
@@ -166,3 +170,29 @@ class CoreAnnotation:
         except:
             print(f'Note: { pattern } not found in { string }')
             return None
+
+    def __transform_to_xywha(self, box):  # transform into compatible format for detectron2
+        xc, yc = (box[0] + box[2]) / 2  # center point
+        w = dist(box[0], box[3])  # width
+        h = dist(box[0], box[1])  # height
+
+        if box[0][0] >= box[1][0]:
+            a = degrees(2 * atan2(h, w))  ## rotation angle in counter-clockwise
+        else:
+            a = - degrees(2 * atan2(h, w))
+
+        return [xc, yc, w, h, a]
+
+    def __transform_to_xywh(self, box):  # transform into compatible format for detectron2 no angle
+        # determine max outer coords:
+        xmin = np.min(box[:][0])
+        xmax = np.max(box[:][0])
+        ymin = np.min(box[:][1])
+        ymax = np.max(box[:][1])
+
+        xc = (xmin + xmax) / 2
+        yc = (ymin + ymax) / 2
+        w = xmax - xmin  # width
+        h = ymax - ymin  # height
+
+        return [xc, yc, w, h]
