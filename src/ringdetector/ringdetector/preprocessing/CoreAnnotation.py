@@ -19,11 +19,15 @@ class CoreAnnotation:
         # Shapes: [ [x,y], ... ]
             # NOTE: do not modify self.shape or self.rectangles, this 
             # wont modify the original variables
-        self.innerRectangle = self.__initRectangle("inner")
+        self.innerRectangle = self.__initRectangle("INNER")
         self.innerRectangleAngle = self.__transform_to_xywha(self.innerRectangle)
-        self.outerRectangle = self.__initRectangle("outer")
-        self.outerRectangleNoAngle = self.__transform_to_xywh(self.outerRectangle)
+        self.innerRectangleNoAngle = self.__transform_to_xyxy(self.innerRectangle)
+        
+        self.outerRectangle = self.__initRectangle("OUTER")
+        self.outerRectangleNoAngle = self.__transform_to_xyxy(self.outerRectangle)
+        
         self.rectangles      = [self.innerRectangle, self.outerRectangle]
+        
         self.cracks = self.__findShape('CRACK', [])
         self.bark   = self.__findShape('BARK', [])
         self.ctrmid = self.__findShape('CTRMID', [])
@@ -190,17 +194,27 @@ class CoreAnnotation:
             a = - degrees(2 * atan2(h, w))
 
         return [xc, yc, w, h, a]
+    
+    # NOTE: this is wrong. see: https://detectron2.readthedocs.io/en/latest/_modules/detectron2/structures/boxes.html#BoxMode.convert
+    # def __transform_to_xywh(self, box):  # transform into compatible format for detectron2 no angle
+    #     # determine max outer coords:
+    #     xmin = np.min(box[:, 0])
+    #     xmax = np.max(box[:, 0])
+    #     ymin = np.min(box[:, 1])
+    #     ymax = np.max(box[:, 1])
 
-    def __transform_to_xywh(self, box):  # transform into compatible format for detectron2 no angle
-        # determine max outer coords:
-        xmin = np.min(box[:][0])
-        xmax = np.max(box[:][0])
-        ymin = np.min(box[:][1])
-        ymax = np.max(box[:][1])
+    #     xc = (xmin + xmax) / 2
+    #     yc = (ymin + ymax) / 2
+    #     w = xmax - xmin  # width
+    #     h = ymax - ymin  # height
 
-        xc = (xmin + xmax) / 2
-        yc = (ymin + ymax) / 2
-        w = xmax - xmin  # width
-        h = ymax - ymin  # height
+    #     return [xc, yc, w, h]
 
-        return [xc, yc, w, h]
+    def __transform_to_xyxy(self, box):  # transform into compatible format for detectron2 no angle, equiv to max_bounding_box
+        xmin = np.min(box[:, 0])
+        xmax = np.max(box[:, 0])
+        ymin = np.min(box[:, 1])
+        ymax = np.max(box[:, 1])
+
+        return [xmin, ymin, xmax, ymax]
+

@@ -3,9 +3,10 @@ import os
 from detectron2.utils.logger import setup_logger
 
 from utils import get_cuda_info
-from dataset import CropDataset
 from model_config import generate_config
-from ringdetector.cropdetection.operator import CustomizedTrainer
+from dataset import CropDataset
+from visualizer import visualize_anno
+from trainer import CustomizedTrainer
 
 LABELME_JSONS = '/home/leona/Documents/ds_lab/dslabtreering/src/json_files/'
 POINT_LABELS = '/home/leona/Documents/ds_lab/dslabtreering/src/pos_files/'
@@ -16,37 +17,30 @@ DATASET_TRAIN = ("crop_detection_train",)
 DATASET_VAL = ("crop_detection_evaluate",)
 
 def training(is_resume):
-      # TODO(2): logging of val metrics upon training. see https://github.com/facebookresearch/detectron2/issues/810 
-      # and https://eidos-ai.medium.com/training-on-detectron2-with-a-validation-set-and-plot-loss-on-it-to-avoid-overfitting-6449418fbf4e
+    ##TODO(3): model_config refactoring using lazy config: https://detectron2.readthedocs.io/en/latest/tutorials/lazyconfigs.html#lazy-configs
+    ##TODO(3): config argparse
+    cfg = generate_config(OUTPUT_DIR, DATASET_TRAIN, DATASET_VAL)
 
-      ##setup config
-      ##TODO(2): model_config refactoring using lazy config: https://detectron2.readthedocs.io/en/latest/tutorials/lazyconfigs.html#lazy-configs
-      ##TODO(2): config argparse
-      cfg = generate_config(OUTPUT_DIR, DATASET_TRAIN, DATASET_VAL)
+    ##NOTE: the returned dataset is for visualization purpose. type(dataset) is list[dicts], type(metatdata) is metatdata instance.
+    ##NOTE: metadata_train.evaluator_type is None cuz currently using rotated coco eval as default
+    data_train, metadata_train = CropDataset(is_train=True, json_path=LABELME_JSONS, pos_path=POINT_LABELS).generate_dataset(DATASET_TRAIN)
+    data_evaluate, metadata_evaluate = CropDataset(is_train=False, json_path=LABELME_JSONS, pos_path=POINT_LABELS).generate_dataset(DATASET_VAL)
 
-      ##create and register dataset, the returned dataset is for visualization purpose. type(dataset) is list[dicts], type(metatdata) is metatdata instance.
-      ##NOTE: metadata_train.evaluator_type is None cuz currently using rotated coco eval as default
-      data_train, metadata_train = CropDataset(is_train=True, json_path=LABELME_JSONS, pos_path=POINT_LABELS).generate_dataset(DATASET_TRAIN)
-      data_evaluate, metadata_evaluate = CropDataset(is_train=False, json_path=LABELME_JSONS, pos_path=POINT_LABELS).generate_dataset(DATASET_VAL)
+    # visualize_anno(data_train, metadata_train)
+    # visualize_anno(data_evaluate, metadata_evaluate)
 
-      trainer = CustomizedTrainer(cfg)
-      trainer.resume_or_load(resume=is_resume)
-      # NOTE: do we need test-time augmentation? diff from build_test_loader?
-      #     if config.TEST.AUG.ENABLED:
-      #         trainer.register_hooks(
-      #             [hooks.EvalHook(0, lambda: trainer.test_with_TTA(config, trainer.model))]
-      #         )
-      
-      ##train
-      trainer.train()
+    ##TODO(2): Distributed Training
+    ##NOTE: do we need test-time augmentation? diff from build_test_loader?
+    trainer = CustomizedTrainer(cfg)
+    trainer.resume_or_load(resume=is_resume)
 
-      ##TODO(2): visualization
+    trainer.train()
 
 if __name__ == "__main__":
-      print(get_cuda_info())
-      ##setup logger
-      ##TODO(2): use wandb logger instead: https://github.com/wandb/artifacts-examples/blob/master/detectron2/wandb_train_net.py
-      setup_logger()
-
-      os.makedirs(OUTPUT_DIR, exist_ok=True)
-      training(is_resume=False)
+    print(get_cuda_info())
+      
+    ##TODO(2): use wandb logger instead: https://github.com/wandb/artifacts-examples/blob/master/detectron2/wandb_train_net.py
+    setup_logger()
+    
+    os.makedirs(OUTPUT_DIR, exist_ok=True)
+    training(is_resume=True)

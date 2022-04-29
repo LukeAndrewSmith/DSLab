@@ -27,7 +27,7 @@ def generate_config(output_dir, dataset_train, dataset_test):
     ## ====Solver====
     cfg.SOLVER.IMS_PER_BATCH = 2 #GPU Sensitive 
     cfg.SOLVER.BASE_LR = 0.0025
-    cfg.SOLVER.MAX_ITER = 315
+    cfg.SOLVER.MAX_ITER = 1500
     cfg.SOLVER.STEPS = [] # do not decay learning rate
 
     cfg.TEST.EVAL_PERIOD = 10

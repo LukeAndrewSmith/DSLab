@@ -1,6 +1,6 @@
 from detectron2.engine import DefaultTrainer
 from detectron2.data import DatasetMapper, build_detection_train_loader, build_detection_test_loader
-from detectron2.evaluation import RotatedCOCOEvaluator
+from detectron2.evaluation import COCOEvaluator, RotatedCOCOEvaluator
 
 from augmentation import RatioResize
 
@@ -9,7 +9,9 @@ class CustomizedTrainer(DefaultTrainer):
     def build_evaluator(cls, cfg, dataset_name): 
         ## NOTE: RotatedCOCOEvaluator uses IOU only and does not consider angle differences.
         ## TODO(1): RotatedCOCOEvaluator has internal bugs(?) that produce nonsensical evaluation results rn (see colab sample). Customization is needed.
-        return RotatedCOCOEvaluator(dataset_name, output_dir=cfg.OUTPUT_DIR)
+        
+        #RotatedCOCOEvaluator(dataset_name, output_dir=cfg.OUTPUT_DIR)
+        return COCOEvaluator(dataset_name, output_dir=cfg.OUTPUT_DIR)
 
     @classmethod
     def build_train_loader(cls, cfg):
@@ -44,5 +46,3 @@ class CustomizedTrainer(DefaultTrainer):
     #     res = cls.test(cfg, model, evaluators)
     #     res = OrderedDict({k + "_TTA": v for k, v in res.items()})
     #     return res
-
-    ##TODO(2): use a class for testing purpose only

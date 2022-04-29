@@ -21,8 +21,8 @@ class CropDataset():
                 annos = []
                 for core in img.core_annotations:
                     annos.append({
-                        "bbox": core.innerRectangle,
-                        "bbox_mode": BoxMode.XYWHA_ABS,
+                        "bbox": core.innerRectangleNoAngle,
+                        "bbox_mode": BoxMode.XYXY_ABS, #BoxMode.XYWHA_ABS
                         "category_id": 0})
 
                 dataset.append({
