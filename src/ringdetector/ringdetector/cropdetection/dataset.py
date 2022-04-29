@@ -26,10 +26,10 @@ class CropDataset():
                         "category_id": 0})
 
                 dataset.append({
-                    "file_name":self.json_path+img.image_path,
+                    "file_name":self.json_path+os.path.basename(img.image_path),
                     "height": img.height,#TODO(3): integer
                     "width": img.width,#TODO(3): integer
-                    "image_id": img.image_path,
+                    "image_id": os.path.basename(img.image_path),
                     "annotations":annos})
         
         return dataset

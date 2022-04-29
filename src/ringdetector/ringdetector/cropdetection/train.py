@@ -37,6 +37,9 @@ def training(is_resume):
     trainer.train()
 
 if __name__ == "__main__":
+    from PIL import Image    
+    Image.MAX_IMAGE_PIXELS = None
+    
     print(get_cuda_info())
       
     ##TODO(2): use wandb logger instead: https://github.com/wandb/artifacts-examples/blob/master/detectron2/wandb_train_net.py
