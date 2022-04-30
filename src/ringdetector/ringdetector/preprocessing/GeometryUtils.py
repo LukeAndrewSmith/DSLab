@@ -14,7 +14,6 @@ def min_bounding_rectangle(points):
         # |       |
         # 0 ----- 3
     
-    # This setting is only correct when the rotation angle is very small, same for __transform_to_xywha
     assert (box[0][1]>=box[1][1] and #check top left vs bottom left
             box[0][0]<=box[2][0] and # check left vs right
             box[0][0]<=box[3][0]), "Assumed rectangle order wrong"
