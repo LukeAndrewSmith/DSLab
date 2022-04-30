@@ -51,8 +51,8 @@ class Ring():
         # Below, we use the traditional X, y notation for features and label
         # however keep in mind that X is actually image y values, and y
         # is image x values.
-        y = np.array([point[0] for point in self.edge])
-        X = np.array([point[1] for point in self.edge])
+        y = np.array([point[0] for point in self.ring])
+        X = np.array([point[1] for point in self.ring])
 
         pred_domain = np.arange(-100, self.imgheight+100, 1)
         
@@ -74,11 +74,11 @@ class Ring():
     # TODO: fix this to something that makes sense, I want to keep 
     # plotting capability within the class
     def showEdge(self, img, pred=False):
-        y = np.array([point[0] for point in self.edge])
+        y = np.array([point[0] for point in self.ring])
         horiz_min = min(y)
         horiz_max = max(y)
 
-        self.edgeim_gbr = np.zeros(
+        self.ringim_gbr = np.zeros(
             (self.imgheight, self.imgwidth, 3), 
             dtype=np.uint8
         )
@@ -90,7 +90,7 @@ class Ring():
                 img[coord[0], coord[1],:] = (0,0,255)
 
         cv2.imshow(
-            'EdgeGBR', self.edgeim_gbr[:,horiz_min-60:horiz_max+60,:]
+            'EdgeGBR', self.ringim_gbr[:,horiz_min-60:horiz_max+60,:]
         )
         cv2.waitKey(0)
         cv2.destroyAllWindows()

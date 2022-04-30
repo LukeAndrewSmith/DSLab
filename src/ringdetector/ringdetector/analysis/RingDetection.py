@@ -114,7 +114,7 @@ def findRings(imgPath):
                     __collectShapes,
                     __mergeShapes_,
                     __keepRightEdge_,
-                    __mergeShapes2_,
+                    __mergeShapes2_, # TODO: Still misses some?
                     __keepRightEdge_,
                     __filterLength,
                     __filterRegressionAngles_, # TODO: Dangerous, might not work well if first shape is an anomaly
@@ -162,7 +162,7 @@ def __filterByLength(shapes, minLength):
 ##########################################
 # Remove edges after the center
 def __removeAfterCenter(shapes):
-    shapes = __sortShapes(shapes) # Sort by x value
+    shapes = __sortShapes(shapes, shape='y') # Sort by x value
     shapeDistances = [__shapeDistance(shape1, shape2) for shape1, shape2 in zip(shapes, shapes[1:])]
     lastShape = __identifyLastValidShape(shapeDistances)
     return shapes[0:lastShape]
@@ -178,19 +178,15 @@ def __shapeDistance(shape1, shape2):
     return np.mean([np.abs(point2[1]-point1[1]) for point1,point2 in zip(common1,common2)])
 
 def __identifyLastValidShape(shapeDistances):
-    diffShapeDistances = np.abs(np.array(shapeDistances[1:]) - np.array(shapeDistances[:-1]))
-    meanDiff = np.mean(diffShapeDistances)
-    stdDiff = np.std(diffShapeDistances)
+    meanDiff = np.mean(shapeDistances)
+    stdDiff = np.std(shapeDistances)
 
-    # bigDiffs = [diff > meanDiff + 2*stdDiff for diff in diffShapeDistances] #TODO this is wrong
-    # if True in bigDiffs:
-    #     return len(bigDiffs) - list(reversed(bigDiffs)).index(True) # Find the last bid difference
-
-    maxDiff = np.max(diffShapeDistances)
+    maxDiff = np.max(shapeDistances)
     if maxDiff > meanDiff + 2*stdDiff:
-        return np.argmax(diffShapeDistances) + 2
+        return np.argmax(shapeDistances) + 1
     else:
         return len(shapeDistances) + 1
+
 
 ##########################################
 # Right Edge
@@ -323,11 +319,13 @@ def __mergeShapes(shapes, ball=(10,5), angleThreshold=2):
 
     return mergedShapes + unMergedShapes
 
-def __sortShapes(shapes): # sort by smallest x values for shapes and overall shapes
+def __sortShapes(shapes,shape='x',allShapes='x'): # sort by smallest x values for shapes and overall shapes
     # for shape in shapes:
     #         shape.sort(key=lambda tup: tup[1])
-    shapes = [sorted(shape, key=lambda tup: tup[1]) for shape in shapes]
-    shapes.sort(key=lambda shape: shape[0][1]) 
+    shapeKey = int(shape == 'x') # if x => 1, y => 0
+    allShapesKey = int(allShapes == 'x')
+    shapes = [sorted(shape, key=lambda tup: tup[shapeKey]) for shape in shapes]
+    shapes.sort(key=lambda shape: shape[0][allShapesKey]) 
     return shapes
 
 def __getMergeWindow(i, lenShapes, windowSize=10):

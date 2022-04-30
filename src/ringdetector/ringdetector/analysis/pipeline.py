@@ -47,6 +47,8 @@ if __name__ == "__main__":
         samples = samples[:cfg.n]
 
     wbMetrics = []
+    wbMetricsTricky = []
+    wbMetricsEasy = []
     for sample in tqdm(samples, "Cores"):
         cp = CoreProcessor(sample, 
                             readType=cfg.ipread,
@@ -64,6 +66,10 @@ if __name__ == "__main__":
         if cfg.wb:
             cp.reportCore()
         wbMetrics.append([cp.sampleName, cp.precision, cp.recall])
+        if cp.core.tricky:
+            wbMetricsTricky.append([cp.sampleName, cp.precision, cp.recall])
+        else:
+            wbMetricsEasy.append([cp.sampleName, cp.precision, cp.recall])
         cp.exportCoreImg(RESULTS_DIAG)
         cp.exportCoreShapeImg(RESULTS_DIAG)
         cp.exportPos(RESULTS_POS, sanityCheck=False)
@@ -80,9 +86,39 @@ if __name__ == "__main__":
         scatter = wandb.plot.scatter(
             wbTable, x='recall', y='precision', title='Precision vs. Recall')
     
+
+        wbTableTricky = wandb.Table(
+            data=wbMetricsTricky, columns=["core", "precision", "recall"]
+        )
+        precHistTricky = wandb.plot.histogram(
+            wbTableTricky, value='precision', title='Precision Tricky')
+        recHistTricky = wandb.plot.histogram(
+            wbTableTricky, value='recall', title='Recall Tricky')
+        scatterTricky = wandb.plot.scatter(
+            wbTableTricky, x='recall', y='precision', title='Precision vs. Recall Tricky')
+    
+    
+        wbTableEasy = wandb.Table(
+            data=wbMetricsEasy, columns=["core", "precision", "recall"]
+        )
+        precHistEasy = wandb.plot.histogram(
+            wbTableEasy, value='precision', title='Precision Easy')
+        recHistEasy = wandb.plot.histogram(
+            wbTableEasy, value='recall', title='Recall Easy')
+        scatterEasy = wandb.plot.scatter(
+            wbTableEasy, x='recall', y='precision', title='Precision vs. Recall Easy')
+
+
         wandb.log({'precision_hist': precHist, 
                 'recall_hist': recHist, 
-                'scatter': scatter})
+                'scatter': scatter,
+                'precision_hist_tricky': precHistTricky, 
+                'recall_hist_tricky': recHistTricky, 
+                'scatter_tricky': scatterTricky,
+                'precision_hist_easy': precHistEasy, 
+                'recall_hist_easy': recHistEasy, 
+                'scatter_easy': scatterEasy,
+                })
 
     wbMetrics = np.array(wbMetrics)
     prec = wbMetrics[:,1].astype(np.double)

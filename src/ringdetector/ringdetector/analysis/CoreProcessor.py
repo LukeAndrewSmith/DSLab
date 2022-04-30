@@ -43,19 +43,6 @@ class CoreProcessor:
 
         self.imgPath = impath # TODO: pass this in a better manner...
 
-        # TODO: pass args to findRings: kept this in comments here to see what args were previously passed
-        # self.procImg =  ImageProcessor(
-        #     impath, 
-        #     readType, 
-        #     denoiseH,
-        #     denoiseTemplateWindowSize,
-        #     searchWindowSize
-        # )
-        # self.procImg.computeGradients(
-        #     method=gradMethod, 
-        #     threshold1=cannyMin, 
-        #     threshold2=cannyMax
-        # )
         edges = findRings(impath)
         edges = self.__scoreEdges(edges, self.core.pointLabels)
 
@@ -86,7 +73,7 @@ class CoreProcessor:
         closestEdgesDist = 100000
         closestEdges = []
         for point in ringLabel:
-            for edge in self.filteredEdges:
+            for edge in self.filteredRings:
                 if edge.closestLabelPoint == point:
                     matchedEdges.append(edge)
                     if edge.minDist < closestEdgesDist:
@@ -150,7 +137,7 @@ class CoreProcessor:
         """
         report = dict(
             core=self.sampleName,
-            edgeCount=len(self.filteredEdges),
+            edgeCount=len(self.filteredRings),
             truePos=self.truePos,
             falsePos=self.falsePos,
             falseNeg=self.falseNeg,
@@ -188,7 +175,7 @@ class CoreProcessor:
             )
 
     def exportCoreImg(self, dir):
-        orig = self.procImg.image # TODO: this doesn't exist anymore
+        orig = cv2.imread(self.imgPath, cv2.IMREAD_GRAYSCALE) # TODO: this doesn't exist anymore
         bgnd = np.dstack([orig,orig,orig])
         self.__plotEdges(bgnd, self.truePosEdges, (255,0,0))
         self.__plotEdges(bgnd, self.falsePosEdges, (0,0,255))
@@ -286,7 +273,7 @@ class CoreProcessor:
         # creating specific coordinates per edge
         #NOTE: plotting two points per edge for now
         edgeCoords = []
-        for edge in self.filteredEdges:
+        for edge in self.filteredRings:
             p1 = edge.predCoords[20]
             p2 = edge.predCoords[-20]
             edgeCoords.append([p1, p2])
