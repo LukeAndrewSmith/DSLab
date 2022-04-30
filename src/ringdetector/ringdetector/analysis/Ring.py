@@ -54,7 +54,7 @@ class Ring():
         y = np.array([point[0] for point in self.edge])
         X = np.array([point[1] for point in self.edge])
 
-        pred_domain = np.arange(-10, self.imgheight+10, 1)
+        pred_domain = np.arange(-100, self.imgheight+100, 1)
         
         if model == "linear":
             self.model = LinearRegression()

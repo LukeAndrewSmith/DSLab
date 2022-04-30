@@ -1,22 +1,14 @@
-from distutils.command.build_scripts import first_line_re
-import enum
-from heapq import merge
-from operator import index
 import time
-from tkinter import Y
-from tracemalloc import start
 import numpy as np
 from PIL import Image
 from scipy.ndimage import label
 import cv2 
-from functools import reduce
 from copy import deepcopy
 from sklearn.linear_model import LinearRegression
-from sklearn.metrics import mean_absolute_error
 import networkx as nx
 from collections import Counter
-from scipy.stats import mode
 from scipy.signal import find_peaks
+import matplotlib.pyplot as plt
 
 from ringdetector.analysis.Ring import Ring
 
@@ -28,19 +20,25 @@ def findRings(imgPath):
     img = cv2.imread(imgPath, cv2.IMREAD_GRAYSCALE)
 
     #####################
-    # Partial Application (there might be a nicer way in python, I didn't look too hard)
-    def __denoise(image): return cv2.fastNlMeansDenoising(image,
+    # Partial Application
+    def __denoise(image,context={}): return cv2.fastNlMeansDenoising(image,
                                                     None,
-                                                    h=10, 
-                                                    templateWindowSize=7, 
-                                                    searchWindowSize=21)
-    def __canny(image): return cv2.Canny(image, 50, 100)
-    def __removeInvertedEdges_(shapes): return __removeInvertedEdges(shapes, img)
-    def __squashShapes_(shapes): return __squashShapes(shapes, img.shape)
-    def __collectShapes(shapes): return __getShapes(__imgArrayFromShapes(shapes, img.shape))
-    def __mergeShapes_(shapes): return __mergeShapes(shapes, ball=(10,5), angleThreshold=np.pi/4)
-    def __filterLength(shapes): return __filterByLength(shapes, minLength=img.shape[0]*(1/2))
-    def __toRings(shapes): return __shapesToRings(shapes, img.shape)
+                                                    h=25, 
+                                                    templateWindowSize=10, 
+                                                    searchWindowSize=21), context
+    def __contrast_(image, context): return __contrast(image), dict(context, denoisedImage=image)
+    def __canny(image, context): return cv2.Canny(image, 50, 75), context
+    def __getShapes_(image, context): return __getShapes(image), context
+    def __keepRightEdge_(image, context): return __keepRightEdge(image), context
+    def __removeInvertedEdges_(shapes, context): return __removeInvertedEdges(shapes, context['denoisedImage'], window=25), context
+    def __squashShapes_(shapes, context): return __squashShapes(shapes, img.shape), context
+    def __collectShapes(shapes, context): return __getShapes(__imgArrayFromShapes(shapes, img.shape)), context
+    def __mergeShapes_(shapes, context): return __mergeShapes(shapes, ball=(10,5), angleThreshold=np.pi/4), context
+    def __mergeShapes2_(shapes, context): return __mergeShapes(shapes, ball=(20,20), angleThreshold=np.pi/4), context
+    def __filterLength(shapes, context): return __filterByLength(shapes, minLength=img.shape[0]*(1/2)), context
+    def __filterRegressionAngles_(shapes, context): return __filterRegressionAngles(shapes), context
+    def __removeAfterCenter_(shapes, context): return __removeAfterCenter(shapes), context
+    def __toRings(shapes, context): return __shapesToRings(shapes, img.shape)
 
     # Attempt at the papers implementation
     len = 5
@@ -93,24 +91,38 @@ def findRings(imgPath):
     #                 __filterRegressionAngles, # TODO: currently removes too much, removes edges that are very slightly angled in the opposite direction to the mean angle direction (e.g in soml17ww)
     #                 __toRings ]
 
-    processing = [  __denoise,
-                    __canny, # TODO: currently misses some obvious ones in the lightly coloured images
-                    __getShapes,
-                    __keepRightEdge, # TODO: doesn't handle shapes with tails on the right side well
-                    __removeInvertedEdges_,
-                    __squashShapes_,
+    # TODO: new pipeline
+        # Try leaving in more shapes and filtering based on regression angles etc after
+
+    # Best so far (I beleive, not sure tbh)
+    # processing = [  __denoise, # TODO: Play with the parameters
+    #                 __canny, # TODO: currently misses some obvious ones in the lightly coloured images, play with contrast
+    #                 __getShapes,
+    #                 __keepRightEdge, # TODO: doesn't handle shapes with tails on the right side well
+    #                 __removeInvertedEdges_, # TODO: In this function we could also detect gaps
+    #                 __collectShapes,
+    #                 __mergeShapes_,
+    #                 __filterLength,
+    #                 __toRings ]
+
+    processing = [  __denoise, # TODO: Play with the parameters
+                    __contrast_,
+                    __canny,
+                    __getShapes_,
+                    __keepRightEdge_, # TODO: doesn't handle shapes with tails on the right side well and shapes with steep angles
+                    __removeInvertedEdges_, # TODO: In this function we could also detect gaps
                     __collectShapes,
                     __mergeShapes_,
-                    __squashShapes_,
+                    __keepRightEdge_,
+                    __mergeShapes2_,
+                    __keepRightEdge_,
                     __filterLength,
-                    __filterRegressionAngles, # TODO: currently removes too much, removes edges that are very slightly angled in the opposite direction to the mean angle direction (e.g in SomA07nn), TODO: try to filter based on a large change in angle rather than a change in angle sign
+                    __filterRegressionAngles_, # TODO: Dangerous, might not work well if first shape is an anomaly
+                    __removeAfterCenter_, # TODO
                     __toRings ]
 
-    showSteps = True # True for debugging: plots the image and times the pipeline
-    if showSteps:
-        edges = __composeAndShowIntermediateSteps(processing, img)
-    else:
-        edges = __compose(*reversed(processing))(img)
+    edges = __composeAndShowIntermediateSteps(processing, img)
+    # edges = __compose(processing)(img)
 
     return edges
 
@@ -123,26 +135,62 @@ def findRings(imgPath):
 
 ##########################################
 # Inverted edges
-#    Remove if left side is darker than right
-def __removeInvertedEdges(shapes, img):
-    return [shape for shape in shapes if __isInverted(shape, img)]
+def __contrast(img):
+    return cv2.equalizeHist(img)
 
-def __isInverted(shape, img):
-    colorLeft = []
-    colorRight = []
-    for point in shape:
-        if point[1] - 1 > 0:
-            left = (point[0],point[1]-1)
-            colorLeft.append(img[left])
-        if point[1] + 1 < img.shape[1]:
-            right = (point[0],point[1]+1)
-            colorRight.append(img[right])
-    return np.mean(colorLeft) >= np.mean(colorRight) # Left side of line is darker
+##########################################
+# Inverted edges
+#    Remove if left side is darker than right
+def __removeInvertedEdges(shapes, denoisedImg, window):
+    return [shape for shape in shapes if not __isInverted(shape, denoisedImg, window)]
+
+def __isInverted(shape, img, window):
+    inverted = []
+    maxX = img.shape[1]
+    for (y,x) in shape:
+        colorLeft = np.mean(img[y, max(0,x-window-1):max(0,x-1)])
+        colorRight = np.mean(img[y, min(maxX,x+1):min(maxX,x+window+1)])
+        inverted.append(colorLeft <= colorRight) # Left side of line is darker)
+    return np.mean(inverted)>0.5
+
 
 ##########################################
 # Length filter
 def __filterByLength(shapes, minLength):
     return [shape for shape in shapes if len(shape) >= minLength]
+
+##########################################
+# Remove edges after the center
+def __removeAfterCenter(shapes):
+    shapes = __sortShapes(shapes) # Sort by x value
+    shapeDistances = [__shapeDistance(shape1, shape2) for shape1, shape2 in zip(shapes, shapes[1:])]
+    lastShape = __identifyLastValidShape(shapeDistances)
+    return shapes[0:lastShape]
+
+def __shapeDistance(shape1, shape2):
+    y1 = set([point[0] for point in shape1])
+    y2 = set([point[0] for point in shape2])
+    yCommon = y1.union(y2)
+    common1 = [point for point in shape1 if point[0] in yCommon]
+    common2 = [point for point in shape2 if point[0] in yCommon]
+    common1.sort(key=lambda point: point[0])
+    common2.sort(key=lambda point: point[0])
+    return np.mean([np.abs(point2[1]-point1[1]) for point1,point2 in zip(common1,common2)])
+
+def __identifyLastValidShape(shapeDistances):
+    diffShapeDistances = np.abs(np.array(shapeDistances[1:]) - np.array(shapeDistances[:-1]))
+    meanDiff = np.mean(diffShapeDistances)
+    stdDiff = np.std(diffShapeDistances)
+
+    # bigDiffs = [diff > meanDiff + 2*stdDiff for diff in diffShapeDistances] #TODO this is wrong
+    # if True in bigDiffs:
+    #     return len(bigDiffs) - list(reversed(bigDiffs)).index(True) # Find the last bid difference
+
+    maxDiff = np.max(diffShapeDistances)
+    if maxDiff > meanDiff + 2*stdDiff:
+        return np.argmax(diffShapeDistances) + 2
+    else:
+        return len(shapeDistances) + 1
 
 ##########################################
 # Right Edge
@@ -163,7 +211,29 @@ def __getRightEdge(shape):
         return shape
 
 def __shouldRightEdge(shape):
-    return __xCounts(shape) > 3 # TODO: if the angle is too steep this is bad
+    return True
+
+    # angle = __getRegressionAngle(shape)
+    # return angle > np.pi/4 or __magicIsVariabliltyHigh(shape)
+
+    # from squashShapes
+    # if angle < np.pi/4:
+    #     newShape = __squashHorizontal(shape, yVals, xVals, model, yToXCount, size)
+    # else:
+    #     newShape = __squashVertical(shape, yVals, xVals, size)
+
+    # return __xCounts(shape) > 3 # TODO: if the angle is too steep this is bad
+
+def __magicIsVariabliltyHigh(shape):
+    y = np.array([point[0] for point in shape])
+    X = np.array([point[1] for point in shape])
+
+    model = LinearRegression()
+    model.fit(X.reshape(-1, 1),y) # Do the linear regression backward
+
+    absDiff = np.abs(model.predict(X.reshape(-1, 1))-y)
+    mae = np.mean(absDiff)
+    return mae>5
 
 def __xCounts(shape):
     # Find the average number of x values for each y value, if this is too high something is wrong with the shape
@@ -254,8 +324,9 @@ def __mergeShapes(shapes, ball=(10,5), angleThreshold=2):
     return mergedShapes + unMergedShapes
 
 def __sortShapes(shapes): # sort by smallest x values for shapes and overall shapes
-    for shape in shapes:
-            shape.sort(key=lambda tup: tup[1])
+    # for shape in shapes:
+    #         shape.sort(key=lambda tup: tup[1])
+    shapes = [sorted(shape, key=lambda tup: tup[1]) for shape in shapes]
     shapes.sort(key=lambda shape: shape[0][1]) 
     return shapes
 
@@ -287,23 +358,52 @@ def __linearModelCoeffsForShape(shape):
 # Filtering
 def __filterRegressionAngles(shapes):
     # TODO: try to filter based on a large change in angle rather than a change in angle sign
-    angles = [__getAngle(shape) for shape in shapes]
-    signs = np.sign(angles)
-    startCorrect = int(len(angles)/8)
-    endCorrect = int(len(angles)/2)
-    correctSign = np.sign(np.mean(np.sign(angles[startCorrect:endCorrect])))
-    return [shape for (shape,sign) in zip(shapes, signs) if sign==correctSign or sign==0]
+    shapes = __sortShapes(shapes)
+    angles = [__getRegressionAngle(shape) for shape in shapes]
+    # plt.plot(angles)
+    # plt.show()
 
-def __getAngle(shape):
+    # TODO: this doesn't work if the first element is an anomaly!!!!!!!!
+    # window = 5
+    finished = False
+    i = 0
+    while not finished:
+        # if i+window == len(angles):
+        #     finished = True
+        #     continue
+        # sequence = angles[i:i+window]
+        # mean = np.mean(sequence)
+        # std = np.std(sequence)
+        # # [np.abs(angle-)]
+
+        if i+1 == len(angles):
+            finished = True
+            continue
+        
+        if abs(angles[i+1] - angles[i]) > np.pi/4:
+            del angles[i+1]
+            del shapes[i+1]
+            i -= 1
+
+        i += 1
+
+    # plt.plot(angles)
+    # plt.show()
+
+    anomalies = __findAngleAnomalies(angles)
+    return shapes
+
+def __getRegressionAngle(shape):
     yVals = np.array([y for [y,_] in shape])
     xVals = np.array([x for [_,x] in shape])
-
     model = LinearRegression()
     model.fit(yVals.reshape(-1, 1),xVals) # Do the linear regression backward
     angle = np.arctan(model.coef_)
     return angle
 
-
+def __findAngleAnomalies(angles):
+    angleDiffs = np.abs(np.array(angles[1:]) - np.array(angles[:-1]))
+    return [diff > np.pi/4 for diff in angleDiffs]
 
 
 #####################################################################################
@@ -474,8 +574,12 @@ def __shapesToRings(shapes, imShape):
 #####################################################################################
 #                                 Helpers                                      
 #####################################################################################
-def __compose(*functions):
-    return reduce(lambda f, g: lambda x: f(g(x)), functions, lambda x: x)
+def __compose(functions):
+    def composed(*args):
+        for func in functions:
+            args = func(*args)
+        return args    
+    return composed
 
 def __composeAndShowIntermediateSteps(functions, img):
     size = img.shape
@@ -485,9 +589,10 @@ def __composeAndShowIntermediateSteps(functions, img):
     totalTime = 0
 
     processed = deepcopy(img)
+    context = {}
     for func in functions[:-1]:
         start = time.time()
-        processed = func(processed)
+        processed, context = func(processed, context)
         end = time.time()
         print(f'Time for {func.__name__}: {end-start}')
         totalTime += end-start
@@ -503,6 +608,6 @@ def __composeAndShowIntermediateSteps(functions, img):
 
     print(f'Total time: {totalTime}')
 
-    edges = functions[-1](processed)
+    edges = functions[-1](processed, context) # Always end in toRings
 
     return edges
