@@ -5,26 +5,18 @@ import logging
 import coloredlogs
 from tqdm import tqdm
 import numpy as np
-import matplotlib.pyplot as plt
-import pickle
-import seaborn as sns
-import datetime
 import wandb
 
-from ringdetector.Paths import GENERATED_DATASETS_INNER, \
-    GENERATED_DATASETS_INNER_PICKLES
+from ringdetector.Paths import GENERATED_DATASETS_INNER_PICKLES,\
+    RESULTS, RESULTS_PKL, RESULTS_POS, RESULTS_DIAG
 from ringdetector.utils.configArgs import getArgs
 from ringdetector.analysis.CoreProcessor import CoreProcessor
 
 coloredlogs.install(level=logging.INFO)
 warnings.filterwarnings("ignore")
 
-sns.set_style("whitegrid")
-
 parser = argparse.ArgumentParser()
 cfg = getArgs(parser)
-
-now = datetime.datetime.now()
 
 if __name__ == "__main__":
 
@@ -33,20 +25,16 @@ if __name__ == "__main__":
                 entity='treering', project="analysis", name=cfg.wbname
             )
         wandb.config.update(cfg)
-
-    logging.info("Processing Cores")
     
-    #TODO: remove test here
-    resultDir = os.path.join(GENERATED_DATASETS_INNER, "test_results")
-    if not os.path.exists(resultDir):
-        os.mkdir(resultDir)
-        logging.info(
-            f"Created directory {resultDir} for inner dataset results."
-        )
-    else:
-        logging.info(
-            f"Directory {resultDir} already exists, overwriting "
-            "existing result files.")
+    paths = [RESULTS, RESULTS_PKL, RESULTS_POS, RESULTS_DIAG]
+    for path in paths:
+        if not os.path.exists(path):
+            os.mkdir(path)
+            logging.info(f"Created directory {path}")
+        else:
+            logging.info(
+                f"Directory {path} already exists, overwriting any "
+                "existing files.")
 
     samples = []
     if cfg.sample:
@@ -55,8 +43,11 @@ if __name__ == "__main__":
         for fname in os.listdir(GENERATED_DATASETS_INNER_PICKLES):
             samples.append(fname[:-4])
 
+    if cfg.n:
+        samples = samples[:cfg.n]
+
     wbMetrics = []
-    for sample in tqdm(samples[:5], "Cores"):
+    for sample in tqdm(samples, "Cores"):
         cp = CoreProcessor(sample, 
                             readType=cfg.ipread,
                             denoiseH=cfg.denoiseh, 
@@ -73,9 +64,10 @@ if __name__ == "__main__":
         if cfg.wb:
             cp.reportCore()
         wbMetrics.append([cp.sampleName, cp.precision, cp.recall])
-        cp.exportCoreImg(resultDir)
-        cp.exportCoreShapeImg(resultDir)
-        cp.toPickle(resultDir)
+        cp.exportCoreImg(RESULTS_DIAG)
+        cp.exportCoreShapeImg(RESULTS_DIAG)
+        cp.exportPos(RESULTS_POS, sanityCheck=False)
+        cp.toPickle(RESULTS_PKL)
 
     if cfg.wb:
         wbTable = wandb.Table(
@@ -105,16 +97,3 @@ if __name__ == "__main__":
         if cfg.wb:
             wandb.run.summary[f"{name}_mean"] = round(np.mean(data), 4)
             wandb.run.summary[f"{name}_std"] = round(np.median(data), 4)
-
-    # Histograms of precision and recall
-    fig, axes = plt.subplots(1, 2)
-    fig.suptitle("Precision and Recall for all Samples")
-    sns.histplot(data=prec, ax=axes[0], bins=30, kde=True)
-    sns.histplot(data=rec, ax=axes[1], bins=30, kde=True)
-
-    axes[0].set_xlabel("Precision")
-    axes[1].set_xlabel("Recall")
-    axes[1].set_ylabel("")
-
-    plt.savefig(os.path.join(resultDir, f'diagnostics_{now}.png'))
-    

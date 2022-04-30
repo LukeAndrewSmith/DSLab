@@ -5,28 +5,39 @@ import logging
 import pickle
 from math import dist, atan2, degrees
 import numpy as np
+import cv2
+from copy import deepcopy
 
-from ringdetector.preprocessing.GeometryUtils import min_bounding_rectangle
+from ringdetector.preprocessing.GeometryUtils import min_bounding_rectangle,\
+    transform_to_xywha, transform_to_xyxy
+from ringdetector.Paths import IMAGES
 
 class CoreAnnotation:
     def __init__(self, labelmeAnnotations, sampleName, corePosPath, imagePath):
         self.sampleName  = sampleName
         self.corePosPath = corePosPath
         self.imagePath = imagePath
-        self.imageName = os.path.basename(self.imagePath) ## this var is not used
+        self.imageName = os.path.basename(self.imagePath)
         self.labelmeAnnotations = labelmeAnnotations
 
         # Shapes: [ [x,y], ... ]
             # NOTE: do not modify self.shape or self.rectangles, this 
             # wont modify the original variables
-        self.innerRectangle = self.__initRectangle("INNER")
-        self.innerRectangleAngle = self.__transform_to_xywha(self.innerRectangle)
-        self.innerRectangleNoAngle = self.__transform_to_xyxy(self.innerRectangle)
+            # NOTE: copying orig rectangle because innerRectangle is repeatedly 
+            # overwritten.
+        self.origInnerRectangle  = self.__initRectangle("INNER")
+        self.innerRectangle = deepcopy(self.origInnerRectangle)
+
+        self.origOuterRectangle  = self.__initRectangle("OUTER")
         
-        self.outerRectangle = self.__initRectangle("OUTER")
-        self.outerRectangleNoAngle = self.__transform_to_xyxy(self.outerRectangle)
+        self.outerRectangle = deepcopy(self.origOuterRectangle)        
         
-        self.rectangles      = [self.innerRectangle, self.outerRectangle]
+        # Bounding box experiments
+        self.innerRectangleAngle = transform_to_xywha(self.origInnerRectangle)
+        self.innerRectangleNoAngle = transform_to_xyxy(self.origInnerRectangle)
+        self.outerRectangleNoAngle = transform_to_xyxy(self.outerRectangle)
+
+        self.rectangles = [self.innerRectangle, self.outerRectangle]
         
         self.cracks = self.__findShape('CRACK', [])
         self.bark   = self.__findShape('BARK', [])
@@ -55,9 +66,21 @@ class CoreAnnotation:
         self.pith = []
         self.distToPith = None
 
+        # Saving rotation info
+        self.shift = None
+        self.rotAngle = None
+        self.rotCenter = None
+
+
     def __repr__(self) -> str:
         return (f"CoreAnnotation for {self.sampleName} in "
                 f"{self.imagePath}")
+
+    ####
+    def getOriginalImage(self):
+        imagePath = os.path.join(IMAGES, self.imageName)
+        img = cv2.imread(imagePath, cv2.IMREAD_COLOR)
+        return img
 
     ######################
     # labelme Annotations
@@ -182,39 +205,4 @@ class CoreAnnotation:
         except AttributeError:
             print(f'{self.sampleName}: {pattern} not found in {string}')
             return None
-
-    def __transform_to_xywha(self, box):  # transform into compatible format for detectron2
-        xc, yc = (box[0] + box[2]) / 2  # center point
-        w = dist(box[0], box[3])  # width
-        h = dist(box[0], box[1])  # height
-
-        if box[0][0] >= box[1][0]:
-            a = degrees(2 * atan2(h, w))  ## rotation angle in counter-clockwise
-        else:
-            a = - degrees(2 * atan2(h, w))
-
-        return [xc, yc, w, h, a]
     
-    # NOTE: this is wrong. see: https://detectron2.readthedocs.io/en/latest/_modules/detectron2/structures/boxes.html#BoxMode.convert
-    # def __transform_to_xywh(self, box):  # transform into compatible format for detectron2 no angle
-    #     # determine max outer coords:
-    #     xmin = np.min(box[:, 0])
-    #     xmax = np.max(box[:, 0])
-    #     ymin = np.min(box[:, 1])
-    #     ymax = np.max(box[:, 1])
-
-    #     xc = (xmin + xmax) / 2
-    #     yc = (ymin + ymax) / 2
-    #     w = xmax - xmin  # width
-    #     h = ymax - ymin  # height
-
-    #     return [xc, yc, w, h]
-
-    def __transform_to_xyxy(self, box):  # transform into compatible format for detectron2 no angle, equiv to max_bounding_box
-        xmin = np.min(box[:, 0])
-        xmax = np.max(box[:, 0])
-        ymin = np.min(box[:, 1])
-        ymax = np.max(box[:, 1])
-
-        return [xmin, ymin, xmax, ymax]
-
