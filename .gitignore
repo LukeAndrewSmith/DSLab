@@ -143,6 +143,7 @@ cython_debug/
 src/ringdetector/ringdetector.egg-info
 # Ignore data subfolder
 /data/*
+*results/
 
 # Ignore python cache files
 */*.pyc

@@ -8,7 +8,8 @@ import copy
 from tqdm import tqdm
 
 from ringdetector.preprocessing.ImageAnnotation import ImageAnnotation
-from ringdetector.preprocessing.GeometryUtils import mm_to_pixel
+from ringdetector.preprocessing.GeometryUtils import mm_to_pixel,\
+    rotateCoords, rotateListOfCoords, shiftListOfCoords
 from ringdetector.Paths import GENERATED_DATASETS_INNER, LABELME_JSONS, \
     GENERATED_DATASETS_INNER_CROPS, GENERATED_DATASETS_INNER_PICKLES, IMAGES, \
     POINT_LABELS
@@ -56,7 +57,7 @@ class DatasetExtractor:
     def __processCore(self, core):
         # TODO: all these functions have side effects as they modify core variables directly, not clean, should update
         core             = self.__convertMMToPX(core)
-        img              = self.__getImage(core)
+        img              = core.getOriginalImage()
         core, rotatedImg = self.__rotateImagePointsShapes(core, img)
         croppedImg       = self.__cropImage(rotatedImg, core.innerRectangle)
         core             = self.__shiftAllPoints(core)
@@ -84,40 +85,34 @@ class DatasetExtractor:
         return core
 
     #################
-    def __getImage(self,core):
-        imagePath = os.path.join(IMAGES, core.imageName)
-        img = cv2.imread(imagePath, cv2.IMREAD_COLOR)
-        return img
-
-    #################
     def __rotateImagePointsShapes(self, core, img):
-        rotMat = self.__getRotationMatrix(core.innerRectangle)
+        core.center, core.angle = self.__getRotation(core.innerRectangle)
 
+        rotMat = cv2.getRotationMatrix2D(core.center, core.angle, 1.0)
         rotatedImg = cv2.warpAffine(img, rotMat, img.shape[1::-1])
         # ------ TODO: find a more elegant way of assigning the new variables, such that the lists are automatically updated----
         # e.g. use a dict
         core.innerRectangle, core.outerRectangle         = self.__rotateRectangles(core.rectangles, rotMat)
-        core.cracks, core.bark, core.ctrmid, core.ctrend = self.__rotateListOfCoords(core.shapes, rotMat)
+        core.cracks, core.bark, core.ctrmid, core.ctrend = rotateListOfCoords(core.shapes, rotMat)
         core.rectangles = [core.innerRectangle, core.outerRectangle]
         core.shapes     = [core.cracks, core.bark, core.ctrmid, core.ctrend]
         # ----------------------------------------------------------------------------------------------------------------------
-        core.pointLabels = self.__rotateListOfCoords(core.pointLabels, rotMat)
-        core.gapLabels   = self.__rotateListOfCoords(core.gapLabels, rotMat)
+        core.pointLabels = rotateListOfCoords(core.pointLabels, rotMat)
+        core.gapLabels   = rotateListOfCoords(core.gapLabels, rotMat)
 
         return core, rotatedImg
 
-    def __getRotationMatrix(self,rectangle):
+    def __getRotation(self,rectangle):
         bottomLeft, topLeft, topRight, bottomRight = rectangle
         run  = topRight[0] - topLeft[0]
         rise = topRight[1] - topLeft[1]
         center = (topLeft + bottomRight) / 2
         angle = np.degrees(np.arctan(rise/run))
-        rotMat = cv2.getRotationMatrix2D(center, angle, 1.0)
-        return rotMat
+        return center, angle
 
     def __rotateRectangles(self, rectangles, rotMat):
         rectangles = [
-            [self.__rotateCoords(coords, rotMat) for coords in rectangle] 
+            [rotateCoords(coords, rotMat) for coords in rectangle] 
             for rectangle in rectangles
         ]
         rectangles = [
@@ -125,18 +120,6 @@ class DatasetExtractor:
         ]        
         return rectangles
 
-    def __rotateListOfCoords(self, coordList, rotMat):
-        shapes = [
-            [self.__rotateCoords(coords, rotMat) 
-            for coords in shape] for shape in coordList
-        ]
-        return shapes
-
-    def __rotateCoords(self, coords, rotMat):
-        coords = [coords[0], coords[1], 1] # Pad with 1 as rotMat is 2x3 ( * 3x1 = 2x1 ), 1 as we want to take into account shift
-        result = np.matmul(np.array(rotMat), np.array(coords))
-        #if round: result = result.astype(int)
-        return list(result)
 
     def __roundRectangleCoords(self, rectangle):
         # x or y coords should match for certain combinations of the rectangle bounding coordinates
@@ -154,23 +137,21 @@ class DatasetExtractor:
 
     #################
     def __shiftAllPoints(self, core):
-        [_,topLeft, _, _] = core.innerRectangle # Should now be (0,0), hence shift all points by topLeft
+        """ Shift s.t. topLeft is now (0,0), hence shift all points by 
+        topLeft"""
         # ------ TODO: find a more elegant way of assigning the new variables, such that the lists are automatically updated----
-        core.innerRectangle, core.outerRectangle         = [self.__shiftListOfCoords(list, topLeft) for list in core.rectangles] 
-        core.cracks, core.bark, core.ctrmid, core.ctrend = [self.__shiftListOfCoords(list, topLeft) for list in core.shapes]
+        [_,topLeft, _, _] = core.innerRectangle 
+        core.shift = topLeft
+
+        core.innerRectangle, core.outerRectangle         = [shiftListOfCoords(list, core.shift) for list in core.rectangles] 
+        core.cracks, core.bark, core.ctrmid, core.ctrend = [shiftListOfCoords(list, core.shift) for list in core.shapes]
         core.rectangles = [core.innerRectangle, core.outerRectangle] 
         core.shapes     = [core.cracks, core.bark, core.ctrmid, core.ctrend]
         # ----------------------------------------------------------------------------------------------------------------------
-        core.pointLabels = [self.__shiftListOfCoords(list, topLeft) for list in core.pointLabels]
-        core.gapLabels   = [self.__shiftListOfCoords(list, topLeft) for list in core.gapLabels]
+        core.pointLabels = [shiftListOfCoords(list, core.shift) for list in core.pointLabels]
+        core.gapLabels   = [shiftListOfCoords(list, core.shift) for list in core.gapLabels]
         return core
 
-    def __shiftListOfCoords(self, shape, shift):
-        shape = [self.__shiftCoords(coord,shift) for coord in shape]
-        return shape
-
-    def __shiftCoords(self, coord, shift):
-        return list(np.array(coord) - np.array(shift))
 
     #################
     def __cropImage(self, img, rectangle):

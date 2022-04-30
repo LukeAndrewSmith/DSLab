@@ -1,5 +1,6 @@
 import numpy as np
 import cv2
+import math
 
 def min_bounding_rectangle(points):
     # converts a list of points into the min are rectangle containing all points
@@ -38,3 +39,34 @@ def pixel_to_mm(pixel, dpi):
     # formula:
     mm = (pixel * 25.4) / dpi
     return mm
+
+def pixelDist(a, b):
+    dx2 = (a[0]-b[0])**2
+    dy2 = (a[1]-b[1])**2
+    return math.sqrt(dx2 + dy2)
+
+def rotateCoords(coords, rotMat):
+    coords = [coords[0], coords[1], 1] # Pad with 1 as rotMat is 2x3 ( * 3x1 = 2x1 ), 1 as we want to take into account shift
+    result = np.matmul(np.array(rotMat), np.array(coords))
+    #if round: result = result.astype(int)
+    return list(result)
+
+def rotateListOfCoords(coordList, rotMat):
+    shapes = [
+        [rotateCoords(coords, rotMat) 
+        for coords in shape] for shape in coordList
+    ]
+    return shapes
+
+def shiftCoords(coord, shift):
+    return list(np.array(coord) - np.array(shift))
+
+def shiftListOfCoords(shape, shift):
+    shape = [shiftCoords(coord,shift) for coord in shape]
+    return shape
+
+def roundCoords(coordList):
+    return [
+        [[round(coord) for coord in coords]
+                for coords in shape] for shape in coordList
+    ]

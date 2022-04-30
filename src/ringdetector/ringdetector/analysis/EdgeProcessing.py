@@ -19,6 +19,9 @@ def getEdges(candidateEdgesImg, minEdgeLen, edgeModel):
         )
 
     def __getShapes(candidateEdgesMask):
+        # NOTE: the output of shapes has inverted the x and y axes of the image
+        # s.t. each point has (y,x) as its coordinate. These are inverted
+        # back to normal in Edge init.
         # Neighborhood definition
         s = [[1,1,1], [1,1,1], [1,1,1]]  
         # Label the contiguous shapes

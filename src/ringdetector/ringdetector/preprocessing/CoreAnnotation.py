@@ -3,8 +3,11 @@ import os
 import re
 import logging
 import pickle
+import cv2
+from copy import deepcopy
 
 from ringdetector.preprocessing.GeometryUtils import min_bounding_rectangle
+from ringdetector.Paths import IMAGES
 
 class CoreAnnotation:
     def __init__(self, labelmeAnnotations, sampleName, corePosPath, imagePath):
@@ -17,9 +20,11 @@ class CoreAnnotation:
         # Shapes: [ [x,y], ... ]
             # NOTE: do not modify self.shape or self.rectangles, this 
             # wont modify the original variables
-        self.innerRectangle  = self.__initRectangle("INNER")
-        self.outerRectangle  = self.__initRectangle("OUTER")
-        self.rectangles      = [self.innerRectangle, self.outerRectangle]
+        self.origInnerRectangle  = self.__initRectangle("INNER")
+        self.innerRectangle = deepcopy(self.origInnerRectangle)
+        self.origOuterRectangle  = self.__initRectangle("OUTER")
+        self.outerRectangle = deepcopy(self.origOuterRectangle)
+        self.rectangles = [self.innerRectangle, self.outerRectangle]
         self.cracks = self.__findShape('CRACK', [])
         self.bark   = self.__findShape('BARK', [])
         self.ctrmid = self.__findShape('CTRMID', [])
@@ -47,9 +52,21 @@ class CoreAnnotation:
         self.pith = []
         self.distToPith = None
 
+        # Saving rotation info
+        self.shift = None
+        self.rotAngle = None
+        self.rotCenter = None
+
+
     def __repr__(self) -> str:
         return (f"CoreAnnotation for {self.sampleName} in "
                 f"{self.imagePath}")
+
+    ####
+    def getOriginalImage(self):
+        imagePath = os.path.join(IMAGES, self.imageName)
+        img = cv2.imread(imagePath, cv2.IMREAD_COLOR)
+        return img
 
     ######################
     # labelme Annotations

@@ -8,9 +8,12 @@ import wandb
 
 from ringdetector.analysis.ImageProcessor import ImageProcessor
 from ringdetector.analysis.EdgeProcessing import getEdges, scoreEdges
+from ringdetector.preprocessing.GeometryUtils import pixel_to_mm,\
+    rotateCoords, rotateListOfCoords, shiftListOfCoords, roundCoords
 
 from ringdetector.Paths import GENERATED_DATASETS_INNER_CROPS, \
     GENERATED_DATASETS_INNER_PICKLES
+
 
 class CoreProcessor:
 
@@ -34,10 +37,7 @@ class CoreProcessor:
             self.core = pickle.load(f)
 
         #NOTE: round pointLabels to nearest int (whole pixel)
-        self.core.pointLabels = [
-            [[round(coord) for coord in coords]
-                for coords in shape] for shape in self.core.pointLabels
-        ]
+        self.core.pointLabels = roundCoords(self.core.pointLabels)
 
         impath = os.path.join(GENERATED_DATASETS_INNER_CROPS, 
             f"{sampleName}.jpg")
@@ -79,10 +79,7 @@ class CoreProcessor:
         closestEdges = []
         for point in ringLabel:
             for edge in self.filteredEdges:
-                comparePoint = [
-                    edge.closestLabelPoint[1], edge.closestLabelPoint[0]
-                ]
-                if comparePoint == point:
+                if edge.closestLabelPoint == point:
                     matchedEdges.append(edge)
                     if edge.minDist < closestEdgesDist:
                         closestEdges = [edge]
@@ -168,8 +165,8 @@ class CoreProcessor:
             p2 = edge.predCoords[-1]
             cv2.line(
                 img,
-                [p1[1], p1[0]], 
-                [p2[1], p2[0]], 
+                [p1[0], p1[1]], 
+                [p2[0], p2[1]], 
                 color,
                 2
             )
@@ -203,10 +200,10 @@ class CoreProcessor:
         for i, edge in enumerate(self.filteredEdges):
             if i%2 == 0:
                 for point in edge.edge:
-                    shapeImg[point] = c1
+                    shapeImg[point[1], point[0]] = c1
             else:
                 for point in edge.edge:
-                    shapeImg[point] = c2
+                    shapeImg[point[1], point[0]] = c2
         
         self.__plotLabels(shapeImg, self.truePosLabels, (0,255,0))
         self.__plotLabels(shapeImg, self.falseNegLabels, (0,165,255))
@@ -221,7 +218,85 @@ class CoreProcessor:
         )
         cv2.imwrite(exportPath, verti)
 
+    ### Exports
     def toPickle(self, dir):
         filePath = os.path.join(dir, self.sampleName + "_processed.pkl")
         with open(filePath, 'wb') as f:
             pickle.dump(self, f, pickle.HIGHEST_PROTOCOL)
+
+    def __coordsToString(self, coordSet):
+        """ Expected input format [x,y] with x,y floats"""
+        return f"{str(round(coordSet[0],3))},{str(round(coordSet[1],3))}"
+    
+    def __coordListToString(self, coordList):
+        """ Expected input format [[x,y],[x,y]] """
+        coordStrings = []
+        for coordSet in coordList:
+            coordStrings.append(self.__coordsToString(coordSet))
+        return "  ".join(coordStrings)
+
+    def __getPos(self, mmCoords):
+        #TODO: what do we do about Pith info long term for unsupervised?
+        pos = [
+            f"#DENDRO (Cybis Dendro program compatible format) Coordinate file written as P:\Documents\PhD\Dendro data\Kun\{self.core.sampleName}.pos 2021-07-29 16:16:56 \n",
+            f"#Imagefile {self.core.imageName} \n",
+            f"#DPI {self.core.dpi} \n",
+            "#All coordinates in millimeters (mm) \n",
+            "SCALE 1 \n",
+            "#C DATED 2020 \n",
+            f"#C PithCoordinates=310.409,93.620; DistanceToPith=79.3; YearsToPith=11; \n",
+            f"#C Radius=262.001; CalcRadius=Yes; Written=2021-07-29 16:16:56; "
+            f"#C CooRecorder=9.6 Nov 25 2020; \n",
+            "#C licensedTo=Justine Charlet de Sauvage, justine.charlet@usys.ethz.ch; \n"
+        ]
+        for coords in mmCoords:
+            pos.append(self.__coordListToString(coords) + "\n")
+        return pos
+
+    def __plotPosImage(self, dir, coords):
+        """ Plots edge candidate coordinates onto original scanned image """
+        roundedCoords = roundCoords(coords)
+        sc = self.core.getOriginalImage()
+        self.__plotLabels(sc, roundedCoords, (0,0,0))
+        exportPath = os.path.join(
+            dir, f'{self.sampleName}_possc.jpg'
+        )
+        cv2.imwrite(exportPath, sc)
+
+
+    def exportPos(self, dir, sanityCheck=False):
+        """ creates edge coordinates for pos export and exports pos"""
+        # creating specific coordinates per edge
+        #NOTE: plotting two points per edge for now
+        edgeCoords = []
+        for edge in self.filteredEdges:
+            p1 = edge.predCoords[20]
+            p2 = edge.predCoords[-20]
+            edgeCoords.append([p1, p2])
+        
+        # undo shift
+        shiftedCoords = shiftListOfCoords(
+            edgeCoords, [self.core.shift[0] * -1, self.core.shift[1] * -1]
+        )
+        
+        # opposite rotation
+        rotMat = cv2.getRotationMatrix2D(
+            self.core.center, -1*self.core.angle, 1.0
+        )
+        rotatedCoords = rotateListOfCoords(shiftedCoords, rotMat)
+
+        # sanity check: round pixel coords and display on orig image
+        if sanityCheck:
+            self.__plotPosImage(dir, rotatedCoords)
+
+        # pos file export
+        mmCoords = [
+            [[pixel_to_mm(coord, self.core.dpi) for coord in coords] 
+            for coords in shape] for shape in rotatedCoords
+        ]
+        pos = self.__getPos(mmCoords)
+        posPath = os.path.join(
+            dir, f"{self.core.sampleName}.pos"
+        )
+        with open(posPath, "w") as f:
+            f.writelines(pos)
