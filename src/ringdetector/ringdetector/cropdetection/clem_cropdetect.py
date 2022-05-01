@@ -25,13 +25,13 @@ metadata.set(thing_classes=[f"inner_false"])
         
 
 #%%
-for d in random.sample(dataset, 3):
-    img = cv2.imread(d["file_name"])
-    visualizer = Visualizer(img[:, :, ::-1], metadata=metadata, scale=0.5)
-    out = visualizer.draw_dataset_dict(d)
-    cv2.imshow('EdgeGBR', out.get_image()[:, :, ::-1])
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+#for d in random.sample(dataset, 3):
+#    img = cv2.imread(d["file_name"])
+#    visualizer = Visualizer(img[:, :, ::-1], metadata=metadata, scale=0.5)
+#    out = visualizer.draw_dataset_dict(d)
+#    cv2.imshow('EdgeGBR', out.get_image()[:, :, ::-1])
+#    cv2.waitKey(0)
+#    cv2.destroyAllWindows()
 
 
 # %%
@@ -44,7 +44,7 @@ cfg = get_cfg()
 cfg.merge_from_file(
     model_zoo.get_config_file(
         "COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml"))
-cfg.DATASETS.TRAIN = ("balloon_train",)
+cfg.DATASETS.TRAIN = ("inner_false",)
 cfg.DATASETS.TEST = ()
 cfg.DATALOADER.NUM_WORKERS = 2
 cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url("COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml")  # Let training initialize from model zoo
@@ -56,6 +56,8 @@ cfg.MODEL.ROI_HEADS.BATCH_SIZE_PER_IMAGE = 128   # faster, and good enough for t
 cfg.MODEL.ROI_HEADS.NUM_CLASSES = 1  # only has one class (ballon). (see https://detectron2.readthedocs.io/tutorials/datasets.html#update-the-config-for-new-datasets)
 # NOTE: this config means the number of classes, but a few popular unofficial tutorials incorrect uses num_classes+1 here.
 
+#%%
+cfg.OUTPUT_DIR = D2_RESULTS
 os.makedirs(cfg.OUTPUT_DIR, exist_ok=True)
 trainer = DefaultTrainer(cfg) 
 trainer.resume_or_load(resume=False)
