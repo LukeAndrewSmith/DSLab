@@ -29,17 +29,12 @@ class CoreAnnotation:
         self.innerRectangle = deepcopy(self.origInnerRectangle)
 
         self.origOuterRectangle  = self.__initRectangle("OUTER")
-        
         self.outerRectangle = deepcopy(self.origOuterRectangle)        
-        
-        # Bounding box experiments
-        self.innerRectangleAngle = transform_to_xywha(self.origInnerRectangle)
-        self.innerRectangleNoAngle = transform_to_xyxy(self.origInnerRectangle)
-        self.outerRectangleNoAngle = transform_to_xyxy(self.outerRectangle)
 
         self.rectangles = [self.innerRectangle, self.outerRectangle]
         
         self.cracks = self.__findShape('CRACK', [])
+        self.gaps = self.__findShape('GAP', [])
         self.bark   = self.__findShape('BARK', [])
         self.ctrmid = self.__findShape('CTRMID', [])
         self.ctrend = self.__findShape('CTREND', [])

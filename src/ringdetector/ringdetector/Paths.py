@@ -18,8 +18,11 @@ GENERATED_DATASETS_INNER_PICKLES = os.path.join(
 GENERATED_DATASETS_TEST_INNER = os.path.join(
     DATA, 'generated_datasets/test_inner')
 
-# results
+# ring results
 RESULTS = os.path.abspath(os.path.join(DATA, '..', 'results'))
 RESULTS_PKL = os.path.join(RESULTS, "processed_cores")
 RESULTS_POS = os.path.join(RESULTS, "pos")
 RESULTS_DIAG = os.path.join(RESULTS, "diag")
+
+# crop results
+D2_RESULTS = os.path.abspath(os.path.join(DATA, '..', 'd2_results'))

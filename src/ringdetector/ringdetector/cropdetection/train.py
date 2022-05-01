@@ -3,14 +3,12 @@ import os
 from detectron2.utils.logger import setup_logger
 
 from utils import get_cuda_info
-from model_config import generate_config
-from dataset import CropDataset
+from ringdetector.cropdetection.model_config import generate_config
 from visualizer import visualize_anno
 from trainer import CustomizedTrainer
+from ringdetector.Paths import LABELME_JSONS, POINT_LABELS, D2_RESULTS
+from ringdetector.cropdetection.D2CustomDataset import D2CustomDataset
 
-LABELME_JSONS = '/home/leona/Documents/ds_lab/dslabtreering/src/json_files/'
-POINT_LABELS = '/home/leona/Documents/ds_lab/dslabtreering/src/pos_files/'
-OUTPUT_DIR = '/home/leona/Documents/ds_lab/dslabtreering/src/output/'
 
 ##NOTE: current implementation does not support returning concatenated dataset (see the TODO in `dataset.py`), so this should only contain one element each!
 DATASET_TRAIN = ("crop_detection_train",)
@@ -19,7 +17,7 @@ DATASET_VAL = ("crop_detection_evaluate",)
 def training(is_resume):
     ##TODO(3): model_config refactoring using lazy config: https://detectron2.readthedocs.io/en/latest/tutorials/lazyconfigs.html#lazy-configs
     ##TODO(3): config argparse
-    cfg = generate_config(OUTPUT_DIR, DATASET_TRAIN, DATASET_VAL)
+    # cfg = generate_config(D2_RESULTS, DATASET_TRAIN, DATASET_VAL)
 
     ##NOTE: the returned dataset is for visualization purpose. type(dataset) is list[dicts], type(metatdata) is metatdata instance.
     ##NOTE: metadata_train.evaluator_type is None cuz currently using rotated coco eval as default
