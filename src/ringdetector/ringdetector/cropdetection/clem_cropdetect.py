@@ -12,6 +12,8 @@ from ringdetector.cropdetection.utils import get_cuda_info
 from ringdetector.cropdetection.trainer import CustomizedTrainer
 from ringdetector.Paths import LABELME_JSONS, POINT_LABELS, D2_RESULTS
 
+from PIL import Image    
+Image.MAX_IMAGE_PIXELS = None
 
 setup_logger()
 
