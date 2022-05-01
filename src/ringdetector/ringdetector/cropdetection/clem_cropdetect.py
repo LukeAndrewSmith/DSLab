@@ -9,6 +9,7 @@ from detectron2.data import MetadataCatalog, DatasetCatalog
 
 from ringdetector.cropdetection.D2CustomDataset import D2CustomDataset
 from ringdetector.cropdetection.utils import get_cuda_info
+from ringdetector.cropdetection.trainer import CustomizedTrainer
 from ringdetector.Paths import LABELME_JSONS, POINT_LABELS, D2_RESULTS
 
 
@@ -64,6 +65,7 @@ print(get_cuda_info())
 #%%
 cfg.OUTPUT_DIR = D2_RESULTS
 os.makedirs(cfg.OUTPUT_DIR, exist_ok=True)
-trainer = DefaultTrainer(cfg) 
-trainer.resume_or_load(resume=False)
+trainer = CustomizedTrainer(cfg)
+trainer.resume_or_load(resume=True)
+
 trainer.train()
