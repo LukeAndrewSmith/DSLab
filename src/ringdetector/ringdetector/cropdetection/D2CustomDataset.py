@@ -16,7 +16,7 @@ class D2CustomDataset():
     def __getLabelMePoly(self, core, annoType):
         if annoType == "inner":
             return core.origInnerRectangle
-        elif annoType == "outer": 
+        elif annoType == "outer" or annoType == "outerInner":
             return core.origOuterRectangle
         else:
             raise ArgumentError("Unsupported annoType")
@@ -27,7 +27,10 @@ class D2CustomDataset():
         else: 
             return transform_to_xyxy(poly)
 
-    def __getSegPoly(self, poly):
+    def __getSegPoly(self, poly, annoType, core):
+        if annoType == "outerInner":
+            # need to overwrite the poly for this use case
+            poly = self.__getLabelMePoly(core, 'inner')
         segPoly = []
         for point in poly:
             segPoly.append(float(point[0])+.5)
@@ -54,7 +57,7 @@ class D2CustomDataset():
                         "bbox": self.__getBbox(poly, angle),
                         # TODO: make this change based on angle
                         "bbox_mode": BoxMode.XYXY_ABS, #BoxMode.XYWHA_ABS
-                        "segmentation": [self.__getSegPoly(poly)],
+                        "segmentation": [self.__getSegPoly(poly, annoType, core)],
                         "category_id": 0})
 
                 dataset.append({
