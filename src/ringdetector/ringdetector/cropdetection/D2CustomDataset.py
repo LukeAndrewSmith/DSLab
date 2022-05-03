@@ -6,10 +6,10 @@ from detectron2.data import MetadataCatalog, DatasetCatalog
 
 from ringdetector.preprocessing.ImageAnnotation import ImageAnnotation
 from ringdetector.preprocessing.GeometryUtils import transform_to_xywha,\
-    transform_to_xyxy
+    transform_to_xyxy, transform_to_xywh
 
 class D2CustomDataset():
-    def __init__(self, json_path, pos_path, ) -> None:
+    def __init__(self,  json_path, pos_path, ) -> None:
         self.json_path = os.path.join(json_path)
         self.pos_path = os.path.join(pos_path)
     
@@ -37,12 +37,12 @@ class D2CustomDataset():
             segPoly.append(float(point[1])+.5)
         return segPoly
 
-    def __generator(self, annoType, angle):
+    def __generator(self, annoType, angle, split):
         #TODO: type = "inner", "outer", "gap", "center"
 
         dataset = []
 
-        for file in os.listdir(self.json_path):
+        for file in os.listdir(os.path.join(self.json_path, split)):
             if file.endswith(".json"):
                 img = ImageAnnotation(
                     os.path.join(self.json_path, file), 
@@ -73,7 +73,7 @@ class D2CustomDataset():
     def generate_dataset(self, split, annoType, angle):
         #TODO: implement train test datasplit, or use multiple datasets
 
-        dataset = self.__generator(annoType, angle)
+        dataset = self.__generator(annoType, angle, split)
         
         #data = []## TODO(3): multiple datasets, use list.extend()
         #metadata = [] ## TODO(3): multiple datasets, metadata instance

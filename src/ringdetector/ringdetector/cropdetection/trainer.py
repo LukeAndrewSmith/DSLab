@@ -3,6 +3,7 @@ from detectron2.data import DatasetMapper, build_detection_train_loader, build_d
 from detectron2.evaluation import COCOEvaluator, RotatedCOCOEvaluator
 
 from augmentation import RatioResize
+import detectron2.data.transforms as T
 
 class CustomizedTrainer(DefaultTrainer):
     @classmethod
@@ -15,15 +16,18 @@ class CustomizedTrainer(DefaultTrainer):
 
     @classmethod
     def build_train_loader(cls, cfg):
-        mapper_train = DatasetMapper(cfg, is_train=True, augmentations=[RatioResize(0.15)])## TODO(2): augs
+        mapper_train = DatasetMapper(cfg, is_train=True, augmentations=[RatioResize(0.15), T.RandomBrightness(0.9,1.1),
+                                                                        T.RandomContrast(0.9, 1.1),
+                                                                        T.RandomFlip(horizontal=False, vertical=True),
+                                                                        T.RandomCrop(crop_type="relative_range", crop_size=(0.5,0.9))])## TODO(2): augs
         train_loader  = build_detection_train_loader(cfg, mapper=mapper_train)
         
         return train_loader
     
     @classmethod
     def build_test_loader(cls, cfg, dataset_name):
-        mapper_test = DatasetMapper(cfg, is_train=True, augmentations=[RatioResize(0.15)])## TODO(2): augs
-        test_loader  = build_detection_test_loader(cfg, dataset_name, mapper=mapper_test)
+        mapper_test = DatasetMapper(cfg, is_train=False, augmentations=[RatioResize(0.15)])## TODO(2): augs
+        test_loader = build_detection_test_loader(cfg, dataset_name, mapper=mapper_test)
         
         return test_loader
     
