@@ -106,9 +106,6 @@ if __name__ == "__main__":
     Image.MAX_IMAGE_PIXELS = None
 
     logging.info(get_cuda_info())
-
-    ##TODO(2): use wandb logger instead: https://github.com/wandb/artifacts-examples/blob/master/detectron2/wandb_train_net.py
     setup_logger()
 
-    ##TODO(3): config argparse
     main(args=args, is_resume=True)
