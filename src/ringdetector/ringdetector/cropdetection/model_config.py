@@ -9,6 +9,7 @@ from detectron2.config import CfgNode as CN
 ##TODO(2): rotated rect prediction: https://github.com/facebookresearch/detectron2/issues/21, 
 ##see https://colab.research.google.com/drive/1JXKl48u1fxC35bBryKlQVyQf8tp-DUpE?usp=sharing for a possible solution
 
+
 def generate_config(output_dir, dataset_train, dataset_test):
     cfg = get_cfg()
     cfg.merge_from_file(
@@ -214,7 +215,7 @@ def generate_config(output_dir, dataset_train, dataset_test):
     # cfg.SOLVER.WEIGHT_DECAY_NORM = 0.0
     # cfg.SOLVER.GAMMA = 0.1
     # The iteration number to decrease learning rate by GAMMA.
-    cfg.SOLVER.STEPS = [1000,2000,3000, 4000]
+    cfg.SOLVER.STEPS = [1000,2000,3000,4000]
     # cfg.SOLVER.WARMUP_FACTOR = 1.0 / 1000
     # cfg.SOLVER.WARMUP_ITERS = 1000
     # cfg.SOLVER.WARMUP_METHOD = "linear"

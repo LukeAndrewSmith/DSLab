@@ -12,6 +12,7 @@ from detectron2 import model_zoo
 from detectron2.engine import DefaultPredictor
 from detectron2.config import get_cfg
 import wandb
+import argparse
 
 from ringdetector.cropdetection.D2CustomDataset import D2CustomDataset
 from ringdetector.cropdetection.utils import get_cuda_info
@@ -43,16 +44,6 @@ metadata_val.set(thing_classes=[f"inner_crop"])
 metadata_test = MetadataCatalog.get("test")
 metadata_test.set(thing_classes=[f"inner_crop"])
 
-"""dataset_train = DatasetCatalog.get("train")
-for d in random.sample(dataset_train, 3):
-    img = cv2.imread(d["file_name"])
-    visualizer = Visualizer(img[:, :, ::-1], metadata=metadata_train, scale=0.5)
-    out = visualizer.draw_dataset_dict(d)
-    cv2.imshow('EdgeGBR', out.get_image()[:, :, ::-1])
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()"""
-
-
 # %%
 # create a folder for each run:
 res_dir = os.path.join(D2_RESULTS, datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S'))
@@ -66,3 +57,10 @@ trainer = CustomizedTrainer(cfg)
 trainer.resume_or_load(resume=True)
 
 trainer.train()
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='Arguments what to predict and visualize')
+    parser.add_argument("--datamode", "-d", dest="dataMode", default="inner", choices=['outer', 'inner', 'outerInner'],
+                        type=str)
+    parser.add_argument("--split", dest="split", default="test", choices=['train', 'val', 'test'], type=str)
+    parser.add_argument("--modelpath", "-m", dest="modelPath", type=str)

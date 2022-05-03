@@ -4,6 +4,7 @@ from detectron2.engine import DefaultPredictor
 from augmentation import RatioResize
 from detectron2.modeling import build_model
 
+
 class CustomizedPredictor(DefaultPredictor):
 
     def __init__(self, cfg):
