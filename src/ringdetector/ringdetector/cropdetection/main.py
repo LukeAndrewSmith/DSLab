@@ -18,7 +18,6 @@ import wandb
 
 coloredlogs.install(level=logging.INFO)
 warnings.filterwarnings("ignore")
-#wandb.init('cropdetection', sync_tensorboard=True, settings=wandb.Settings(start_method="thread", console="off"))
 
 
 def registerDatasets(split, dataMode):
@@ -43,6 +42,12 @@ def getModelDirectory(modelPath):
     return modelDir
 
 
+def wandbLog(cfg, args):
+    wandb.init(project='cropdetection', sync_tensorboard=True,
+               settings=wandb.Settings(start_method="thread", console="off"), config=cfg)
+    wandb.config.update({"dataMode": args.dataMode})
+
+
 def train(cfg, is_resume):
     trainer = CustomizedTrainer(cfg)
     trainer.resume_or_load(resume=is_resume)
@@ -65,7 +70,7 @@ def main(args, is_resume):
     if args.mode == "train":
         outputDir = createOutputDirectory()
         cfg = generate_config(outputDir, ("train",), ("val",))
-
+        wandbLog(cfg, args)
         train(cfg, is_resume=is_resume)
 
     elif args.mode == "eval":
@@ -100,6 +105,7 @@ if __name__ == "__main__":
     parser.add_argument("-split", help="What split to predict on if mode pred or eval is chosen",
                         choices=["train", "val", "test"], type=str)
     parser.add_argument("--k-pred", "-k", type=int)
+    parser.add_argument("--num-gpus", type=int)
     args = parser.parse_args()
 
     ##NOTE: memory issues

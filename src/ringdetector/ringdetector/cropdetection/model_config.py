@@ -138,7 +138,7 @@ def generate_config(output_dir, dataset_train, dataset_test):
     cfg.MODEL.ROI_HEADS.BATCH_SIZE_PER_IMAGE = 512##TODO(2)
     
     # # Target fraction of RoI minibatch that is labeled foreground (i.e. class > 0)
-    cfg.MODEL.ROI_HEADS.POSITIVE_FRACTION = 0.25
+    cfg.MODEL.ROI_HEADS.POSITIVE_FRACTION = 0.30
 
     # Only used on test mode
     # Minimum score threshold (assuming scores in a [0, 1] range); a value chosen to
@@ -146,7 +146,7 @@ def generate_config(output_dir, dataset_train, dataset_test):
     # detections that will slow down inference post processing steps (like NMS)
     # A default threshold of 0.0 increases AP by ~0.2-0.3 but significantly slows down
     # inference.
-    cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.5##TODO(1)
+    cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.5 ##TODO(1)
     
     # # Overlap threshold used for non-maximum suppression (suppress boxes with
     # # IoU >= this threshold)
@@ -204,7 +204,7 @@ def generate_config(output_dir, dataset_train, dataset_test):
 
     cfg.SOLVER.MAX_ITER = 5000
 
-    cfg.SOLVER.BASE_LR = 0.0025
+    cfg.SOLVER.BASE_LR = 0.025
     # # The end lr, only used by WarmupCosineLR
     # cfg.SOLVER.BASE_LR_END = 0.0
     # cfg.SOLVER.MOMENTUM = 0.9
@@ -215,7 +215,7 @@ def generate_config(output_dir, dataset_train, dataset_test):
     # cfg.SOLVER.WEIGHT_DECAY_NORM = 0.0
     # cfg.SOLVER.GAMMA = 0.1
     # The iteration number to decrease learning rate by GAMMA.
-    cfg.SOLVER.STEPS = [1000,2000,3000,4000]
+    cfg.SOLVER.STEPS = [1000,2000,3000,4000,4500]
     # cfg.SOLVER.WARMUP_FACTOR = 1.0 / 1000
     # cfg.SOLVER.WARMUP_ITERS = 1000
     # cfg.SOLVER.WARMUP_METHOD = "linear"
