@@ -15,9 +15,11 @@ import argparse
 import warnings
 import logging
 import coloredlogs
+import wandb
 
 coloredlogs.install(level=logging.INFO)
 warnings.filterwarnings("ignore")
+wandb.init('cropdetection', sync_tensorboard=True, settings=wandb.Settings(start_method="thread", console="off"))
 
 
 def registerDatasets(split, dataMode):
