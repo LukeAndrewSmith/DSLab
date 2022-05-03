@@ -99,13 +99,13 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Arguments what mode to run in and training configurations')
     parser.add_argument("--mode", "-m", dest="mode", default="train", choices=["train", "eval", "pred"],
                         type=str)
-    parser.add_argument("--dataMode", "-tm", dest="trainMode", choices=["inner", "outer", "outerInner"],
+    parser.add_argument("--dataMode", "-tm", dest="dataMode", choices=["inner", "outer", "outerInner"],
                         default="inner", type=str)
     parser.add_argument("--modelPath", dest="modelPath", type=str)
-    parser.add_argument("-split", help="What split to predict on if mode pred or eval is chosen",
+    parser.add_argument("-split", dest="split", help="What split to predict on if mode pred or eval is chosen",
                         choices=["train", "val", "test"], type=str)
-    parser.add_argument("--k-pred", "-k", type=int)
-    parser.add_argument("--num-gpus", type=int)
+    parser.add_argument("--k-pred", "-k", dest="k", type=int)
+    parser.add_argument("--num-gpus", dest="num-gpus", type=int)
     args = parser.parse_args()
 
     ##NOTE: memory issues
