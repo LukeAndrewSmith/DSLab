@@ -56,7 +56,7 @@ def generate_config(output_dir, dataset_train, dataset_test):
     # # to use for IN_FEATURES[i]; len(ASPECT_RATIOS) == len(IN_FEATURES) must be true,
     # # or len(ASPECT_RATIOS) == 1 is true and aspect ratio list ASPECT_RATIOS[0] is used
     # # for all IN_FEATURES.
-    cfg.MODEL.ANCHOR_GENERATOR.ASPECT_RATIOS = [[1/75, 1/80, 1/85, 1/90, 1/100]]##NOTE: Input core size: (250*20000)*0.15 = 37.5*3000
+    cfg.MODEL.ANCHOR_GENERATOR.ASPECT_RATIOS = [[1/75, 1/80, 1/85, 1/90, 1/100, 1/125]]##NOTE: Input core size: (250*20000)*0.15 = 37.5*3000
     
     # # Anchor angles.
     # # list[list[float]], the angle in degrees, for each input feature map.
@@ -135,7 +135,7 @@ def generate_config(output_dir, dataset_train, dataset_test):
     # RoI minibatch size *per image* (number of regions of interest [ROIs]) during training
     # Total number of RoIs per training minibatch = ROI_HEADS.BATCH_SIZE_PER_IMAGE * SOLVER.IMS_PER_BATCH
     # E.g., a common configuration is: 512 * 16 = 8192
-    cfg.MODEL.ROI_HEADS.BATCH_SIZE_PER_IMAGE = 256##TODO(2)
+    cfg.MODEL.ROI_HEADS.BATCH_SIZE_PER_IMAGE = 512##TODO(2)
     
     # # Target fraction of RoI minibatch that is labeled foreground (i.e. class > 0)
     cfg.MODEL.ROI_HEADS.POSITIVE_FRACTION = 0.25

@@ -8,7 +8,6 @@ from ringdetector.cropdetection.D2CustomDataset import D2CustomDataset
 from ringdetector.cropdetection.utils import get_cuda_info
 from ringdetector.Paths import LABELME_JSONS, POINT_LABELS, D2_RESULTS
 from ringdetector.cropdetection.model_config import generate_config
-from ringdetector.cropdetection.trainer import train, validate
 from ringdetector.cropdetection.predictor import CustomizedPredictor
 from ringdetector.cropdetection.visualizer import visualizePred
 import argparse
@@ -19,7 +18,7 @@ import wandb
 
 coloredlogs.install(level=logging.INFO)
 warnings.filterwarnings("ignore")
-wandb.init('cropdetection', sync_tensorboard=True, settings=wandb.Settings(start_method="thread", console="off"))
+#wandb.init('cropdetection', sync_tensorboard=True, settings=wandb.Settings(start_method="thread", console="off"))
 
 
 def registerDatasets(split, dataMode):
