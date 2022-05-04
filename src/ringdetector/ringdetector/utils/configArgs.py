@@ -42,11 +42,11 @@ def getArgs(parser):
     parser.add_argument("-cannyMax", type=int, default=100, 
         help="RingDetection: Maximum threshold (threshold2 arg) for cv2.Canny")
     
-    parser.add_argument("-rightEdgeMethod", type=str, default='simple', 
+    parser.add_argument("-rightEdgeMethod", type=str, choices=['simple', 'angle', 'counts'], default='simple', 
         help="RingDetection: 'Keep right edge' heuristic method for choosing of shapes to apply to")
 
     parser.add_argument("-invertedEdgeWindowSize", type=int, default=25, 
-        help="RingDetection: Maximum threshold (threshold2 arg) for cv2.Canny")
+        help="RingDetection: Number of pixels left and right of an edge to use to determine the average color right/left of a shape")
     
     parser.add_argument("-mergeShapes1Ball", type=tuple, default=(10,5), 
         help="RingDetection: Distance between shape tips allowed for merging")

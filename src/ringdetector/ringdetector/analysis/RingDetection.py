@@ -22,9 +22,14 @@ def findRings(imgPath, readType="grayscale", denoiseH=25, denoiseTemplateWindowS
                 filterRegressionAnglesAngleThreshold=np.pi/4 ):
 
     if readType == "grayscale":
-        img = cv2.imread(imgPath, cv2.IMREAD_GRAYSCALE)
-    else:
-        raise "Other read types not implemented yet"
+        img = cv2.imread(imgPath, cv2.IMREAD_GRAYSCALE) 
+    elif readType == "hsv":
+        gbr_img = cv2.imread(imgPath, cv2.IMREAD_UNCHANGED)
+        hsv_img = cv2.cvtColor(gbr_img, cv2.COLOR_BGR2HSV)
+        img = hsv_img[:,:,2] 
+    else: 
+         raise "Other read types not implemented yet"
+        
 
     #####################
     # Partial Application
