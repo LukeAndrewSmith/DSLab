@@ -11,5 +11,11 @@ Then, open Paths.py and set absolute path to the folder where you have the data 
 ### Dataset Creation
 Execute `python preprocessing/CreateInnerDataset.py`
 
+##### will add the installation some other time here
+### Crop Detection  toggle cracks if you want to also train a crack detector
+#### dataMode specifies whether the outer or inner rectangle is taken as a bounding box + segmentation mask 
+#### dataMode outerInner has the outer rectangle and inner segmentation mask
+Execute `python main.py --mode=train --dataMode=inner --num-gpus=2 --cracks`
+
 ### Core Prediction and Scoring
 Execute `python analysis/pipeline.py` with optional args documented in `utils/ConfigArgs.py`. Quite slow for the moment, consider running for a single core first with `python analysis/pipeline.py -sample KunA01SS`, replacing the sample name with a sample in your inner dataset directory.
