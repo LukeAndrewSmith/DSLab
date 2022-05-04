@@ -43,8 +43,8 @@ for name, split in zip(names,splits):
             totalCount += ncores
     coreCounts.append(splitCounts)
 
-logging.info(f"Train total cores: {sum(coreCounts[0])/totalCount}, "
-    f"Val: {sum(coreCounts[1])/totalCount}, "
+logging.info(f"Train total cores: {sum(coreCounts[0])/totalCount}\n "
+    f"Val: {sum(coreCounts[1])/totalCount}\n "
     f"Test: {sum(coreCounts[2])/totalCount}")
 logging.info(f"Image sizes val: f{coreCounts[1]}")
 logging.info(f"Image sizes test: f{coreCounts[2]}")
