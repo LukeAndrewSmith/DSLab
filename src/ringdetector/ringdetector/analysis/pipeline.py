@@ -50,16 +50,16 @@ if __name__ == "__main__":
     wbMetricsTricky = []
     wbMetricsEasy = []
     for sample in tqdm(samples, "Cores"):
-        cp = CoreProcessor(sample, 
-                            readType=cfg.ipread,
-                            denoiseH=cfg.denoiseh, 
-                            denoiseTemplateWindowSize=cfg.denoisetempwind, 
-                            searchWindowSize=cfg.denoisesearchwind,
-                            gradMethod=cfg.ipgrad,
-                            cannyMin=cfg.cannymin,
-                            cannyMax=cfg.cannymax,
-                            minEdgeLen=cfg.minedgelen,
-                            edgeModel=cfg.edgemodel)
+        cp = CoreProcessor(sample)
+                            # readType=cfg.ipread,
+                            # TODO:
+                            # denoiseH=cfg.denoiseH, 
+                            # denoiseTemplateWindowSize=cfg.denoisetempwind, 
+                            # searchWindowSize=cfg.denoisesearchwind,
+                            # cannyMin=cfg.cannymin,
+                            # cannyMax=cfg.cannymax,
+                            # minEdgeLen=cfg.minedgelen,
+                            # edgeModel=cfg.edgemodel)
         cp.scoreCore()
         logging.info(f"Sample {sample}: prec {round(cp.precision,3)}, "
             f"rec {round(cp.recall, 3)}")
@@ -70,8 +70,8 @@ if __name__ == "__main__":
             wbMetricsTricky.append([cp.sampleName, cp.precision, cp.recall])
         else:
             wbMetricsEasy.append([cp.sampleName, cp.precision, cp.recall])
-        cp.exportCoreImg(RESULTS_DIAG)
-        cp.exportCoreShapeImg(RESULTS_DIAG)
+        cp.exportLinePlot(RESULTS_DIAG)
+        cp.exportShapePlot(RESULTS_DIAG)
         cp.exportPos(RESULTS_POS, sanityCheck=False)
         cp.toPickle(RESULTS_PKL)
 

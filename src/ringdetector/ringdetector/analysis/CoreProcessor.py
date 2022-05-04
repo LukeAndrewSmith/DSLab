@@ -18,15 +18,13 @@ class CoreProcessor:
 
     def __init__(self, 
                 sampleName, 
-                readType="hsv", 
-                denoiseH=10, 
-                denoiseTemplateWindowSize=7, 
-                searchWindowSize=21,
-                gradMethod="canny",
-                cannyMin=50,
-                cannyMax=100,
-                minEdgeLen=80,
-                edgeModel="linear"):
+                denoiseH=25, denoiseTemplateWindowSize=10,
+                denoiseSearchWindowSize=21, cannyMin=50, cannyMax=75,
+                rightEdgeMethod="simple", invertedEdgeWindowSize=25, 
+                mergeShapes1Ball=(10,5), mergeShapes1Angle=np.pi/4,
+                mergeShapes2Ball=(20,20), mergeShapes2Angle=np.pi/4, 
+                filterLengthImgProportion=0.5,
+                filterRegressionAnglesAngleThreshold=np.pi/4):
         self.sampleName = sampleName
 
         picklePath = os.path.join(
@@ -43,7 +41,13 @@ class CoreProcessor:
 
         self.imgPath = impath # TODO: pass this in a better manner...
 
-        edges = findRings(impath)
+        edges = findRings(impath, denoiseH=denoiseH, denoiseTemplateWindowSize=denoiseTemplateWindowSize,
+                denoiseSearchWindowSize=denoiseSearchWindowSize, cannyMin=cannyMin, cannyMax=cannyMax,
+                rightEdgeMethod=rightEdgeMethod, invertedEdgeWindowSize=invertedEdgeWindowSize, 
+                mergeShapes1Ball=mergeShapes1Ball, mergeShapes1Angle=mergeShapes1Angle,
+                mergeShapes2Ball=mergeShapes2Ball, mergeShapes2Angle=mergeShapes2Angle, 
+                filterLengthImgProportion=filterLengthImgProportion,
+                filterRegressionAnglesAngleThreshold=filterRegressionAnglesAngleThreshold)
         edges = self.__scoreEdges(edges, self.core.pointLabels)
 
         # TODO: placeholder for some function where we remove edges with 
@@ -174,8 +178,8 @@ class CoreProcessor:
                 2
             )
 
-    def exportCoreImg(self, dir):
-        orig = cv2.imread(self.imgPath, cv2.IMREAD_GRAYSCALE) # TODO: this doesn't exist anymore
+    def exportLinePlot(self, dir):
+        orig = cv2.imread(self.imgPath, cv2.IMREAD_GRAYSCALE)
         bgnd = np.dstack([orig,orig,orig])
         self.__plotEdges(bgnd, self.truePosEdges, (255,0,0))
         self.__plotEdges(bgnd, self.falsePosEdges, (0,0,255))
@@ -187,17 +191,14 @@ class CoreProcessor:
         verti = np.concatenate(vertiList, axis=0)
         
         exportPath = os.path.join(
-            dir, f'{self.sampleName}_edgeplot.jpg'
+            dir, f'{self.sampleName}_lineplot.jpg'
         )
         cv2.imwrite(exportPath, verti)
     
-    def exportCoreShapeImg(self, dir):
-        height, width = cv2.imread(self.imgPath, cv2.IMREAD_GRAYSCALE).shape
+    def exportShapePlot(self, dir):
+        shapeImgBase = cv2.imread(self.imgPath, cv2.IMREAD_GRAYSCALE)
+        shapeImg = np.dstack([shapeImgBase,shapeImgBase,shapeImgBase])
 
-        shapeImg = np.zeros(
-            (height, width, 3), 
-            dtype=np.uint8
-        )
         c1 = (255,255,187)
         c2 = (159,84,255)
         
