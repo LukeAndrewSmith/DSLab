@@ -61,3 +61,20 @@ def getArgs(parser):
     #    cfg.wb = True
 
     return cfg
+
+
+def getCropDetectionArgs(parser):
+    parser.add_argument("--mode", "-m", dest="mode", default="train", choices=["train", "eval", "pred"],
+                        type=str)
+    parser.add_argument("--dataMode", "-tm", dest="dataMode", choices=["inner", "outer", "outerInner"],
+                        default="inner", type=str)
+    parser.add_argument("--modelPath", dest="modelPath", type=str)
+    parser.add_argument("-split", dest="split", help="What split to predict on if mode pred or eval is chosen",
+                        choices=["train", "val", "test"], type=str)
+    parser.add_argument("--k-pred", "-k", dest="k", default=5, type=int)
+    parser.add_argument("--num-gpus", dest="num-gpus", type=int)
+    parser.add_argument("--cracks", dest="cracks", action='store_true', default=False)
+
+    cfg = parser.parse_args()
+
+    return cfg

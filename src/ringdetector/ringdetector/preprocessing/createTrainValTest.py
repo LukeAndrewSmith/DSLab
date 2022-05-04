@@ -14,7 +14,7 @@ coloredlogs.install(level=logging.INFO)
 warnings.filterwarnings("ignore")
 
 #%%
-seed = 55
+seed = 42
 
 files = os.listdir(LABELME_JSONS)
 
@@ -51,6 +51,6 @@ logging.info(f"Image sizes test: f{coreCounts[2]}")
 
 #%% need to put all fil
 for idx in range(3):
-    os.makedirs(os.path.join(LABELME_JSONS, name[idx]))
-    for file in split[idx]:
-        shutil.copy(os.path.join(LABELME_JSONS, file), os.path.join(LABELME_JSONS, name[idx], file))
+    os.makedirs(os.path.join(LABELME_JSONS, names[idx]))
+    for file in splits[idx]:
+        shutil.copy(os.path.join(LABELME_JSONS, file), os.path.join(LABELME_JSONS, names[idx], file))

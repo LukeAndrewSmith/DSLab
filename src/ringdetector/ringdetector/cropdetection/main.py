@@ -10,6 +10,7 @@ from ringdetector.Paths import LABELME_JSONS, POINT_LABELS, D2_RESULTS
 from ringdetector.cropdetection.model_config import generate_config
 from ringdetector.cropdetection.predictor import CustomizedPredictor
 from ringdetector.cropdetection.visualizer import visualizePred, wandbVisualizePred
+from ringdetector.utils.configArgs import getCropDetectionArgs
 import argparse
 import warnings
 import logging
@@ -18,6 +19,9 @@ import wandb
 
 coloredlogs.install(level=logging.INFO)
 warnings.filterwarnings("ignore")
+
+parser = argparse.ArgumentParser()
+args = getCropDetectionArgs(parser)
 
 
 def registerDatasets(split, dataMode, cracks):
@@ -121,22 +125,8 @@ def main(args, is_resume):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Arguments what mode to run in and training configurations')
-    parser.add_argument("--mode", "-m", dest="mode", default="train", choices=["train", "eval", "pred"],
-                        type=str)
-    parser.add_argument("--dataMode", "-tm", dest="dataMode", choices=["inner", "outer", "outerInner"],
-                        default="inner", type=str)
-    parser.add_argument("--modelPath", dest="modelPath", type=str)
-    parser.add_argument("-split", dest="split", help="What split to predict on if mode pred or eval is chosen",
-                        choices=["train", "val", "test"], type=str)
-    parser.add_argument("--k-pred", "-k", dest="k", default=5, type=int)
-    parser.add_argument("--num-gpus", dest="num-gpus", type=int)
-    parser.add_argument("--cracks", dest="cracks", action='store_true', default=False)
-    args = parser.parse_args()
-
     ##NOTE: memory issues
     Image.MAX_IMAGE_PIXELS = None
-
     logging.info(get_cuda_info())
     setup_logger()
 

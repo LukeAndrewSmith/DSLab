@@ -15,7 +15,6 @@ def generate_config(output_dir, dataset_train, dataset_test):
     cfg.merge_from_file(
         model_zoo.get_config_file(
             "COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml"))
-    cfg.DATALOADER.NUM_WORKERS = 2
     cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url(
         "COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml")  # Let training initialize from model zoo
 
@@ -126,7 +125,7 @@ def generate_config(output_dir, dataset_train, dataset_test):
 
     ## ====Model:ROI====
     # cfg.MODEL.ROI_HEADS.NAME = "Res5ROIHeads"
-    cfg.MODEL.ROI_HEADS.NUM_CLASSES = 1  # only has one class.
+    cfg.MODEL.ROI_HEADS.NUM_CLASSES = 2 # only has one class.
 
     # # Overlap threshold for an RoI to be considered background (if < IOU_THRESHOLD)
     # # Overlap threshold for an RoI to be considered foreground (if >= IOU_THRESHOLD)
@@ -204,7 +203,7 @@ def generate_config(output_dir, dataset_train, dataset_test):
 
     cfg.SOLVER.MAX_ITER = 5000
 
-    cfg.SOLVER.BASE_LR = 0.025
+    cfg.SOLVER.BASE_LR = 0.0025
     # # The end lr, only used by WarmupCosineLR
     # cfg.SOLVER.BASE_LR_END = 0.0
     # cfg.SOLVER.MOMENTUM = 0.9

@@ -8,10 +8,9 @@ import detectron2.data.transforms as T
 class CustomizedTrainer(DefaultTrainer):
     @classmethod
     def build_evaluator(self, cfg, dataset_name):
-        ## NOTE: RotatedCOCOEvaluator uses IOU only and does not consider angle differences.
-        ## TODO(1): RotatedCOCOEvaluator has internal bugs(?) that produce nonsensical evaluation results rn (see colab sample). Customization is needed.
-        
-        #RotatedCOCOEvaluator(dataset_name, output_dir=cfg.OUTPUT_DIR)
+        # NOTE: RotatedCOCOEvaluator uses IOU only and does not consider angle differences.
+        # TODO(1): RotatedCOCOEvaluator has internal bugs(?) that produce nonsensical evaluation results rn (see colab sample). Customization is needed.
+        # RotatedCOCOEvaluator(dataset_name, output_dir=cfg.OUTPUT_DIR)
         return COCOEvaluator(dataset_name, output_dir=cfg.OUTPUT_DIR)
 
     @classmethod

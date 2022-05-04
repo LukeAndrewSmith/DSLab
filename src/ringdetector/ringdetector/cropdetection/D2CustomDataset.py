@@ -45,6 +45,31 @@ class D2CustomDataset():
             segPoly.append(float(point[1])+.5)
         return segPoly
 
+    def __appendRectangleAnnotation(self, annos, annoType, core, angle):
+        poly = self.__getLabelMePoly(core, annoType)
+        annos.append(
+            {
+                "bbox": self.__getBbox(poly, angle),
+                "bbox_mode": BoxMode.XYXY_ABS,
+                "segmentation": [self.__getSegPoly(poly, annoType, core)],
+                "category_id": 0})
+        return annos
+
+
+    def __appendPolyAnnotations(self, annos, core, angle):
+        # list of crack annotations for the core as polygon shape
+        polyCracks = self.__getLabelMePoly(core, "cracks")
+        for poly in polyCracks:
+            annos.append({
+                # need to convert to rect before here:
+                "bbox": self.__getBbox(self.__convertToRectangle(poly), angle),
+                "bbox_mode": BoxMode.XYXY_ABS,
+                "segmentation": [self.__getSegPoly(poly, "cracks", core)],
+                "category_id": 1
+            })
+        return annos
+
+
     def __generator(self, annoType, angle, split, cracks):
         dataset = []
 
@@ -57,27 +82,9 @@ class D2CustomDataset():
                 
                 annos = []
                 for core in img.core_annotations:
-                    poly = self.__getLabelMePoly(core, annoType)
-                    annos.append(
-                        {
-                        "bbox": self.__getBbox(poly, angle),
-                        # TODO: make this change based on angle
-                        "bbox_mode": BoxMode.XYXY_ABS, #BoxMode.XYWHA_ABS
-                        "segmentation": [self.__getSegPoly(poly, annoType, core)],
-                        "category_id": 0})
-
+                    annos = self.__appendRectangleAnnotation(annos, annoType, core, angle)
                     if cracks:
-                        # list of crack annotations for the core as polygon shape
-                        polyCracks = self.__getLabelMePoly(core, "cracks")
-                        for poly in polyCracks:
-                            annos.append({
-                                # need to convert to rect before here:
-                                "bbox": self.__getBbox(self.__convertToRectangle(poly), angle),
-                                # TODO: make this change based on angle
-                                "bbox_mode": BoxMode.XYXY_ABS,  # BoxMode.XYWHA_ABS
-                                "segmentation": [self.__getSegPoly(poly, "cracks", core)],
-                                "category_id": 1
-                            })
+                        annos = self.__appendPolyAnnotations(annos, core, angle)
 
                 dataset.append({
                     "file_name": os.path.join(
@@ -90,7 +97,5 @@ class D2CustomDataset():
         return dataset
 
     def generate_dataset(self, split, annoType, angle, cracks):
-
         dataset = self.__generator(annoType, angle, split, cracks)
-
         return dataset
