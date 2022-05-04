@@ -55,12 +55,12 @@ def generate_config(output_dir, dataset_train, dataset_test):
     # # to use for IN_FEATURES[i]; len(ASPECT_RATIOS) == len(IN_FEATURES) must be true,
     # # or len(ASPECT_RATIOS) == 1 is true and aspect ratio list ASPECT_RATIOS[0] is used
     # # for all IN_FEATURES.
-    cfg.MODEL.ANCHOR_GENERATOR.ASPECT_RATIOS = [[1/75, 1/80, 1/85, 1/90, 1/100, 1/125]]##NOTE: Input core size: (250*20000)*0.15 = 37.5*3000
+    cfg.MODEL.ANCHOR_GENERATOR.ASPECT_RATIOS = [[10, 5, 2, 1, 1/75, 1/80, 1/85, 1/90, 1/100, 1/125]]##NOTE: Input core size: (250*20000)*0.15 = 37.5*3000
     
     # # Anchor angles.
     # # list[list[float]], the angle in degrees, for each input feature map.
     # # ANGLES[i] specifies the list of angles for IN_FEATURES[i].
-    cfg.MODEL.ANCHOR_GENERATOR.ANGLES = [[0]]
+    cfg.MODEL.ANCHOR_GENERATOR.ANGLES = [[0, -45, 45]]
     
     # # Relative offset between the center of the first anchor and the top-left corner of the image
     # # Value has to be in [0, 1). Recommend to use 0.5, which means half stride.
@@ -88,7 +88,7 @@ def generate_config(output_dir, dataset_train, dataset_test):
     cfg.MODEL.RPN.IOU_LABELS = [0, -1, 1]
     
     # Number of regions per image used to train RPN
-    cfg.MODEL.RPN.BATCH_SIZE_PER_IMAGE = 256##TODO(2)
+    cfg.MODEL.RPN.BATCH_SIZE_PER_IMAGE = 512
     
     # # Target fraction of foreground (positive) examples per RPN minibatch
     # cfg.MODEL.RPN.POSITIVE_FRACTION = 0.5
@@ -134,7 +134,7 @@ def generate_config(output_dir, dataset_train, dataset_test):
     # RoI minibatch size *per image* (number of regions of interest [ROIs]) during training
     # Total number of RoIs per training minibatch = ROI_HEADS.BATCH_SIZE_PER_IMAGE * SOLVER.IMS_PER_BATCH
     # E.g., a common configuration is: 512 * 16 = 8192
-    cfg.MODEL.ROI_HEADS.BATCH_SIZE_PER_IMAGE = 512##TODO(2)
+    cfg.MODEL.ROI_HEADS.BATCH_SIZE_PER_IMAGE = 512
     
     # # Target fraction of RoI minibatch that is labeled foreground (i.e. class > 0)
     cfg.MODEL.ROI_HEADS.POSITIVE_FRACTION = 0.30
@@ -145,7 +145,7 @@ def generate_config(output_dir, dataset_train, dataset_test):
     # detections that will slow down inference post processing steps (like NMS)
     # A default threshold of 0.0 increases AP by ~0.2-0.3 but significantly slows down
     # inference.
-    cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.5 ##TODO(1)
+    cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.5
     
     # # Overlap threshold used for non-maximum suppression (suppress boxes with
     # # IoU >= this threshold)
