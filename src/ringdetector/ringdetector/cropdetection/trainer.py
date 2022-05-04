@@ -1,9 +1,9 @@
 from detectron2.engine import DefaultTrainer
 from detectron2.data import DatasetMapper, build_detection_train_loader, build_detection_test_loader
 from detectron2.evaluation import COCOEvaluator
-from augmentation import RatioResize
 import detectron2.data.transforms as T
 
+from ringdetector.cropdetection.augmentation import RatioResize
 
 class CustomizedTrainer(DefaultTrainer):
     @classmethod
@@ -15,10 +15,17 @@ class CustomizedTrainer(DefaultTrainer):
 
     @classmethod
     def build_train_loader(self, cfg):
-        mapper_train = DatasetMapper(cfg, is_train=True, augmentations=[RatioResize(0.15), T.RandomBrightness(0.9,1.1),
-                                                                        T.RandomContrast(0.9, 1.1),
-                                                                        T.RandomFlip(horizontal=False, vertical=True),
-                                                                        T.RandomCrop(crop_type="relative_range", crop_size=(0.5,0.9))])  #keeps 90-100% width and 50-100% height
+        mapper_train = DatasetMapper(
+            cfg, 
+            is_train=True, 
+            augmentations=[
+                RatioResize(0.15), 
+                T.RandomBrightness(0.9,1.1),
+                T.RandomContrast(0.9, 1.1),
+                T.RandomFlip(horizontal=False, vertical=True),
+                T.RandomCrop(crop_type="relative_range", crop_size=(0.5,0.9))
+            ]
+        )  #keeps 90-100% width and 50-100% height
         train_loader = build_detection_train_loader(cfg, mapper=mapper_train)
         return train_loader
     

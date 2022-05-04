@@ -1,16 +1,9 @@
+import json, os, cv2
 from random import sample
 import matplotlib.pyplot as plt
-import json, os, cv2
 from collections import defaultdict
-import PIL
-from detectron2.data import DatasetCatalog, MetadataCatalog
 from detectron2.utils.visualizer import Visualizer
 import matplotlib.patches as patches
-
-from ringdetector.Paths import LABELME_JSONS, POINT_LABELS
-from ringdetector.cropdetection.D2CustomDataset import D2CustomDataset
-from ringdetector.cropdetection.model_config import generate_config
-from ringdetector.cropdetection.predictor import CustomizedPredictor
 
 
 def jsonParser(resultPath):
