@@ -47,25 +47,29 @@ if __name__ == "__main__":
         samples = samples[:cfg.n]
 
     wbMetrics = []
+    wbMetricsTricky = []
+    wbMetricsEasy = []
     for sample in tqdm(samples, "Cores"):
-        cp = CoreProcessor(sample, 
-                            readType=cfg.ipread,
-                            denoiseH=cfg.denoiseh, 
-                            denoiseTemplateWindowSize=cfg.denoisetempwind, 
-                            searchWindowSize=cfg.denoisesearchwind,
-                            gradMethod=cfg.ipgrad,
-                            cannyMin=cfg.cannymin,
-                            cannyMax=cfg.cannymax,
-                            minEdgeLen=cfg.minedgelen,
-                            edgeModel=cfg.edgemodel)
+        cp = CoreProcessor(sample,readType=cfg.imReadType, denoiseH=cfg.denoiseH,
+                denoiseTemplateWindowSize=cfg.denoiseTemplateWindowSize,
+                denoiseSearchWindowSize=cfg.denoiseSearchWindowSize, cannyMin=cfg.cannyMin, cannyMax=cfg.cannyMax,
+                rightEdgeMethod=cfg.rightEdgeMethod, invertedEdgeWindowSize=cfg.invertedEdgeWindowSize, 
+                mergeShapes1Ball=cfg.mergeShapes1Ball, mergeShapes1Angle=cfg.mergeShapes1Angle,
+                mergeShapes2Ball=cfg.mergeShapes2Ball, mergeShapes2Angle=cfg.mergeShapes2Angle, 
+                filterLengthImgProportion=cfg.filterLengthImgProportion,
+                filterRegressionAnglesAngleThreshold=cfg.filterRegressionAnglesAngleThreshold)
         cp.scoreCore()
         logging.info(f"Sample {sample}: prec {round(cp.precision,3)}, "
             f"rec {round(cp.recall, 3)}")
         if cfg.wb:
             cp.reportCore()
         wbMetrics.append([cp.sampleName, cp.precision, cp.recall])
-        cp.exportCoreImg(RESULTS_DIAG)
-        cp.exportCoreShapeImg(RESULTS_DIAG)
+        if cp.core.tricky:
+            wbMetricsTricky.append([cp.sampleName, cp.precision, cp.recall])
+        else:
+            wbMetricsEasy.append([cp.sampleName, cp.precision, cp.recall])
+        cp.exportLinePlot(RESULTS_DIAG)
+        cp.exportShapePlot(RESULTS_DIAG)
         cp.exportPos(RESULTS_POS, sanityCheck=False)
         cp.toPickle(RESULTS_PKL)
 
@@ -80,9 +84,39 @@ if __name__ == "__main__":
         scatter = wandb.plot.scatter(
             wbTable, x='recall', y='precision', title='Precision vs. Recall')
     
+
+        wbTableTricky = wandb.Table(
+            data=wbMetricsTricky, columns=["core", "precision", "recall"]
+        )
+        precHistTricky = wandb.plot.histogram(
+            wbTableTricky, value='precision', title='Precision Tricky')
+        recHistTricky = wandb.plot.histogram(
+            wbTableTricky, value='recall', title='Recall Tricky')
+        scatterTricky = wandb.plot.scatter(
+            wbTableTricky, x='recall', y='precision', title='Precision vs. Recall Tricky')
+    
+    
+        wbTableEasy = wandb.Table(
+            data=wbMetricsEasy, columns=["core", "precision", "recall"]
+        )
+        precHistEasy = wandb.plot.histogram(
+            wbTableEasy, value='precision', title='Precision Easy')
+        recHistEasy = wandb.plot.histogram(
+            wbTableEasy, value='recall', title='Recall Easy')
+        scatterEasy = wandb.plot.scatter(
+            wbTableEasy, x='recall', y='precision', title='Precision vs. Recall Easy')
+
+
         wandb.log({'precision_hist': precHist, 
                 'recall_hist': recHist, 
-                'scatter': scatter})
+                'scatter': scatter,
+                'precision_hist_tricky': precHistTricky, 
+                'recall_hist_tricky': recHistTricky, 
+                'scatter_tricky': scatterTricky,
+                'precision_hist_easy': precHistEasy, 
+                'recall_hist_easy': recHistEasy, 
+                'scatter_easy': scatterEasy,
+                })
 
     wbMetrics = np.array(wbMetrics)
     prec = wbMetrics[:,1].astype(np.double)
