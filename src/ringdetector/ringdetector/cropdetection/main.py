@@ -9,7 +9,7 @@ from ringdetector.cropdetection.utils import get_cuda_info
 from ringdetector.Paths import LABELME_JSONS, POINT_LABELS, D2_RESULTS
 from ringdetector.cropdetection.model_config import generate_config
 from ringdetector.cropdetection.predictor import CustomizedPredictor
-from ringdetector.cropdetection.visualizer import visualizePred
+from ringdetector.cropdetection.visualizer import visualizePred, wandbVisualizePred
 import argparse
 import warnings
 import logging
@@ -38,7 +38,7 @@ def createOutputDirectory():
 
 def getModelDirectory(modelPath):
     # gets directory model is in from the full path by clipping the filename
-    modelDir = os.path.join(modelPath.spli("/")[:-1])
+    modelDir = os.path.dirname(modelPath)
     return modelDir
 
 
@@ -46,6 +46,17 @@ def wandbLog(cfg, args):
     wandb.init(project='cropdetection', sync_tensorboard=True,
                settings=wandb.Settings(start_method="thread", console="off"), config=cfg)
     wandb.config.update({"dataMode": args.dataMode})
+
+
+def wandbLogPredictions(cfg, modelPath, split="val"):
+    # predict on the val set
+    dataset = DatasetCatalog.get(split)
+    metadataset = MetadataCatalog.get(split)
+    cfg.MODEL.WEIGHTS = modelPath
+    predictor = CustomizedPredictor(cfg)
+    results = wandbVisualizePred(dataset, metadataset, predictor, k=3)
+    images = [Image.fromarray(image) for image in results]
+    wandb.log({"predictions": [wandb.Image(image) for image in images]})
 
 
 def train(cfg, is_resume):
@@ -73,6 +84,12 @@ def main(args, is_resume):
         wandbLog(cfg, args)
         train(cfg, is_resume=is_resume)
 
+        # log the actual predictions on the val set in wandb:
+        # after training is finished there is a model_final.pth in the output dir
+        modelPath = os.path.join(outputDir, "model_final.pth")
+        wandbLogPredictions(cfg, modelPath)
+
+
     elif args.mode == "eval":
         modelDir = getModelDirectory(args.modelPath)
         cfg = generate_config(modelDir, (), (args.split,))
@@ -91,7 +108,7 @@ def main(args, is_resume):
         # initialize custom predictor
         predictor = CustomizedPredictor(cfg)
 
-        visualizePred(dataset, metadataset, predictor, k)
+        visualizePred(dataset, metadataset, predictor, k=args.k)
 
 
 
@@ -104,7 +121,7 @@ if __name__ == "__main__":
     parser.add_argument("--modelPath", dest="modelPath", type=str)
     parser.add_argument("-split", dest="split", help="What split to predict on if mode pred or eval is chosen",
                         choices=["train", "val", "test"], type=str)
-    parser.add_argument("--k-pred", "-k", dest="k", type=int)
+    parser.add_argument("--k-pred", "-k", dest="k", default=5, type=int)
     parser.add_argument("--num-gpus", dest="num-gpus", type=int)
     args = parser.parse_args()
 

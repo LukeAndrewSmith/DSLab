@@ -2,8 +2,15 @@ from random import sample
 import matplotlib.pyplot as plt
 import json, os, cv2
 from collections import defaultdict
+import PIL
+from detectron2.data import DatasetCatalog, MetadataCatalog
 from detectron2.utils.visualizer import Visualizer
 import matplotlib.patches as patches
+
+from ringdetector.Paths import LABELME_JSONS, POINT_LABELS
+from ringdetector.cropdetection.D2CustomDataset import D2CustomDataset
+from ringdetector.cropdetection.model_config import generate_config
+from ringdetector.cropdetection.predictor import CustomizedPredictor
 
 
 def jsonParser(resultPath):
@@ -76,4 +83,20 @@ def visualizePred(data, metadataset, predictor, k=1):
     
     plt.close()
 
+
+def wandbVisualizePred(data, metadataset, predictor, k=1):
+    # same as above but return the im don't plot it so it can be logged to wandb
+    # can do sthg like this if wished as well: https://docs.wandb.ai/guides/track/log/media
+    dataSamples = sample(data, k)
+    results = []
+    for d in dataSamples:
+        img = cv2.imread(d["file_name"])
+        visualizer = Visualizer(img[:, :, ::-1], metadata=metadataset, scale=0.5)
+
+        outputs = predictor(img)
+        result = visualizer.draw_instance_predictions(outputs["instances"].to("cpu"))
+
+        results.append(result.get_image())
+
+    return results
 
