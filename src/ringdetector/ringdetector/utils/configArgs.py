@@ -27,7 +27,7 @@ def getArgs(parser):
     # Ring Processor
     ########################################################################### 
     #TODO: experiment with args, pick best default
-    parser.add_argument("-ipread", type=str, choices=['grayscale', 'hsv'],
+    parser.add_argument("-imReadType", type=str, choices=['grayscale', 'hsv'],
         default='hsv', help="RingDetection: grayscale or hsv value component before processing")
 
     parser.add_argument("-denoiseH", type=int, default=10, 

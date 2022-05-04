@@ -50,16 +50,14 @@ if __name__ == "__main__":
     wbMetricsTricky = []
     wbMetricsEasy = []
     for sample in tqdm(samples, "Cores"):
-        cp = CoreProcessor(sample)
-                            # readType=cfg.ipread,
-                            # TODO:
-                            # denoiseH=cfg.denoiseH, 
-                            # denoiseTemplateWindowSize=cfg.denoisetempwind, 
-                            # searchWindowSize=cfg.denoisesearchwind,
-                            # cannyMin=cfg.cannymin,
-                            # cannyMax=cfg.cannymax,
-                            # minEdgeLen=cfg.minedgelen,
-                            # edgeModel=cfg.edgemodel)
+        cp = CoreProcessor(sample,readType=cfg.imReadType, denoiseH=cfg.denoiseH,
+                denoiseTemplateWindowSize=cfg.denoiseTemplateWindowSize,
+                denoiseSearchWindowSize=cfg.denoiseSearchWindowSize, cannyMin=cfg.cannyMin, cannyMax=cfg.cannyMax,
+                rightEdgeMethod=cfg.rightEdgeMethod, invertedEdgeWindowSize=cfg.invertedEdgeWindowSize, 
+                mergeShapes1Ball=cfg.mergeShapes1Ball, mergeShapes1Angle=cfg.mergeShapes1Angle,
+                mergeShapes2Ball=cfg.mergeShapes2Ball, mergeShapes2Angle=cfg.mergeShapes2Angle, 
+                filterLengthImgProportion=cfg.filterLengthImgProportion,
+                filterRegressionAnglesAngleThreshold=cfg.filterRegressionAnglesAngleThreshold)
         cp.scoreCore()
         logging.info(f"Sample {sample}: prec {round(cp.precision,3)}, "
             f"rec {round(cp.recall, 3)}")

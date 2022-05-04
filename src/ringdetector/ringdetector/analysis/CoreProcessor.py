@@ -17,7 +17,7 @@ from ringdetector.Paths import GENERATED_DATASETS_INNER_CROPS, \
 class CoreProcessor:
 
     def __init__(self, 
-                sampleName, 
+                sampleName, readType="grayscale",
                 denoiseH=25, denoiseTemplateWindowSize=10,
                 denoiseSearchWindowSize=21, cannyMin=50, cannyMax=75,
                 rightEdgeMethod="simple", invertedEdgeWindowSize=25, 
@@ -41,7 +41,8 @@ class CoreProcessor:
 
         self.imgPath = impath # TODO: pass this in a better manner...
 
-        edges = findRings(impath, denoiseH=denoiseH, denoiseTemplateWindowSize=denoiseTemplateWindowSize,
+        edges = findRings(impath, readType=readType, denoiseH=denoiseH,
+                denoiseTemplateWindowSize=denoiseTemplateWindowSize,
                 denoiseSearchWindowSize=denoiseSearchWindowSize, cannyMin=cannyMin, cannyMax=cannyMax,
                 rightEdgeMethod=rightEdgeMethod, invertedEdgeWindowSize=invertedEdgeWindowSize, 
                 mergeShapes1Ball=mergeShapes1Ball, mergeShapes1Angle=mergeShapes1Angle,
