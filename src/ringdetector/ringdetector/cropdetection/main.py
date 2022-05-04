@@ -20,13 +20,16 @@ coloredlogs.install(level=logging.INFO)
 warnings.filterwarnings("ignore")
 
 
-def registerDatasets(split, dataMode):
+def registerDatasets(split, dataMode, cracks):
     ds = D2CustomDataset(
         json_path=LABELME_JSONS, pos_path=POINT_LABELS
     )
-    DatasetCatalog.register(split, lambda d=split: ds.generate_dataset(d, dataMode, False))
+    DatasetCatalog.register(split, lambda d=split: ds.generate_dataset(d, dataMode, False, cracks))
     metadata = MetadataCatalog.get(split)
-    metadata.set(thing_classes=[f"inner_crop"])
+    if cracks:
+        metadata.set(thing_classes=["inner_crop", "cracks/gaps"])
+    else:
+        metadata.set(thing_classes=["inner_crop"])
 
 
 def createOutputDirectory():
@@ -46,6 +49,7 @@ def wandbLog(cfg, args):
     wandb.init(project='cropdetection', sync_tensorboard=True,
                settings=wandb.Settings(start_method="thread", console="off"), config=cfg)
     wandb.config.update({"dataMode": args.dataMode})
+    wandb.config.update({"crackDetection": args.cracks})
 
 
 def wandbLogPredictions(cfg, modelPath, split="val"):
@@ -76,19 +80,24 @@ def main(args, is_resume):
     # register all the datasets:
     splits = ["train", "val", "test"]
     for split in splits:
-        registerDatasets(split, args.dataMode)
+        registerDatasets(split, args.dataMode, args.cracks)
 
     if args.mode == "train":
         outputDir = createOutputDirectory()
         cfg = generate_config(outputDir, ("train",), ("val",))
         wandbLog(cfg, args)
+
+        if args.cracks:
+            assert cfg.MODEL.ROI_HEADS.NUM_CLASSES == 2
+        else:
+            assert cfg.MODEL.ROI_HEADS.NUM_CLASSES == 1
+
         train(cfg, is_resume=is_resume)
 
         # log the actual predictions on the val set in wandb:
         # after training is finished there is a model_final.pth in the output dir
         modelPath = os.path.join(outputDir, "model_final.pth")
         wandbLogPredictions(cfg, modelPath)
-
 
     elif args.mode == "eval":
         modelDir = getModelDirectory(args.modelPath)
@@ -111,7 +120,6 @@ def main(args, is_resume):
         visualizePred(dataset, metadataset, predictor, k=args.k)
 
 
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Arguments what mode to run in and training configurations')
     parser.add_argument("--mode", "-m", dest="mode", default="train", choices=["train", "eval", "pred"],
@@ -123,6 +131,7 @@ if __name__ == "__main__":
                         choices=["train", "val", "test"], type=str)
     parser.add_argument("--k-pred", "-k", dest="k", default=5, type=int)
     parser.add_argument("--num-gpus", dest="num-gpus", type=int)
+    parser.add_argument("--cracks", dest="cracks", action='store_true', default=False)
     args = parser.parse_args()
 
     ##NOTE: memory issues

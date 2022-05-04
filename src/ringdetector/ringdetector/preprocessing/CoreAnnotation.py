@@ -33,8 +33,8 @@ class CoreAnnotation:
 
         self.rectangles = [self.innerRectangle, self.outerRectangle]
         
-        self.cracks = self.__findShape('CRACK', [])
-        self.gaps = self.__findShape('GAP', [])
+        self.cracks = self.__findMultipleShapes('CRACK')
+        self.gaps = self.__findMultipleShapes('GAP')
         self.bark   = self.__findShape('BARK', [])
         self.ctrmid = self.__findShape('CTRMID', [])
         self.ctrend = self.__findShape('CTREND', [])
@@ -94,6 +94,10 @@ class CoreAnnotation:
         return next(
             (shape['points'] for shape in self.labelmeAnnotations['shapes'] \
             if shape["label"] == f'{self.sampleName}_{label}'), default)
+
+    def __findMultipleShapes(self, label):
+        return [shape['points'] for shape in self.labelmeAnnotations['shapes']
+            if shape["label"] == f'{self.sampleName}_{label}']
 
 
     ##############################

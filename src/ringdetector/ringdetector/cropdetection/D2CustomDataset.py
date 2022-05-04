@@ -6,7 +6,7 @@ from detectron2.data import MetadataCatalog, DatasetCatalog
 
 from ringdetector.preprocessing.ImageAnnotation import ImageAnnotation
 from ringdetector.preprocessing.GeometryUtils import transform_to_xywha,\
-    transform_to_xyxy, transform_to_xywh
+    transform_to_xyxy, transform_to_xywh, min_bounding_rectangle
 
 class D2CustomDataset():
     def __init__(self,  json_path, pos_path, ) -> None:
@@ -18,6 +18,9 @@ class D2CustomDataset():
             return core.origInnerRectangle
         elif annoType == "outer" or annoType == "outerInner":
             return core.origOuterRectangle
+        elif annoType == "cracks":
+            # append cracks and gaps and return them
+            return core.cracks + core.gaps
         else:
             raise ArgumentError("Unsupported annoType")
 
@@ -27,19 +30,22 @@ class D2CustomDataset():
         else: 
             return transform_to_xyxy(poly)
 
+    def __convertToRectangle(self, shape):
+        boundingRect = min_bounding_rectangle(shape)
+        return boundingRect
+
     def __getSegPoly(self, poly, annoType, core):
         if annoType == "outerInner":
             # need to overwrite the poly for this use case
             poly = self.__getLabelMePoly(core, 'inner')
+
         segPoly = []
         for point in poly:
             segPoly.append(float(point[0])+.5)
             segPoly.append(float(point[1])+.5)
         return segPoly
 
-    def __generator(self, annoType, angle, split):
-        #TODO: type = "inner", "outer", "gap", "center"
-
+    def __generator(self, annoType, angle, split, cracks):
         dataset = []
 
         for file in os.listdir(os.path.join(self.json_path, split)):
@@ -60,29 +66,31 @@ class D2CustomDataset():
                         "segmentation": [self.__getSegPoly(poly, annoType, core)],
                         "category_id": 0})
 
+                    if cracks:
+                        # list of crack annotations for the core as polygon shape
+                        polyCracks = self.__getLabelMePoly(core, "cracks")
+                        for poly in polyCracks:
+                            annos.append({
+                                # need to convert to rect before here:
+                                "bbox": self.__getBbox(self.__convertToRectangle(poly), angle),
+                                # TODO: make this change based on angle
+                                "bbox_mode": BoxMode.XYXY_ABS,  # BoxMode.XYWHA_ABS
+                                "segmentation": [self.__getSegPoly(poly, "cracks", core)],
+                                "category_id": 1
+                            })
+
                 dataset.append({
                     "file_name": os.path.join(
                         self.json_path, img.image_path),
-                    "height": img.height,#TODO(3): integer
-                    "width": img.width,#TODO(3): integer
+                    "height": img.height,
+                    "width": img.width,
                     "image_id": os.path.basename(img.image_path),
                     "annotations":annos})
         
         return dataset
 
-    def generate_dataset(self, split, annoType, angle):
-        #TODO: implement train test datasplit, or use multiple datasets
+    def generate_dataset(self, split, annoType, angle, cracks):
 
-        dataset = self.__generator(annoType, angle, split)
-        
-        #data = []## TODO(3): multiple datasets, use list.extend()
-        #metadata = [] ## TODO(3): multiple datasets, metadata instance
-        
-        #name = "train"
-        #DatasetCatalog.register(name, lambda )
-        #data = DatasetCatalog.get(name)
-        #metadata = MetadataCatalog.get(name)
-        #metadata.set(thing_classes=[f"{annoType}_{angle}"])
-        
-        #return data, metadata
+        dataset = self.__generator(annoType, angle, split, cracks)
+
         return dataset
