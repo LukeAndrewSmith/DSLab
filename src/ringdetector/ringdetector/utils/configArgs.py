@@ -65,15 +65,19 @@ def getArgs(parser):
 
 def getCropDetectionArgs(parser):
     parser.add_argument("--mode", "-m", dest="mode", default="train", choices=["train", "eval", "pred"],
-                        type=str)
+                        type=str, help="mode to run the object detection in: train eval or prediction")
     parser.add_argument("--dataMode", "-tm", dest="dataMode", choices=["inner", "outer", "outerInner"],
-                        default="inner", type=str)
-    parser.add_argument("--modelPath", dest="modelPath", type=str)
+                        default="inner", type=str, help="inner or outer rectangle to detect?")
+    parser.add_argument("--modelPath", dest="modelPath", type=str, help="absolute path to the model that you want to "
+                                                                        "evaluate or predict with")
     parser.add_argument("-split", dest="split", help="What split to predict on if mode pred or eval is chosen",
                         choices=["train", "val", "test"], type=str)
-    parser.add_argument("--k-pred", "-k", dest="k", default=5, type=int)
+    # TODO add vis mode and an actual inference mode
+    parser.add_argument("--k-pred", "-k", dest="k", default=5, type=int, help="amount of visualizations of "
+                                                                              "predictions made by the pred mode")
     parser.add_argument("--num-gpus", dest="num-gpus", type=int)
-    parser.add_argument("--cracks", dest="cracks", action='store_true', default=False)
+    parser.add_argument("--cracks", dest="cracks", action='store_true', default=False, help="if set: also includes " \
+                                                                                           "cracks and gaps in the data")
 
     cfg = parser.parse_args()
 
