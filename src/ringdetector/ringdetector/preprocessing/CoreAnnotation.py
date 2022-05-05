@@ -1,15 +1,12 @@
-from operator import truediv
 import os
 import re
 import logging
 import pickle
-from math import dist, atan2, degrees
 import numpy as np
 import cv2
 from copy import deepcopy
 
-from ringdetector.preprocessing.GeometryUtils import min_bounding_rectangle,\
-    transform_to_xywha, transform_to_xyxy
+from ringdetector.preprocessing.GeometryUtils import min_bounding_rectangle
 from ringdetector.Paths import IMAGES
 
 class CoreAnnotation:

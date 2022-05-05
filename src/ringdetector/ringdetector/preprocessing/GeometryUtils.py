@@ -1,8 +1,7 @@
-from math import dist, atan2, degrees
-
 import numpy as np
 import cv2
 import math
+from math import dist, atan2, degrees
 
 def min_bounding_rectangle(points):
     # converts a list of points into the min are rectangle containing all points

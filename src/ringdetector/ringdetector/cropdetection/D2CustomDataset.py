@@ -2,7 +2,6 @@ from argparse import ArgumentError
 import os
 
 from detectron2.structures import BoxMode
-from detectron2.data import MetadataCatalog, DatasetCatalog
 
 from ringdetector.preprocessing.ImageAnnotation import ImageAnnotation
 from ringdetector.preprocessing.GeometryUtils import transform_to_xywha,\

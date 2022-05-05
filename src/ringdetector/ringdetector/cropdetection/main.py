@@ -1,9 +1,16 @@
 import os, datetime
-from detectron2.utils.logger import setup_logger
 from PIL import Image
+import argparse
+import warnings
+import logging
+import coloredlogs
+import wandb
+from detectron2.utils.logger import setup_logger
 from detectron2.data import MetadataCatalog, DatasetCatalog
-from ringdetector.cropdetection.trainer import CustomizedTrainer
 from detectron2.checkpoint import DetectionCheckpointer
+
+
+from ringdetector.cropdetection.trainer import CustomizedTrainer
 from ringdetector.cropdetection.D2CustomDataset import D2CustomDataset
 from ringdetector.cropdetection.utils import get_cuda_info
 from ringdetector.Paths import LABELME_JSONS, POINT_LABELS, D2_RESULTS
@@ -11,11 +18,6 @@ from ringdetector.cropdetection.model_config import generate_config
 from ringdetector.cropdetection.predictor import CustomizedPredictor
 from ringdetector.cropdetection.visualizer import visualizePred, wandbVisualizePred
 from ringdetector.utils.configArgs import getCropDetectionArgs
-import argparse
-import warnings
-import logging
-import coloredlogs
-import wandb
 
 coloredlogs.install(level=logging.INFO)
 warnings.filterwarnings("ignore")

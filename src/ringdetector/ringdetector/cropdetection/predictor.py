@@ -1,9 +1,9 @@
 from detectron2.checkpoint import DetectionCheckpointer
 from detectron2.data import MetadataCatalog
 from detectron2.engine import DefaultPredictor
-from augmentation import RatioResize
 from detectron2.modeling import build_model
 
+from ringdetector.cropdetection.augmentation import RatioResize
 
 class CustomizedPredictor(DefaultPredictor):
 

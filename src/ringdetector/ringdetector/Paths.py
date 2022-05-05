@@ -5,7 +5,6 @@ import os
 #DATA = '/mnt/ds3lab-scratch/cguerner/dslabtreering/data'
 DATA = '/Users/cguerner/Documents/classes/dslab/dslabtreering/data'
 
-
 GENERATED_DATASETS = os.path.join(DATA, "generated_datasets")
 IMAGES = os.path.join(DATA, 'images/')
 LABELME_JSONS = os.path.join(DATA, 'labelme_jsons/')
