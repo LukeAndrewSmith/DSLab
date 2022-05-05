@@ -6,8 +6,7 @@ import pickle
 import wandb 
 
 
-from ringdetector.analysis.ImageProcessor import ImageProcessor
-from ringdetector.analysis.EdgeProcessing import getEdges, scoreEdges
+from ringdetector.analysis.RingDetection import findRings
 from ringdetector.preprocessing.GeometryUtils import pixel_to_mm,\
     rotateCoords, rotateListOfCoords, shiftListOfCoords, roundCoords
 
@@ -18,16 +17,14 @@ from ringdetector.Paths import GENERATED_DATASETS_INNER_CROPS, \
 class CoreProcessor:
 
     def __init__(self, 
-                sampleName, 
-                readType="hsv", 
-                denoiseH=10, 
-                denoiseTemplateWindowSize=7, 
-                searchWindowSize=21,
-                gradMethod="canny",
-                cannyMin=50,
-                cannyMax=100,
-                minEdgeLen=80,
-                edgeModel="linear"):
+                sampleName, readType="grayscale",
+                denoiseH=25, denoiseTemplateWindowSize=10,
+                denoiseSearchWindowSize=21, cannyMin=50, cannyMax=75,
+                rightEdgeMethod="simple", invertedEdgeWindowSize=25, 
+                mergeShapes1Ball=(10,5), mergeShapes1Angle=np.pi/4,
+                mergeShapes2Ball=(20,20), mergeShapes2Angle=np.pi/4, 
+                filterLengthImgProportion=0.5,
+                filterRegressionAnglesAngleThreshold=np.pi/4):
         self.sampleName = sampleName
 
         picklePath = os.path.join(
@@ -41,26 +38,24 @@ class CoreProcessor:
 
         impath = os.path.join(GENERATED_DATASETS_INNER_CROPS, 
             f"{sampleName}.jpg")
-        self.procImg = ImageProcessor(
-            impath, 
-            readType, 
-            denoiseH,
-            denoiseTemplateWindowSize,
-            searchWindowSize
-        )
-        self.procImg.computeGradients(
-            method=gradMethod, 
-            threshold1=cannyMin, 
-            threshold2=cannyMax
-        )
-    
-        edges = getEdges(self.procImg.gXY, minEdgeLen, edgeModel)
-        edges = scoreEdges(edges, self.core.pointLabels)
-        
+
+        self.imgPath = impath # TODO: pass this in a better manner...
+
+        edges = findRings(impath, readType=readType, denoiseH=denoiseH,
+                denoiseTemplateWindowSize=denoiseTemplateWindowSize,
+                denoiseSearchWindowSize=denoiseSearchWindowSize, cannyMin=cannyMin, cannyMax=cannyMax,
+                rightEdgeMethod=rightEdgeMethod, invertedEdgeWindowSize=invertedEdgeWindowSize, 
+                mergeShapes1Ball=mergeShapes1Ball, mergeShapes1Angle=mergeShapes1Angle,
+                mergeShapes2Ball=mergeShapes2Ball, mergeShapes2Angle=mergeShapes2Angle, 
+                filterLengthImgProportion=filterLengthImgProportion,
+                filterRegressionAnglesAngleThreshold=filterRegressionAnglesAngleThreshold)
+        edges = self.__scoreEdges(edges, self.core.pointLabels)
+
         # TODO: placeholder for some function where we remove edges with 
         # high MSE, or generally filter edges further 
         # (could be in EdgeProcessor)
-        self.filteredEdges = edges
+        # TODO: rename edges to rings
+        self.filteredRings = edges
 
         self.truePosEdges = []
         self.truePosLabels = []
@@ -70,6 +65,11 @@ class CoreProcessor:
         self.falseNegLabels = []
         self.falseNeg = 0
 
+    
+    def __scoreEdges(self, edges, pointLabels): # TODO: this should find another home
+        for edge in edges:
+            edge.scoreEdge(pointLabels)
+        return edges
         
     def __collectEdges(self, ringLabel):
         """ General idea: each edge has picked a closest point. With a specific set of ring points (one ring can be indicated by two ground truth points), we loop through the edges and find edges that have picked one of the ring points as their closest label. We add any edge that has picked this ring label to the list of matched edges (later, edges that are matched but not closest will count as false positives). If a matched edge is also the closest (or equally close) seen so far for this ring, it is added to closestEdges. 
@@ -78,7 +78,7 @@ class CoreProcessor:
         closestEdgesDist = 100000
         closestEdges = []
         for point in ringLabel:
-            for edge in self.filteredEdges:
+            for edge in self.filteredRings:
                 if edge.closestLabelPoint == point:
                     matchedEdges.append(edge)
                     if edge.minDist < closestEdgesDist:
@@ -89,7 +89,7 @@ class CoreProcessor:
                             closestEdges.append(edge)
         return closestEdges, closestEdgesDist, matchedEdges 
 
-    def scoreCore(self):
+    def scoreCore(self, distance=10):
         """ For each labeled ring (can have two labels for one ring), 
         find edges that picked this ring as their closest label,
         then assign the ring label and its edges to TP, FP, FN according to
@@ -101,11 +101,11 @@ class CoreProcessor:
             ringFalsePosEdges = set(matchedEdges) - set(closestEdges)
             self.falsePosEdges.extend(list(ringFalsePosEdges))
             # next, deal with closest edges
-            if closestEdgesDist < 5 and len(closestEdges) == 1:
+            if closestEdgesDist < distance and len(closestEdges) == 1:
                 # Single true positive case
                 self.truePosEdges.append(closestEdges[0])
                 self.truePosLabels.append(ringLabels)
-            elif closestEdgesDist < 5 and len(closestEdges) > 1:
+            elif closestEdgesDist < distance and len(closestEdges) > 1:
                 #bestEdge, otherEdges = pickBestEdge(closestEdges)
                 # pick best edge by min mse
                 closestEdges.sort(key=lambda x: x.mse)
@@ -116,7 +116,7 @@ class CoreProcessor:
                 # add other edges to false postivies
                 self.falsePosEdges.extend(closestEdges)
             else:
-                # Two subcases here: distance > 5 or no closestEdges
+                # Two subcases here: distance > distance or no closestEdges
                 self.falsePosEdges.extend(closestEdges)
 
                 self.falseNegLabels.append(ringLabels)
@@ -125,8 +125,16 @@ class CoreProcessor:
         self.falsePos = len(self.falsePosEdges)
         self.falseNeg = len(self.falseNegLabels)
 
-        self.precision = self.truePos / (self.truePos + self.falsePos)
-        self.recall = self.truePos / (self.truePos + self.falseNeg)
+        # TODO: I just put these checks in for a quick debug, should dive in and find out why they happen
+        if (self.truePos + self.falsePos) != 0:
+            self.precision = self.truePos / (self.truePos + self.falsePos)
+        else:
+            self.precision = 0
+
+        if (self.truePos + self.falseNeg) != 0:
+            self.recall = self.truePos / (self.truePos + self.falseNeg)
+        else:
+            self.recall = 0
 
     ### Wandb reporting
     def reportCore(self):
@@ -134,7 +142,7 @@ class CoreProcessor:
         """
         report = dict(
             core=self.sampleName,
-            edgeCount=len(self.filteredEdges),
+            edgeCount=len(self.filteredRings),
             truePos=self.truePos,
             falsePos=self.falsePos,
             falseNeg=self.falseNeg,
@@ -171,8 +179,8 @@ class CoreProcessor:
                 2
             )
 
-    def exportCoreImg(self, dir):
-        orig = self.procImg.image
+    def exportLinePlot(self, dir):
+        orig = cv2.imread(self.imgPath, cv2.IMREAD_GRAYSCALE)
         bgnd = np.dstack([orig,orig,orig])
         self.__plotEdges(bgnd, self.truePosEdges, (255,0,0))
         self.__plotEdges(bgnd, self.falsePosEdges, (0,0,255))
@@ -184,25 +192,23 @@ class CoreProcessor:
         verti = np.concatenate(vertiList, axis=0)
         
         exportPath = os.path.join(
-            dir, f'{self.sampleName}_edgeplot.jpg'
+            dir, f'{self.sampleName}_lineplot.jpg'
         )
         cv2.imwrite(exportPath, verti)
     
-    def exportCoreShapeImg(self, dir):
-        height, width = self.procImg.image.shape
-        shapeImg = np.zeros(
-            (height, width, 3), 
-            dtype=np.uint8
-        )
+    def exportShapePlot(self, dir):
+        shapeImgBase = cv2.imread(self.imgPath, cv2.IMREAD_GRAYSCALE)
+        shapeImg = np.dstack([shapeImgBase,shapeImgBase,shapeImgBase])
+
         c1 = (255,255,187)
         c2 = (159,84,255)
         
-        for i, edge in enumerate(self.filteredEdges):
+        for i, ring in enumerate(self.filteredRings):
             if i%2 == 0:
-                for point in edge.edge:
+                for point in ring.ring:
                     shapeImg[point[1], point[0]] = c1
             else:
-                for point in edge.edge:
+                for point in ring.ring:
                     shapeImg[point[1], point[0]] = c2
         
         self.__plotLabels(shapeImg, self.truePosLabels, (0,255,0))
@@ -269,7 +275,7 @@ class CoreProcessor:
         # creating specific coordinates per edge
         #NOTE: plotting two points per edge for now
         edgeCoords = []
-        for edge in self.filteredEdges:
+        for edge in self.filteredRings:
             p1 = edge.predCoords[20]
             p2 = edge.predCoords[-20]
             edgeCoords.append([p1, p2])

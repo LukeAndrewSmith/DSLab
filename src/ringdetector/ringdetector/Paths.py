@@ -1,8 +1,10 @@
 import os
 
 # Set absolute path to your own data folder.
+
 #DATA = '/mnt/ds3lab-scratch/cguerner/dslabtreering/data'
 DATA = '/Users/cguerner/Documents/classes/dslab/dslabtreering/data'
+
 
 GENERATED_DATASETS = os.path.join(DATA, "generated_datasets")
 IMAGES = os.path.join(DATA, 'images/')

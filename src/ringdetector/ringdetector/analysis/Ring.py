@@ -4,18 +4,16 @@ from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error
 
 from ringdetector.preprocessing.GeometryUtils import pixelDist
-
-class Edge():
+class Ring():
     
-    def __init__(self, edgeCoords, imgDims):
-        """ Input is a list of pixel coordinates that constitute an edge in 
+    def __init__(self, ringCoords, imgDims):
+        """ Input is a list of pixel coordinates that constitute an ring in 
         an image. 
         """
         # NOTE: shape finding inverts our coordinates. Here we set them back
         # to (x,y)
-        self.edge = [(coord[1],coord[0]) for coord in edgeCoords]
+        self.ring = [(x,y) for (y,x) in ringCoords]
 
-        # TODO: don't need to give denoised image, just dims of img
         self.imgheight, self.imgwidth = imgDims
         
         self.model = None
@@ -53,10 +51,10 @@ class Edge():
         # Below, we use the traditional X, y notation for features and label
         # however keep in mind that X is actually image y values, and y
         # is image x values.
-        y = np.array([point[0] for point in self.edge])
-        X = np.array([point[1] for point in self.edge])
+        y = np.array([point[0] for point in self.ring])
+        X = np.array([point[1] for point in self.ring])
 
-        pred_domain = np.arange(-10, self.imgheight+10, 1)
+        pred_domain = np.arange(-100, self.imgheight+100, 1)
         
         if model == "linear":
             self.model = LinearRegression()
@@ -76,15 +74,15 @@ class Edge():
     # TODO: fix this to something that makes sense, I want to keep 
     # plotting capability within the class
     def showEdge(self, img, pred=False):
-        y = np.array([point[0] for point in self.edge])
+        y = np.array([point[0] for point in self.ring])
         horiz_min = min(y)
         horiz_max = max(y)
 
-        self.edgeim_gbr = np.zeros(
+        self.ringim_gbr = np.zeros(
             (self.imgheight, self.imgwidth, 3), 
             dtype=np.uint8
         )
-        for point in self.edge:
+        for point in self.ring:
             img[point] = (255,255,255)
 
         if pred:
@@ -92,7 +90,7 @@ class Edge():
                 img[coord[0], coord[1],:] = (0,0,255)
 
         cv2.imshow(
-            'EdgeGBR', self.edgeim_gbr[:,horiz_min-60:horiz_max+60,:]
+            'EdgeGBR', self.ringim_gbr[:,horiz_min-60:horiz_max+60,:]
         )
         cv2.waitKey(0)
         cv2.destroyAllWindows()
