@@ -8,8 +8,9 @@ import wandb
 from detectron2.utils.logger import setup_logger
 from detectron2.data import MetadataCatalog, DatasetCatalog
 from detectron2.checkpoint import DetectionCheckpointer
+import cv2
 
-
+from ringdetector.cropdetection.DetectionProcessor import DetectionProcessor
 from ringdetector.cropdetection.trainer import CustomizedTrainer
 from ringdetector.cropdetection.D2CustomDataset import D2CustomDataset
 from ringdetector.cropdetection.utils import get_cuda_info
@@ -113,23 +114,28 @@ def main(args, is_resume):
 
     elif args.mode == "pred":
         modelDir = getModelDirectory(args.modelPath)
-        cfg = generate_config(modelDir, (), (args.split,))
+        cfg = generate_config(modelDir, (), ("test,"))
         cfg.MODEL.WEIGHTS = args.modelPath
 
-        # get data and metadata to predict on
-        dataset = DatasetCatalog.get(args.split)
-        metadataset = MetadataCatalog.get(args.split)
-
+        dataset = DatasetCatalog.get("test")
+        metadataset = MetadataCatalog.get("test")
         # initialize custom predictor
         predictor = CustomizedPredictor(cfg)
 
-        visualizePred(dataset, metadataset, predictor, k=args.k)
+        img = cv2.imread(args.imgPath)
+        outputs = predictor(img)
+        processor = DetectionProcessor(outputs, args.imgPath, nCores=None)
+        processor.filterDetections()
+        processor.exportDetections()
+        visualizePred(dataset, metadataset, predictor, k=5)
+
+
 
 
 if __name__ == "__main__":
     ##NOTE: memory issues
     Image.MAX_IMAGE_PIXELS = None
-    logging.info(get_cuda_info())
+    #logging.info(get_cuda_info())
     setup_logger()
 
     main(args=args, is_resume=True)

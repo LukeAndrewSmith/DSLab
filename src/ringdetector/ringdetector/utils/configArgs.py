@@ -86,12 +86,10 @@ def getArgs(parser):
 
 
 def getCropDetectionArgs(parser):
-    parser.add_argument("--mode", "-m", dest="mode", default="train", choices=["train", "eval", "pred"],
+    parser.add_argument("--mode", "-m", dest="mode", default="pred", choices=["train", "eval", "pred"],
                         type=str, help="mode to run the object detection in: train eval or prediction")
     parser.add_argument("--dataMode", "-tm", dest="dataMode", choices=["inner", "outer", "outerInner"],
                         default="inner", type=str, help="inner or outer rectangle to detect?")
-    parser.add_argument("--modelPath", dest="modelPath", type=str, help="absolute path to the model that you want to "
-                                                                        "evaluate or predict with")
     parser.add_argument("-split", dest="split", help="What split to predict on if mode pred or eval is chosen",
                         choices=["train", "val", "test"], type=str)
     # TODO add vis mode and an actual inference mode
@@ -100,6 +98,17 @@ def getCropDetectionArgs(parser):
     parser.add_argument("--num-gpus", dest="num-gpus", type=int)
     parser.add_argument("--cracks", dest="cracks", action='store_true', default=False, help="if set: also includes " \
                                                                                            "cracks and gaps in the data")
+
+    #### INFERENCE #####
+    parser.add_argument("--modelPath", dest="modelPath", type=str, help="absolute path to the model that you want to "
+                                                                        "evaluate or predict with",
+                        default = "/Users/fredericboesel/Documents/master/frühling22/ds_lab/dslabtreering/d2_results/2022-05-03_08-47-50/model_final.pth")
+                        #default="/mnt/ds3lab-scratch/fboesel/d2_results/2022-05-03_08-47-50/model_final.pth")
+    parser.add_argument("--imgPath", dest="imgPath", type=str, help="absolute path to the image that you want to predict on",
+                        default = "/Users/fredericboesel/Documents/master/frühling22/ds_lab/dslabtreering/data/images/KunL11-20.jpg")
+                        #default="/mnt/ds3lab-scratch/fboesel/data/images/KunL11-20.jpg")
+    parser.add_argument("--nCores", dest="nCores", type=int, help="number of cores that you expect in the image to be detected",
+                        default=20)
 
     cfg = parser.parse_args()
 

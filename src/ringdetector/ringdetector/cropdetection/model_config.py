@@ -23,7 +23,7 @@ def generate_config(output_dir, dataset_train, dataset_test):
     cfg.DATASETS.TEST = dataset_test
 
     ## ====FORMACM1====
-    cfg.MODEL.DEVICE = "cuda"
+    cfg.MODEL.DEVICE = "cpu"
 
     ## ====Dataloader====
     # Number of data loading threads
@@ -55,12 +55,12 @@ def generate_config(output_dir, dataset_train, dataset_test):
     # # to use for IN_FEATURES[i]; len(ASPECT_RATIOS) == len(IN_FEATURES) must be true,
     # # or len(ASPECT_RATIOS) == 1 is true and aspect ratio list ASPECT_RATIOS[0] is used
     # # for all IN_FEATURES.
-    cfg.MODEL.ANCHOR_GENERATOR.ASPECT_RATIOS = [[10, 5, 2, 1, 1/75, 1/80, 1/85, 1/90, 1/100, 1/125]]##NOTE: Input core size: (250*20000)*0.15 = 37.5*3000
+    cfg.MODEL.ANCHOR_GENERATOR.ASPECT_RATIOS = [[1/75, 1/80, 1/85, 1/90, 1/100, 1/125]]##NOTE: Input core size: (250*20000)*0.15 = 37.5*3000
     
     # # Anchor angles.
     # # list[list[float]], the angle in degrees, for each input feature map.
     # # ANGLES[i] specifies the list of angles for IN_FEATURES[i].
-    cfg.MODEL.ANCHOR_GENERATOR.ANGLES = [[0, -45, 45]]
+    cfg.MODEL.ANCHOR_GENERATOR.ANGLES = [[0]]
     
     # # Relative offset between the center of the first anchor and the top-left corner of the image
     # # Value has to be in [0, 1). Recommend to use 0.5, which means half stride.
@@ -117,7 +117,7 @@ def generate_config(output_dir, dataset_train, dataset_test):
     # cfg.MODEL.RPN.POST_NMS_TOPK_TEST = 1000
     
     # # NMS threshold used on RPN proposals
-    cfg.MODEL.RPN.NMS_THRESH = 0.5
+    cfg.MODEL.RPN.NMS_THRESH = 0.0
    
     # # Set this to -1 to use the same number of output channels as input channels.
     # cfg.MODEL.RPN.CONV_DIMS = [-1]
@@ -125,7 +125,7 @@ def generate_config(output_dir, dataset_train, dataset_test):
 
     ## ====Model:ROI====
     # cfg.MODEL.ROI_HEADS.NAME = "Res5ROIHeads"
-    cfg.MODEL.ROI_HEADS.NUM_CLASSES = 2 # only has one class.
+    cfg.MODEL.ROI_HEADS.NUM_CLASSES = 1 # only has one class.
 
     # # Overlap threshold for an RoI to be considered background (if < IOU_THRESHOLD)
     # # Overlap threshold for an RoI to be considered foreground (if >= IOU_THRESHOLD)
@@ -145,11 +145,11 @@ def generate_config(output_dir, dataset_train, dataset_test):
     # detections that will slow down inference post processing steps (like NMS)
     # A default threshold of 0.0 increases AP by ~0.2-0.3 but significantly slows down
     # inference.
-    cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.5
+    cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.0
     
     # # Overlap threshold used for non-maximum suppression (suppress boxes with
     # # IoU >= this threshold)
-    # cfg.MODEL.ROI_HEADS.NMS_THRESH_TEST = 0.5
+    cfg.MODEL.ROI_HEADS.NMS_THRESH_TEST = 0.0
 
 
     ## ====Model:BoxHead====
