@@ -124,10 +124,10 @@ def main(args, is_resume):
 
         img = cv2.imread(args.imgPath)
         outputs = predictor(img)
-        processor = DetectionProcessor(outputs, args.imgPath, nCores=None)
+        processor = DetectionProcessor(outputs, args.imgPath, nCores=20)
         processor.filterDetections()
         processor.exportDetections()
-        visualizePred(dataset, metadataset, predictor, k=5)
+        #visualizePred(dataset, metadataset, predictor, k=5)
 
 
 

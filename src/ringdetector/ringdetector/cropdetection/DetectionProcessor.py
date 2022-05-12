@@ -26,30 +26,38 @@ class DetectionProcessor:
             self.coreDetections = [d for d in self.coreDetections if d.maskSize > minSize]
 
 
+    def mergeDetection(self):
+        # if two detewction overlap on the y ccordinate put them both in a polygon and get the minbounding rect
+        # then create a new detection instead of the old one
+        pass
+
+
     def exportDetections(self):
         coreList = list()
         for i,core in enumerate(self.coreDetections):
             if core.maskRectangle is not None:
-                coreDict = dict()
-                coreDict["label"] = str(i)
-                coreDict["points"] = core.maskRectangle
-                coreDict["group_id"] = None,
-                coreDict["shape_type"] = "polygon",
-                coreDict["flags"] = {}
-            coreList.append(coreDict)
-        labelmeJson = dict()
-        # dunno if needed but thats the header rn
-        labelmeJson["version"] = "5.0.1"
-        labelmeJson["flags"] = {}
-        labelmeJson["shapes"] = coreList
-        labelmeJson["imagePath"] = self.imgPath
-        labelmeJson["imageData"] = None,
-        labelmeJson["imageHeight"] = self.imgHeight
-        labelmeJson["imageWidth"] = self.imgWidth
+                coreDict = {
+                    "label": str(i),
+                    "points": core.maskRectangle.tolist(),
+                    "group_id": None,
+                    "shape_type": "polygon",
+                    "flags": {}
+                }
+                coreList.append(coreDict)
+        labelmeJson = {
+            "version": "5.0.1",
+            "flags": {},
+            "shapes": coreList,
+            "imagePath": self.imgPath,
+            "imageData": None,
+            "imageHeight": self.imgHeight,
+            "imageWidth": self.imgWidth
+        }
 
         # write to json:
         #dir = os.path.dirname(self.imgPath)
         filename = self.imgPath.split('.')[:-1][0] + '.json'
+
         with open(filename, 'w') as json_file:
             json.dump(labelmeJson, json_file)
 

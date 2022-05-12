@@ -31,7 +31,7 @@ class CoreDetection:
             return boundingRect
         elif len(polygons) > 1:
             # flatten out in case of multiple polygons in one box
-            polygons = list(np.concatenate(polygons).flat) # TODO List comprehesnion
+            polygons = [point for poly in polygons for point in poly]
             boundingRect = self.__convertToRectangle(polygons)
             return boundingRect
         else:
