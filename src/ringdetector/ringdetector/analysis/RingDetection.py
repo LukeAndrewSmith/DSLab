@@ -9,6 +9,7 @@ import networkx as nx
 from collections import Counter
 from ringdetector.analysis.Ring import Ring
 
+np.seterr(all='raise')
 
 #####################################################################################
 #                                 Main Function                                    
@@ -112,8 +113,14 @@ def __isInverted(shape, img, window):
     inverted = []
     maxX = img.shape[1]
     for (y,x) in shape:
-        colorLeft = np.mean(img[y, max(0,x-window-1):max(0,x-1)])
-        colorRight = np.mean(img[y, min(maxX,x+1):min(maxX,x+window+1)])
+        if max(0,x-window-1) != max(0,x-1):
+            colorLeft = np.mean(img[y, max(0,x-window-1):max(0,x-1)])
+        else:
+            colorLeft = 0
+        if  min(maxX,x+1) != min(maxX,x+window+1):
+            colorRight = np.mean(img[y, min(maxX,x+1):min(maxX,x+window+1)])
+        else:
+            colorRight = 0
         inverted.append(colorLeft <= colorRight) # Left side of line is darker)
     return np.mean(inverted)>0.5
 
