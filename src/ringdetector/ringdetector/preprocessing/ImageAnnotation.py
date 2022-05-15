@@ -35,14 +35,13 @@ class ImageAnnotation:
         for core in self.cores:
             core_pos_path = self.__get_core_pos_path(core)
             coreLabelMeAnnotations = self.__processLabelMeAnnos(core)
-            if core_pos_path:
-                core_annotation = CoreAnnotation(
-                    coreLabelMeAnnotations, 
-                    core, 
-                    core_pos_path, 
-                    self.image_path
-                )
-                core_annos.append(core_annotation)
+            core_annotation = CoreAnnotation(
+                coreLabelMeAnnotations, 
+                core, 
+                core_pos_path, 
+                self.image_path
+            )
+            core_annos.append(core_annotation)
         return core_annos
 
     def __get_core_pos_path(self, core):
@@ -56,8 +55,9 @@ class ImageAnnotation:
         if core_pos_path and os.path.exists(core_pos_path):
             return core_pos_path
         else:
-            logging.warn(f"Could not find pos file for core {core}"
-            f" in {self.image_path}")
+            # TODO: too verbose for justine
+            # logging.warn(f"Could not find pos file for core {core}"
+            # f" in {self.image_path}")
             return None
 
     def __processLabelMeAnnos(self, core):

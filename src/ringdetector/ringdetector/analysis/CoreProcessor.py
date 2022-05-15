@@ -1,6 +1,5 @@
 import numpy as np
 import os
-import logging
 import cv2
 import pickle
 import wandb 
@@ -8,11 +7,10 @@ import wandb
 
 from ringdetector.analysis.RingDetection import findRings
 from ringdetector.preprocessing.GeometryUtils import pixel_to_mm,\
-    rotateCoords, rotateListOfCoords, shiftListOfCoords, roundCoords
+    rotateListOfCoords, shiftListOfCoords, roundCoords
 
 from ringdetector.Paths import GENERATED_DATASETS_INNER_CROPS, \
     GENERATED_DATASETS_INNER_PICKLES
-
 
 class CoreProcessor:
 
@@ -40,8 +38,9 @@ class CoreProcessor:
             f"{sampleName}.jpg")
 
         self.imgPath = impath # TODO: pass this in a better manner...
+        img = cv2.imread(impath, cv2.IMREAD_COLOR)
 
-        edges = findRings(impath, readType=readType, denoiseH=denoiseH,
+        edges = findRings(img, denoiseH=denoiseH,
                 denoiseTemplateWindowSize=denoiseTemplateWindowSize,
                 denoiseSearchWindowSize=denoiseSearchWindowSize, cannyMin=cannyMin, cannyMax=cannyMax,
                 rightEdgeMethod=rightEdgeMethod, invertedEdgeWindowSize=invertedEdgeWindowSize, 

@@ -34,23 +34,24 @@ class CoreAnnotation:
         self.tricky = self.__initTricky()
         
         # Parsing the pos file, splitting lines into groups
-        self.headerLines = []
-        self.labelLines = []
-        self.gapLines = []
-        self.__getLines()
+        if corePosPath:
+            self.headerLines = []
+            self.labelLines = []
+            self.gapLines = []
+            self.__parsePosFile()
 
-        # Point/Gap Labels: [ [ [x,y], ... ], ... ]
-        self.mmPointLabels = self.__initPointLabels()
-        self.mmGapLabels = self.__initGapLabels()
-        self.pointLabels = []
-        self.gapLabels = []
+            # Point/Gap Labels: [ [ [x,y], ... ], ... ]
+            self.mmPointLabels = self.__initPointLabels()
+            self.mmGapLabels = self.__initGapLabels()
+            self.pointLabels = []
+            self.gapLabels = []
 
-        # Point Label Info:
-        self.dpi = self.__getDPI() 
-        self.mmPith, self.mmDistToPith, self.yearsToPith = self.__getPithData()
+            # Point Label Info:
+            self.dpi = self.__getDPI() 
+            self.mmPith, self.mmDistToPith, self.yearsToPith = self.__getPithData()
 
-        self.pith = []
-        self.distToPith = None
+            self.pith = []
+            self.distToPith = None
 
         # Saving rotation info
         self.shift = None
@@ -171,7 +172,7 @@ class CoreAnnotation:
 
     ##############################
     # Helpers
-    def __getLines(self):
+    def __parsePosFile(self):
         """ Reads pos file and splits lines into three categories,
         adding them to corresponding lists
         """

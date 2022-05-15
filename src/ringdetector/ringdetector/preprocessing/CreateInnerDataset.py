@@ -6,10 +6,9 @@ import warnings
 coloredlogs.install(level=logging.INFO)
 warnings.filterwarnings("ignore")
 
-from ringdetector.preprocessing.DatasetExtractor import DatasetExtractor
+from ringdetector.preprocessing.InnerCropExtraction import extractInnerCrops
 
 if __name__ == "__main__":
     logging.info("Creating inner dataset")
-    de = DatasetExtractor()
-    de.createInnerDataset()
+    extractInnerCrops(saveDataset=True)
     logging.info("Inner dataset successfully created")

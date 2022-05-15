@@ -13,7 +13,7 @@ from ringdetector.analysis.Ring import Ring
 #####################################################################################
 #                                 Main Function                                    
 #####################################################################################
-def findRings(imgPath, readType="grayscale", denoiseH=25, denoiseTemplateWindowSize=10,
+def findRings(rgbImg, denoiseH=25, denoiseTemplateWindowSize=10,
                 denoiseSearchWindowSize=21, cannyMin=50, cannyMax=75,
                 rightEdgeMethod="simple", invertedEdgeWindowSize=25, 
                 mergeShapes1Ball=(10,5), mergeShapes1Angle=np.pi/4,
@@ -21,15 +21,7 @@ def findRings(imgPath, readType="grayscale", denoiseH=25, denoiseTemplateWindowS
                 filterLengthImgProportion=0.5,
                 filterRegressionAnglesAngleThreshold=np.pi/4 ):
 
-    if readType == "grayscale":
-        img = cv2.imread(imgPath, cv2.IMREAD_GRAYSCALE) 
-    elif readType == "hsv":
-        gbr_img = cv2.imread(imgPath, cv2.IMREAD_UNCHANGED)
-        hsv_img = cv2.cvtColor(gbr_img, cv2.COLOR_BGR2HSV)
-        img = hsv_img[:,:,2] 
-    else: 
-         raise "Other read types not implemented yet"
-        
+    img = cv2.cvtColor(rgbImg, cv2.COLOR_BGR2GRAY)
 
     #####################
     # Partial Application
