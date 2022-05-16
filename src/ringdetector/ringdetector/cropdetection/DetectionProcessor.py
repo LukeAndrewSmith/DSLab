@@ -1,16 +1,17 @@
 # class that takes the outputs of a model and nCores
 # the instances get filtered and a labelme json format can be produced
 from CoreDetection import CoreDetection
-import json, os
+import json, os, csv
 
 class DetectionProcessor:
-    def __init__(self, outputs, imgPath, nCores=20):
+    def __init__(self, outputs, imgPath, csvPath, nCores=20):
         self.instances = outputs['instances']
         self.coreDetections = self.__collectDetections()
         self.nCores = nCores
         self.imgHeight = self.instances.image_size[0]
         self.imgWidth = self.instances.image_size[1]
         self.imgPath = imgPath
+        self.csvPath = csvPath
 
     def filterDetections(self):
         # filter until target of cores is reached if nCores is given:
@@ -61,10 +62,20 @@ class DetectionProcessor:
         with open(filename, 'w') as json_file:
             json.dump(labelmeJson, json_file)
 
-
+    # TODO request: @freddy you need to handle the FNs in the prediction so that we can align the names w/ the cores (I think it can be a part of the crop detection heuristic ticket)
+    # NOTE: you need to (code somewhere else to) assert that the csvPath matches the imgPath before calling the func.
+    def __getCoreInfo(self):
+        # read a csv file specified
+        # parse csv into: 
+        # a list of core names
+        # a list of date of first year
+        # return two lists
+        # class
+        pass
 
     def __collectDetections(self):
         detections = list()
+        
         for inst in range(len(self.instances)):
             box = self.instances.get('pred_boxes').tensor[inst,:]
             score = self.instances.get('scores')[inst]

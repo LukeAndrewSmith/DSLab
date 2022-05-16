@@ -121,8 +121,10 @@ def main(args, is_resume):
         metadataset = MetadataCatalog.get("test")
         # initialize custom predictor
         predictor = CustomizedPredictor(cfg)
-
-        img = cv2.imread(args.imgPath)
+        
+        img = cv2.imread(args.imgPath) 
+        #NOTE: is this the final pipeline where you input the image one-by-one? I think we should make batch processing possible. 
+        #Also, looping the default predictor would be slow as it does not support parallel computing. We may need to rewrite the __call__()
         outputs = predictor(img)
         processor = DetectionProcessor(outputs, args.imgPath, nCores=20)
         processor.filterDetections()
