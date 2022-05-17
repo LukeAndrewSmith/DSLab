@@ -1,5 +1,6 @@
 # class that takes the outputs of a model and nCores
 # the instances get filtered and a labelme json format can be produced
+from math import isnan
 from CoreDetection import CoreDetection
 import json, os, csv
 
@@ -62,16 +63,28 @@ class DetectionProcessor:
         with open(filename, 'w') as json_file:
             json.dump(labelmeJson, json_file)
 
-    # TODO request: @freddy you need to handle the FNs in the prediction so that we can align the names w/ the cores (I think it can be a part of the crop detection heuristic ticket)
-    # NOTE: you need to (code somewhere else to) assert that the csvPath matches the imgPath before calling the func.
+    # TODO request: @freddy you need to handle the FNs in the prediction so that we can correctly align the names w/ the cores (I think it can be a part of the crop detection heuristic ticket)
+    # NOTE: you need to (write code somewhere else to) assert that the csvPath matches the imgPath before calling the func.
     def __getCoreInfo(self):
-        # read a csv file specified
-        # parse csv into: 
-        # a list of core names
-        # a list of date of first year
-        # return two lists
-        # class
-        pass
+        core_names = []
+        start_years = []
+        correct_header = ['CORE_NAMES', 'START_YEAR']
+        
+        with open(self.csvPath, newline='') as csvfile:
+            csv_reader = csv.reader(csvfile)
+            
+            header = next(csv_reader)
+            assert header == correct_header, f'CSV file header assertion failed. Did you name and order your header properly with {correct_header}?'
+
+            for index, row in enumerate(csv_reader):
+                core_name, start_year = row
+
+                assert (core_name and start_year), f'NaN values is not allowed! Check row {index + 1}.'
+
+                core_names.append(core_name.strip())
+                start_years.append(int(start_year.strip()))
+        
+        return core_names, start_years
 
     def __collectDetections(self):
         detections = list()

@@ -107,6 +107,11 @@ def getCropDetectionArgs(parser):
     parser.add_argument("--imgPath", dest="imgPath", type=str, help="absolute path to the image that you want to predict on",
                         default = "/Users/fredericboesel/Documents/master/frühling22/ds_lab/dslabtreering/data/images/KunL11-20.jpg")
                         #default="/mnt/ds3lab-scratch/fboesel/data/images/KunL11-20.jpg")
+
+    parser.add_argument("--csvPath", dest="csvPath", type=str, help="absolute path to the csv file that contains the core information",
+                        default = "/Users/fredericboesel/Documents/master/frühling22/ds_lab/dslabtreering/data/images/KunL11-20.jpg")
+                        #default="/mnt/ds3lab-scratch/fboesel/data/images/KunL11-20.jpg")
+    
     parser.add_argument("--nCores", dest="nCores", type=int, help="number of cores that you expect in the image to be detected",
                         default=20)
 

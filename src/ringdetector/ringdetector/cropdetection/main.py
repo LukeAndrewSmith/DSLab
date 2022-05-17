@@ -126,13 +126,10 @@ def main(args, is_resume):
         #NOTE: is this the final pipeline where you input the image one-by-one? I think we should make batch processing possible. 
         #Also, looping the default predictor would be slow as it does not support parallel computing. We may need to rewrite the __call__()
         outputs = predictor(img)
-        processor = DetectionProcessor(outputs, args.imgPath, nCores=20)
+        processor = DetectionProcessor(outputs, args.imgPath, args.csvPath, nCores=20)
         processor.filterDetections()
         processor.exportDetections()
         #visualizePred(dataset, metadataset, predictor, k=5)
-
-
-
 
 if __name__ == "__main__":
     ##NOTE: memory issues
