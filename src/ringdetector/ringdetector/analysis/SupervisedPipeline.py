@@ -63,8 +63,10 @@ def main():
             filterRegressionAnglesAngleThreshold=cfg.filterRegressionAnglesAngleThreshold
         )
         scoreDict = scoreCore(rings, core.pointLabels)
-        logging.info(f"Sample {sample}: prec {round(scoreDict["precision"],3)},"
-            f"rec {round(scoreDict["recall"], 3)}")
+        logging.info(
+            f"Sample {sample}: prec {round(scoreDict["precision"],3)},"
+            f"rec {round(scoreDict["recall"], 3)}"
+        )
         if cfg.wb:
             reportCore(sample, rings, scoreDict)
         
