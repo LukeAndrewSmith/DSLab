@@ -22,7 +22,7 @@ def DetectInnerCores(imgPath):
 
     img = cv2.imread(imgPath)
     outputs = predictor(img)
-    processor = DetectionProcessor(outputs, imgPath, nCores=20)
+    processor = DetectionProcessor(outputs, imgPath)
     processor.filterDetections()
     jsonPath = processor.exportDetections()
 
