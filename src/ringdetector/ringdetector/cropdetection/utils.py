@@ -6,7 +6,7 @@ def get_cuda_info():
     else:
         cuda_info = dict()
         cuda_info['torch_version'] = torch.__version__
-        cuda_info['cuda_version'] = torch.version.cuda # runtime ver
+        cuda_info['cuda_version'] = torch.version.cuda  # runtime ver
         
         device_cnt = torch.cuda.device_count()
         

@@ -54,7 +54,7 @@ class DetectionProcessor:
             "version": "5.0.1",
             "flags": {},
             "shapes": coreList,
-            "imagePath": self.imgPath,
+            "imagePath": self.imgPath.split('/')[-1],
             "imageData": None,
             "imageHeight": self.imgHeight,
             "imageWidth": self.imgWidth
@@ -66,6 +66,9 @@ class DetectionProcessor:
 
         with open(filename, 'w') as json_file:
             json.dump(labelmeJson, json_file)
+
+        return filename
+
 
     # TODO request: @freddy you need to handle the FNs in the prediction so that we can correctly align the names w/ the cores (I think it can be a part of the crop detection heuristic ticket)
     # NOTE: you need to (write code somewhere else to) assert that the csvPath matches the imgPath before calling the func.

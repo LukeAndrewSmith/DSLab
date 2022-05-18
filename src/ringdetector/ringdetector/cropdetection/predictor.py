@@ -11,8 +11,8 @@ class CustomizedPredictor(DefaultPredictor):
         self.cfg = cfg.clone()  # cfg can be modified by model
         self.model = build_model(self.cfg)
         self.model.eval()
-        if len(cfg.DATASETS.TEST):
-            self.metadata = MetadataCatalog.get(cfg.DATASETS.TEST[0])
+        #if len(cfg.DATASETS.TEST):
+            #self.metadata = MetadataCatalog.get(cfg.DATASETS.TEST[0])
 
         checkpointer = DetectionCheckpointer(self.model)
         checkpointer.load(cfg.MODEL.WEIGHTS)

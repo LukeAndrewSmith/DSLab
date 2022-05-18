@@ -6,11 +6,13 @@ setup(
     description='Tree ring detection',
     author='Yutong (Leona) Xiang, Frederic Boesel, Luke Smith, Clement Guerner',
     packages=find_packages(),
-    install_requires=[
-                      'numpy',
-                      'opencv-python',
-                      'coloredlogs'
-                      ],
+    install_requires=['Pillow',
+                    'shapely',
+                    'wandb',
+                    'numpy',
+                    'opencv-python',
+                    'coloredlogs'
+                    ],
 
     classifiers=[
         'Development Status :: 1 - Highly unstable research development ;)',
