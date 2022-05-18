@@ -103,10 +103,16 @@ def getCropDetectionArgs(parser):
     #### INFERENCE #####
     parser.add_argument("--modelPath", dest="modelPath", type=str, help="absolute path to the model that you want to "
                                                                         "evaluate or predict with",
-                        default=CROP_MODEL)
+                                                                        default=CROP_MODEL)
+
     parser.add_argument("--imgPath", dest="imgPath", type=str, help="relative path of the image you want to predict on, based from the data folder."
                                                                     "example: images/KunL11-20.jpg")
-    parser.add_argument("--nCores", dest="nCores", type=int, help="number of cores that you expect in the image to be detected")
+
+    parser.add_argument("--csvPath", dest="csvPath", type=str, help="absolute path to the csv file that contains the core information",
+                        default = None)
+                        
+    
+  
 
     cfg = parser.parse_args()
 

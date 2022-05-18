@@ -117,13 +117,14 @@ def main(args, is_resume):
         modelDir = getModelDirectory(args.modelPath)
         cfg = generate_config(modelDir, (), ())
         cfg.MODEL.WEIGHTS = args.modelPath
-
         # initialize custom predictor
         predictor = CustomizedPredictor(cfg)
-        imgPath = os.apth.join(DATA, args.imgPath)
+        imgPath = os.path.join(DATA, args.imgPath)
         img = cv2.imread(imgPath)
+        #NOTE: is this the final pipeline where you input the image one-by-one? I think we should make batch processing possible. 
+        #Also, looping the default predictor would be slow as it does not support parallel computing. We may need to rewrite the __call__()
         outputs = predictor(img)
-        processor = DetectionProcessor(outputs, imgPath, nCores=20)
+        processor = DetectionProcessor(outputs, args.imgPath, args.csvPath)
         processor.filterDetections()
         processor.exportDetections()
 
