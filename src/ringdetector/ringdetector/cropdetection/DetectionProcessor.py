@@ -5,14 +5,17 @@ from CoreDetection import CoreDetection
 import json, os, csv
 
 class DetectionProcessor:
-    def __init__(self, outputs, imgPath, csvPath, nCores=20):
+    def __init__(self, outputs, imgPath, csvPath=None):
         self.instances = outputs['instances']
         self.coreDetections = self.__collectDetections()
-        self.nCores = nCores
         self.imgHeight = self.instances.image_size[0]
         self.imgWidth = self.instances.image_size[1]
         self.imgPath = imgPath
         self.csvPath = csvPath
+        if self.csvPath is not None:
+            self.core_names, self.start_years = self.__getCoreInfo()
+            self.nCores = len(self.core_names)
+
 
     def filterDetections(self):
         # filter until target of cores is reached if nCores is given:
@@ -36,6 +39,7 @@ class DetectionProcessor:
 
     def exportDetections(self):
         coreList = list()
+        # TODO sort list by top to bottom based on y coordinate and then assign label of csv if it is given
         for i,core in enumerate(self.coreDetections):
             if core.maskRectangle is not None:
                 coreDict = {
