@@ -6,10 +6,10 @@ from ringdetector.cropdetection.model_config import generate_config
 from ringdetector.cropdetection.predictor import CustomizedPredictor
 from ringdetector.cropdetection.DetectionProcessor import DetectionProcessor
 import cv2
+from ringdetector.Paths import CROP_MODEL
 
 # this is used for the final pipeline:
-
-modelPath = "/dslabreering/d2_results/2022-05-03_08-47-50/model_final.pth"
+modelPath = CROP_MODEL
 Image.MAX_IMAGE_PIXELS = None
 
 def DetectInnerCores(imgPath):
@@ -27,8 +27,3 @@ def DetectInnerCores(imgPath):
     jsonPath = processor.exportDetections()
 
     return jsonPath
-
-if __name__ =="__main__":
-    json_path = DetectInnerCores("/dslabtreering/data/images/KunL11-20.jpg")
-    print('### detected!')
-    print(json_path)

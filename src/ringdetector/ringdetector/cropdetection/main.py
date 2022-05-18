@@ -10,6 +10,7 @@ from detectron2.data import MetadataCatalog, DatasetCatalog
 from detectron2.checkpoint import DetectionCheckpointer
 import cv2
 
+from ringdetector.Paths import DATA
 from ringdetector.cropdetection.DetectionProcessor import DetectionProcessor
 from ringdetector.cropdetection.trainer import CustomizedTrainer
 from ringdetector.cropdetection.D2CustomDataset import D2CustomDataset
@@ -114,24 +115,17 @@ def main(args, is_resume):
 
     elif args.mode == "pred":
         modelDir = getModelDirectory(args.modelPath)
-        cfg = generate_config(modelDir, (), ("test,"))
+        cfg = generate_config(modelDir, (), ())
         cfg.MODEL.WEIGHTS = args.modelPath
 
-        dataset = DatasetCatalog.get("test")
-        metadataset = MetadataCatalog.get("test")
         # initialize custom predictor
         predictor = CustomizedPredictor(cfg)
-
-        img = cv2.imread(args.imgPath)
+        imgPath = os.apth.join(DATA, args.imgPath)
+        img = cv2.imread(imgPath)
         outputs = predictor(img)
-        processor = DetectionProcessor(outputs, args.imgPath, nCores=20)
+        processor = DetectionProcessor(outputs, imgPath, nCores=20)
         processor.filterDetections()
         processor.exportDetections()
-        print('finsihed prediction')
-        print(outputs)
-        #visualizePred(dataset, metadataset, predictor, k=5)
-
-
 
 
 if __name__ == "__main__":

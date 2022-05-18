@@ -1,4 +1,5 @@
 import numpy as np
+from ringdetector.Paths import CROP_MODEL
 
 def getArgs(parser):
     """ Arg handler for Core Analysis
@@ -102,13 +103,10 @@ def getCropDetectionArgs(parser):
     #### INFERENCE #####
     parser.add_argument("--modelPath", dest="modelPath", type=str, help="absolute path to the model that you want to "
                                                                         "evaluate or predict with",
-                        default = "/Users/fredericboesel/Documents/master/frühling22/ds_lab/dslabtreering/d2_results/2022-05-03_08-47-50/model_final.pth")
-                        #default="/mnt/ds3lab-scratch/fboesel/d2_results/2022-05-03_08-47-50/model_final.pth")
-    parser.add_argument("--imgPath", dest="imgPath", type=str, help="absolute path to the image that you want to predict on",
-                        default = "/Users/fredericboesel/Documents/master/frühling22/ds_lab/dslabtreering/data/images/KunL11-20.jpg")
-                        #default="/mnt/ds3lab-scratch/fboesel/data/images/KunL11-20.jpg")
-    parser.add_argument("--nCores", dest="nCores", type=int, help="number of cores that you expect in the image to be detected",
-                        default=20)
+                        default=CROP_MODEL)
+    parser.add_argument("--imgPath", dest="imgPath", type=str, help="relative path of the image you want to predict on, based from the data folder."
+                                                                    "example: images/KunL11-20.jpg")
+    parser.add_argument("--nCores", dest="nCores", type=int, help="number of cores that you expect in the image to be detected")
 
     cfg = parser.parse_args()
 
