@@ -10,9 +10,9 @@ from tqdm import tqdm
 from ringdetector.preprocessing.ImageAnnotation import ImageAnnotation
 from ringdetector.preprocessing.GeometryUtils import mm_to_pixel,\
     rotateCoords, rotateListOfCoords, shiftListOfCoords
-from ringdetector.Paths import GENERATED_DATASETS_INNER, LABELME_JSONS, \
-    GENERATED_DATASETS_INNER_CROPS, GENERATED_DATASETS_INNER_PICKLES, IMAGES, \
-    POINT_LABELS
+from ringdetector.Paths import GENERATED_DATASETS, GENERATED_DATASETS_INNER,\
+    LABELME_JSONS, GENERATED_DATASETS_INNER_CROPS, \
+        GENERATED_DATASETS_INNER_PICKLES, IMAGES, POINT_LABELS
         
 
 class DatasetExtractor:
@@ -37,6 +37,7 @@ class DatasetExtractor:
     ########################################
     def createInnerDataset(self):
         paths = [
+            GENERATED_DATASETS,
             GENERATED_DATASETS_INNER,
             GENERATED_DATASETS_INNER_CROPS,
             GENERATED_DATASETS_INNER_PICKLES

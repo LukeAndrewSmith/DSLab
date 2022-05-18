@@ -1,8 +1,8 @@
-from operator import truediv
 import os
 import re
 import logging
 import pickle
+import numpy as np
 import cv2
 from copy import deepcopy
 
@@ -20,12 +20,18 @@ class CoreAnnotation:
         # Shapes: [ [x,y], ... ]
             # NOTE: do not modify self.shape or self.rectangles, this 
             # wont modify the original variables
+            # NOTE: copying orig rectangle because innerRectangle is repeatedly 
+            # overwritten.
         self.origInnerRectangle  = self.__initRectangle("INNER")
         self.innerRectangle = deepcopy(self.origInnerRectangle)
+
         self.origOuterRectangle  = self.__initRectangle("OUTER")
-        self.outerRectangle = deepcopy(self.origOuterRectangle)
+        self.outerRectangle = deepcopy(self.origOuterRectangle)        
+
         self.rectangles = [self.innerRectangle, self.outerRectangle]
-        self.cracks = self.__findShape('CRACK', [])
+        
+        self.cracks = self.__findMultipleShapes('CRACK')
+        self.gaps = self.__findMultipleShapes('GAP')
         self.bark   = self.__findShape('BARK', [])
         self.ctrmid = self.__findShape('CTRMID', [])
         self.ctrend = self.__findShape('CTREND', [])
@@ -85,6 +91,10 @@ class CoreAnnotation:
         return next(
             (shape['points'] for shape in self.labelmeAnnotations['shapes'] \
             if shape["label"] == f'{self.sampleName}_{label}'), default)
+
+    def __findMultipleShapes(self, label):
+        return [shape['points'] for shape in self.labelmeAnnotations['shapes']
+            if shape["label"] == f'{self.sampleName}_{label}']
 
 
     ##############################
@@ -191,4 +201,4 @@ class CoreAnnotation:
         except AttributeError:
             print(f'{self.sampleName}: {pattern} not found in {string}')
             return None
-        
+    
