@@ -127,6 +127,8 @@ def main(args, is_resume):
         processor = DetectionProcessor(outputs, args.imgPath, nCores=20)
         processor.filterDetections()
         processor.exportDetections()
+        print('finsihed prediction')
+        print(outputs)
         #visualizePred(dataset, metadataset, predictor, k=5)
 
 

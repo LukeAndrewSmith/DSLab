@@ -48,7 +48,7 @@ class DetectionProcessor:
             "version": "5.0.1",
             "flags": {},
             "shapes": coreList,
-            "imagePath": self.imgPath,
+            "imagePath": self.imgPath.split('/')[-1],
             "imageData": None,
             "imageHeight": self.imgHeight,
             "imageWidth": self.imgWidth
@@ -60,6 +60,8 @@ class DetectionProcessor:
 
         with open(filename, 'w') as json_file:
             json.dump(labelmeJson, json_file)
+
+        return filename
 
 
 
