@@ -19,7 +19,7 @@ np.seterr(all='raise')
 def findRings(rgbCropped, 
     readType="hsv", denoiseH=25, denoiseTemplateWindowSize=10,
     denoiseSearchWindowSize=21, cannyMin=50, cannyMax=75,
-    rightRingMethod="simple", invertedRingWindowSize=25, 
+    rightEdgeMethod="simple", invertedEdgeWindowSize=25, 
     mergeShapes1Ball=(10,5), mergeShapes1Angle=np.pi/4,
     mergeShapes2Ball=(20,20), mergeShapes2Angle=np.pi/4, 
     filterLengthImgProportion=0.5,
