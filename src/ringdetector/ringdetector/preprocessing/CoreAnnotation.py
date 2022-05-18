@@ -1,8 +1,8 @@
-from operator import truediv
 import os
 import re
 import logging
 import pickle
+import numpy as np
 import cv2
 from copy import deepcopy
 
@@ -20,12 +20,18 @@ class CoreAnnotation:
         # Shapes: [ [x,y], ... ]
             # NOTE: do not modify self.shape or self.rectangles, this 
             # wont modify the original variables
+            # NOTE: copying orig rectangle because innerRectangle is repeatedly 
+            # overwritten.
         self.origInnerRectangle  = self.__initRectangle("INNER")
         self.innerRectangle = deepcopy(self.origInnerRectangle)
+
         self.origOuterRectangle  = self.__initRectangle("OUTER")
-        self.outerRectangle = deepcopy(self.origOuterRectangle)
+        self.outerRectangle = deepcopy(self.origOuterRectangle)        
+
         self.rectangles = [self.innerRectangle, self.outerRectangle]
-        self.cracks = self.__findShape('CRACK', [])
+        
+        self.cracks = self.__findMultipleShapes('CRACK')
+        self.gaps = self.__findMultipleShapes('GAP')
         self.bark   = self.__findShape('BARK', [])
         self.ctrmid = self.__findShape('CTRMID', [])
         self.ctrend = self.__findShape('CTREND', [])
@@ -34,24 +40,29 @@ class CoreAnnotation:
         self.tricky = self.__initTricky()
         
         # Parsing the pos file, splitting lines into groups
+        #TODO: can probably remove all this pith shit
+        self.headerLines = []
+        self.labelLines = []
+        self.gapLines = []
+        self.mmPointLabels = []
+        self.mmGapLabels = []
+        self.pointLabels = []
+        self.gapLabels = []
+        self.dpi = None
+        self.mmPith, self.mmDistToPith, self.yearsToPith = None
+        self.pith = []
+        self.distToPith = None
+
         if corePosPath:
-            self.headerLines = []
-            self.labelLines = []
-            self.gapLines = []
             self.__parsePosFile()
 
             # Point/Gap Labels: [ [ [x,y], ... ], ... ]
             self.mmPointLabels = self.__initPointLabels()
             self.mmGapLabels = self.__initGapLabels()
-            self.pointLabels = []
-            self.gapLabels = []
-
+        
             # Point Label Info:
             self.dpi = self.__getDPI() 
             self.mmPith, self.mmDistToPith, self.yearsToPith = self.__getPithData()
-
-            self.pith = []
-            self.distToPith = None
 
         # Saving rotation info
         self.shift = None
@@ -66,7 +77,9 @@ class CoreAnnotation:
     ####
     def getOriginalImage(self):
         imagePath = os.path.join(IMAGES, self.imageName)
-        img = cv2.imread(imagePath, cv2.IMREAD_COLOR)
+        #img = cv2.imread(imagePath, cv2.IMREAD_COLOR)
+        #TODO: check this
+        img = cv2.imread(imagePath, cv2.IMREAD_UNCHANGED)
         return img
 
     ######################
@@ -86,6 +99,10 @@ class CoreAnnotation:
         return next(
             (shape['points'] for shape in self.labelmeAnnotations['shapes'] \
             if shape["label"] == f'{self.sampleName}_{label}'), default)
+
+    def __findMultipleShapes(self, label):
+        return [shape['points'] for shape in self.labelmeAnnotations['shapes']
+            if shape["label"] == f'{self.sampleName}_{label}']
 
 
     ##############################
@@ -192,4 +209,4 @@ class CoreAnnotation:
         except AttributeError:
             print(f'{self.sampleName}: {pattern} not found in {string}')
             return None
-        
+    

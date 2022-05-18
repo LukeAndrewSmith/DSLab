@@ -11,18 +11,27 @@ from ringdetector.analysis.Ring import Ring
 
 np.seterr(all='raise')
 
-#####################################################################################
-#                                 Main Function                                    
-#####################################################################################
-def findRings(rgbImg, denoiseH=25, denoiseTemplateWindowSize=10,
-                denoiseSearchWindowSize=21, cannyMin=50, cannyMax=75,
-                rightEdgeMethod="simple", invertedEdgeWindowSize=25, 
-                mergeShapes1Ball=(10,5), mergeShapes1Angle=np.pi/4,
-                mergeShapes2Ball=(20,20), mergeShapes2Angle=np.pi/4, 
-                filterLengthImgProportion=0.5,
-                filterRegressionAnglesAngleThreshold=np.pi/4 ):
+################################################################################
+#                                 Main Function
+################################################################################
+# NOTE: default params are set here and in configArgs, configArgs affects only
+# supervised/training workflow, NOT inference. Inference params set here.
+def findRings(rgbCropped, 
+    readType="hsv", denoiseH=25, denoiseTemplateWindowSize=10,
+    denoiseSearchWindowSize=21, cannyMin=50, cannyMax=75,
+    rightRingMethod="simple", invertedRingWindowSize=25, 
+    mergeShapes1Ball=(10,5), mergeShapes1Angle=np.pi/4,
+    mergeShapes2Ball=(20,20), mergeShapes2Angle=np.pi/4, 
+    filterLengthImgProportion=0.5,
+    filterRegressionAnglesAngleThreshold=np.pi/4):
 
-    img = cv2.cvtColor(rgbImg, cv2.COLOR_BGR2GRAY)
+    if readType == "grayscale":
+        img = cv2.cvtColor(rgbCropped, cv2.COLOR_BGR2GRAY)
+    elif readType == "hsv":
+        hsv_img = cv2.cvtColor(rgbCropped, cv2.COLOR_BGR2HSV)
+        img = hsv_img[:,:,2] 
+    else: 
+        raise "Other read types not implemented yet"
 
     #####################
     # Partial Application

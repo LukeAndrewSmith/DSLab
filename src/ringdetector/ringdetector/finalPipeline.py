@@ -30,6 +30,7 @@ if __name__=="__main__":
     # TODO: call the auto-crop detection and set the correct labelmeJsonPath
     # labelMeJsonPath = detectCores(args.imagePath)
     labelMeJsonPath = '/Users/lukeasmi/Documents/ETHZ/dslabtreering/data/labelme_jsons/KunA08.json'
+    # TODO: maybe move the opening of labelme here
     innerCrops = extractInnerCrops(labelmeJsonPath=labelMeJsonPath, openLabelme=args.openLabelme, saveDataset=False)
     logging.info(f"Identifying rings")
     processInnerCrops(innerCrops, args.savePath)

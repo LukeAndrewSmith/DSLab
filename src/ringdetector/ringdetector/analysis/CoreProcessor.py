@@ -40,7 +40,7 @@ class CoreProcessor:
         self.imgPath = impath # TODO: pass this in a better manner...
         img = cv2.imread(impath, cv2.IMREAD_COLOR)
 
-        edges = findRings(img, denoiseH=denoiseH,
+        rings = findRings(img, denoiseH=denoiseH,
                 denoiseTemplateWindowSize=denoiseTemplateWindowSize,
                 denoiseSearchWindowSize=denoiseSearchWindowSize, cannyMin=cannyMin, cannyMax=cannyMax,
                 rightEdgeMethod=rightEdgeMethod, invertedEdgeWindowSize=invertedEdgeWindowSize, 
@@ -48,13 +48,13 @@ class CoreProcessor:
                 mergeShapes2Ball=mergeShapes2Ball, mergeShapes2Angle=mergeShapes2Angle, 
                 filterLengthImgProportion=filterLengthImgProportion,
                 filterRegressionAnglesAngleThreshold=filterRegressionAnglesAngleThreshold)
-        edges = self.__scoreEdges(edges, self.core.pointLabels)
+        rings = self.__scoreRings(rings, self.core.pointLabels)
 
         # TODO: placeholder for some function where we remove edges with 
         # high MSE, or generally filter edges further 
         # (could be in EdgeProcessor)
         # TODO: rename edges to rings
-        self.filteredRings = edges
+        self.filteredRings = rings
 
         self.truePosEdges = []
         self.truePosLabels = []
@@ -64,11 +64,11 @@ class CoreProcessor:
         self.falseNegLabels = []
         self.falseNeg = 0
 
-    
-    def __scoreEdges(self, edges, pointLabels): # TODO: this should find another home
-        for edge in edges:
-            edge.scoreEdge(pointLabels)
-        return edges
+    # TODO: this should find another home
+    def __scoreRings(self, rings, pointLabels): 
+        for ring in rings:
+            ring.scoreRing(pointLabels)
+        return rings
         
     def __collectEdges(self, ringLabel):
         """ General idea: each edge has picked a closest point. With a specific set of ring points (one ring can be indicated by two ground truth points), we loop through the edges and find edges that have picked one of the ring points as their closest label. We add any edge that has picked this ring label to the list of matched edges (later, edges that are matched but not closest will count as false positives). If a matched edge is also the closest (or equally close) seen so far for this ring, it is added to closestEdges. 

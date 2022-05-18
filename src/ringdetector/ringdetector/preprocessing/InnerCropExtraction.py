@@ -8,17 +8,21 @@ from tqdm import tqdm
 from ringdetector.preprocessing.ImageAnnotation import ImageAnnotation
 from ringdetector.preprocessing.GeometryUtils import mm_to_pixel,\
     rotateCoords, rotateListOfCoords, shiftListOfCoords
-from ringdetector.Paths import GENERATED_DATASETS_INNER, LABELME_JSONS, \
-    GENERATED_DATASETS_INNER_CROPS, GENERATED_DATASETS_INNER_PICKLES, POINT_LABELS
+from ringdetector.Paths import GENERATED_DATASETS, GENERATED_DATASETS_INNER, \
+    LABELME_JSONS, GENERATED_DATASETS_INNER_CROPS,\
+    GENERATED_DATASETS_INNER_PICKLES, POINT_LABELS
         
 
-#####################################################################################
-#                                 Main Function                                    
-#####################################################################################
-def extractInnerCrops(labelmeJsonPath=None, openLabelme=False, saveDataset=False):
+################################################################################
+#                                 Main Function
+################################################################################
+def extractInnerCrops(labelmeJsonPath=None, openLabelme=False,
+                      saveDataset=False):
+    
     if saveDataset:
         __setupDirectoriesForSaving()
 
+    #TODO: not sure whether this belongs here
     if labelmeJsonPath and openLabelme:
         os.system("echo Opening labelme. Please be patient for one moment, labelme can be slow to start")
         os.system(f'labelme {labelmeJsonPath} --logger-level fatal &') # Open in background TODO: maybe detect if windows and change the command... also not sure if this will work in docker?
@@ -33,14 +37,15 @@ def extractInnerCrops(labelmeJsonPath=None, openLabelme=False, saveDataset=False
     return innerCrops
 
 
-#####################################################################################
+################################################################################
 #                                    Setup                                    
-#####################################################################################
+################################################################################
 
 ##########################################
 # saving
 def __setupDirectoriesForSaving():
     paths = [
+        GENERATED_DATASETS,
         GENERATED_DATASETS_INNER,
         GENERATED_DATASETS_INNER_CROPS,
         GENERATED_DATASETS_INNER_PICKLES
@@ -83,9 +88,9 @@ def __initCoreAnnotations():
     return list(chain(*coreAnnotations))
 
 
-#####################################################################################
+################################################################################
 #                                Processing                            
-#####################################################################################
+################################################################################
 def __getCroppedImg(core, saveDataset):
     # TODO: all these functions have side effects as they modify core variables directly, not clean, should update
     core             = __convertMMToPX(core)
@@ -101,6 +106,8 @@ def __getCroppedImg(core, saveDataset):
         )
         core.toPickle(GENERATED_DATASETS_INNER_PICKLES)
 
+    #TODO: in principle based on function name (and core as input) this should
+    # return just the croppedImg, then we zip in extractInnerCrops.
     return (core, croppedImg) # TODO: is this the format we want it in?
 
 

@@ -1,4 +1,5 @@
 import numpy as np
+from ringdetector.Paths import CROP_MODEL
 
 def getArgs(parser):
     """ Arg handler for Core Analysis
@@ -20,7 +21,7 @@ def getArgs(parser):
     #    default='inner', help="Which dataset to load.")
     parser.add_argument("-sample", type=str, default="",
         help="Specify sampleName, e.g. RUEP03WW, to run only on one sample.")
-    parser.add_argument("-n", type=int, default=None,
+    parser.add_argument("-n", dest="nsamples", type=int, default=None,
         help="Run on n samples.")
     
     ###########################################################################
@@ -81,5 +82,38 @@ def getArgs(parser):
     # turn on wandb automatically if running on entire dataset
     #if not cfg.sample:
     #    cfg.wb = True
+
+    return cfg
+
+
+def getCropDetectionArgs(parser):
+    parser.add_argument("--mode", "-m", dest="mode", default="pred", choices=["train", "eval", "pred"],
+                        type=str, help="mode to run the object detection in: train eval or prediction")
+    parser.add_argument("--dataMode", "-tm", dest="dataMode", choices=["inner", "outer", "outerInner"],
+                        default="inner", type=str, help="inner or outer rectangle to detect?")
+    parser.add_argument("-split", dest="split", help="What split to predict on if mode pred or eval is chosen",
+                        choices=["train", "val", "test"], type=str)
+    # TODO add vis mode and an actual inference mode
+    parser.add_argument("--k-pred", "-k", dest="k", default=5, type=int, help="amount of visualizations of "
+                                                                              "predictions made by the pred mode")
+    parser.add_argument("--num-gpus", dest="num-gpus", type=int)
+    parser.add_argument("--cracks", dest="cracks", action='store_true', default=False, help="if set: also includes " \
+                                                                                           "cracks and gaps in the data")
+
+    #### INFERENCE #####
+    parser.add_argument("--modelPath", dest="modelPath", type=str, help="absolute path to the model that you want to "
+                                                                        "evaluate or predict with",
+                                                                        default=CROP_MODEL)
+
+    parser.add_argument("--imgPath", dest="imgPath", type=str, help="relative path of the image you want to predict on, based from the data folder."
+                                                                    "example: images/KunL11-20.jpg")
+
+    parser.add_argument("--csvPath", dest="csvPath", type=str, help="absolute path to the csv file that contains the core information",
+                        default = None)
+                        
+    
+  
+
+    cfg = parser.parse_args()
 
     return cfg

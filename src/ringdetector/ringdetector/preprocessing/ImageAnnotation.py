@@ -17,6 +17,8 @@ class ImageAnnotation:
             self.pos_path = pos_path
             self.labelMeAnnotations = json.load(f)
             self.image_path = self.__get_image_path()
+            self.height = self.__get_image_height()
+            self.width = self.__get_image_width()
             self.cores = self.__get_cores()
             self.core_annotations = self.__annotate_cores()
             self.unmatched_pos_count = 0
@@ -72,6 +74,12 @@ class ImageAnnotation:
 
     def __get_image_path(self):
         return self.labelMeAnnotations['imagePath']
+
+    def __get_image_height(self):
+        return self.labelMeAnnotations['imageHeight']
+    
+    def __get_image_width(self):
+        return self.labelMeAnnotations['imageWidth']
 
     def __repr__(self) -> str:
         return (f"Image annotation with JSON: {self.json_path}, "

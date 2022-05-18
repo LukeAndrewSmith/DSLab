@@ -1,4 +1,3 @@
-from pip import main
 import logging
 import coloredlogs
 import warnings
