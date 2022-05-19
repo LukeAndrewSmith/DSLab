@@ -65,11 +65,10 @@ class ImageAnnotation:
                         f"Image {self.image_name}, labelme core {lm_core} did "
                         "not find a matching csv core."
                     )
-
-        if csv_core:
+        if csvCoreNames:
             logging.warn(
                 f"Image {self.image_name}, the following csv cores were not "
-                f"matched with labelme cores: {csv_core}")
+                f"matched with labelme cores: {csvCoreNames}")
         return cores
 
     def __annotate_cores(self, cores, labelMeAnnotations):

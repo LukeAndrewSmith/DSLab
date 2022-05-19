@@ -81,9 +81,7 @@ class CoreAnnotation:
     ####
     def getOriginalImage(self):
         imagePath = os.path.join(IMAGES, self.imageName)
-        #img = cv2.imread(imagePath, cv2.IMREAD_COLOR)
-        #TODO: check this
-        img = cv2.imread(imagePath, cv2.IMREAD_UNCHANGED)
+        img = cv2.imread(imagePath, cv2.IMREAD_COLOR)
         assert img is not None, f"Core {self.sampleName} from img " \
             f"{self.imageName} from path" \
             f"{self.imagePath}: could not load original image"

@@ -35,7 +35,7 @@ def main():
             )
         wandb.config.update(cfg)
     
-    __makeResultDirs
+    __makeResultDirs()
     samples = __getSamples(cfg.sample, cfg.nsamples)
         
     wbMetrics = []
@@ -63,15 +63,18 @@ def main():
             filterRegressionAnglesAngleThreshold=cfg.filterRegressionAnglesAngleThreshold
         )
         scoreDict = scoreCore(rings, core.pointLabels)
+
+        precision = scoreDict["precision"]
+        recall = scoreDict["recall"]
         logging.info(
-            f"Sample {sample}: prec {round(scoreDict["precision"],3)},"
-            f"rec {round(scoreDict["recall"], 3)}"
+            f"Sample {sample}: prec {round(precision, 3)},"
+            f"rec {round(recall, 3)}"
         )
         if cfg.wb:
             reportCore(sample, rings, scoreDict)
         
         # WB Entry
-        wbEntry = [sample, scoreDict["precision"], scoreDict["recall"]]
+        wbEntry = [sample, precision, recall]
         wbMetrics.append(wbEntry)
         if core.tricky:
             wbMetricsTricky.append(wbEntry)
