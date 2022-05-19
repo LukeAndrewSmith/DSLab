@@ -1,11 +1,13 @@
 import numpy as np
 import wandb
 import cv2
+from tqdm import tqdm
 
 from ringdetector.analysis.RingDetection import findRings
 from ringdetector.utils.posFileExport import undoShiftRotation, \
     saveSanityCheckImage, selectCoordsFromRings, savePosFile
 from ringdetector.preprocessing.GeometryUtils import roundCoords
+from ringdetector.analysis.Plotters import exportInferenceLinePlot
 
 ################################################################################
 #                                 Inference Workflow
@@ -22,11 +24,11 @@ def inferInnerCrops(innerCrops, savePath):
     """ 
 
     allCoords = []
-    for core, croppedImg in innerCrops:
-        #TODO: savepath needed?
-        rings = findRings(core, croppedImg, savePath)
+    for core, croppedImg in tqdm(innerCrops, "Predicting rings"):
+        rings = findRings(croppedImg)
         # TODO: perpendicular lines
         # TODO: could we call selectcoords inside savePosFile?
+        exportInferenceLinePlot(croppedImg, core.sampleName, rings, savePath)
         ringCoords = selectCoordsFromRings(rings)
         savePosFile(ringCoords, core, savePath)
         allCoords += undoShiftRotation(ringCoords, core)

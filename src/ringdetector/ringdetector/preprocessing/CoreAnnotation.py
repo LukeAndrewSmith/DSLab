@@ -49,7 +49,8 @@ class CoreAnnotation:
         self.mmGapLabels = []
         self.pointLabels = []
         self.gapLabels = []
-        self.dpi = None
+        # TODO: FIX THIS SHIT
+        self.dpi = 1200
         self.mmPith, self.mmDistToPith, self.yearsToPith = None, None, None
         self.pith = []
         self.distToPith = None
@@ -91,10 +92,18 @@ class CoreAnnotation:
     # labelme Annotations
     def __initRectangle(self, rectType):
         points = self.__findShape(rectType, [])
-        assert len(points) > 0, f"Core {self.sampleName} missing inner or "\
-            "outer crop label in JSON."
-        boundingRect = min_bounding_rectangle(points)
-        return boundingRect
+        if rectType == "INNER":
+            assert len(points) > 0, f"Core {self.sampleName} missing inner "\
+                "crop label in JSON."        
+            boundingRect = min_bounding_rectangle(points)
+            return boundingRect
+        else: #"OUTER" no longer required
+            if len(points) > 0:
+                boundingRect = min_bounding_rectangle(points)
+                return boundingRect
+            else:
+                return []
+            
 
     def __initTricky(self):
         if self.__findShape('TRICKY', False): return True

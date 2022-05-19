@@ -166,9 +166,14 @@ def __rotateRectangles(rectangles, rotMat):
         [rotateCoords(coords, rotMat) for coords in rectangle] 
         for rectangle in rectangles
     ]
+    #TODO:clean this up, adjusting for the fact that inference workflow has
+    # no outer crops.
     rectangles = [
-        __roundRectangleCoords(rectangle) for rectangle in rectangles
-    ]        
+        __roundRectangleCoords(rectangle) for rectangle in rectangles 
+        if len(rectangle) > 0
+    ]
+    if len(rectangles) == 1:
+        rectangles.append([])
     return rectangles
 
 def __roundRectangleCoords(rectangle):

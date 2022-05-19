@@ -1,4 +1,5 @@
 import json, os
+import logging
 
 from ringdetector.cropdetection.CoreDetection import CoreDetection
 from ringdetector.utils.csvLoader import loadImageCSV
@@ -7,15 +8,18 @@ class DetectionProcessor:
     # class that takes the outputs of a model and nCores
     # the instances get filtered and a labelme json format can be produced
 
-    def __init__(self, outputs, imgPath, csvPath=None):
+    def __init__(self, outputs, imgPath, savePath, csvPath=None):
         self.instances = outputs['instances']
         self.coreDetections = self.__collectDetections()
         
         self.imgHeight = self.instances.image_size[0]
         self.imgWidth = self.instances.image_size[1]
         self.imgPath = imgPath
+        self.imgName = os.path.basename(imgPath)[:-4]
+        self.savePath = savePath
         
         self.csvPath = csvPath
+        self.nCores = None
         if self.csvPath:
             self.core_names, _ = loadImageCSV(self.csvPath)
             self.nCores = len(self.core_names)
@@ -47,11 +51,15 @@ class DetectionProcessor:
         for detection in self.coreDetections:
             detection.computeRectangle()
         # sort coreDetections in descending order based on y coordinate:
-        topDownDetections = sorted(self.coreDetections, key=lambda d: d.maskRectangle[1][1], reverse=False)
+        topDownDetections = sorted(
+            self.coreDetections, key=lambda d: d.maskRectangle[1][1], 
+            reverse=False
+        )
+        #TODO: hard coded these as inner crops
         for i,core in enumerate(topDownDetections):
             if core.maskRectangle is not None:
                 coreDict = {
-                    "label": self.core_names[i],
+                    "label": f"{self.core_names[i]}_inner",
                     "points": core.maskRectangle.tolist(),
                     "group_id": None,
                     "shape_type": "polygon",
@@ -69,13 +77,12 @@ class DetectionProcessor:
         }
 
         # write to json:
-        #dir = os.path.dirname(self.imgPath)
-        filename = self.imgPath.split('.')[:-1][0] + '.json'
-
-        with open(filename, 'w') as json_file:
+        jsonPath = os.path.join(self.savePath, f'{self.imgName}.json')
+        with open(jsonPath, 'w') as json_file:
             json.dump(labelmeJson, json_file)
+        logging.info(f"Exported automatic crop results to {jsonPath}")
 
-        return filename
+        return jsonPath
 
     def __collectDetections(self):
         detections = list()

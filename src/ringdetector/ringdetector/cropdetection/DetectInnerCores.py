@@ -12,7 +12,7 @@ from ringdetector.Paths import CROP_MODEL
 modelPath = CROP_MODEL
 Image.MAX_IMAGE_PIXELS = None
 
-def detectInnerCores(imgPath, csvPath):
+def detectInnerCores(imgPath, csvPath, savePath):
     modelDir = os.path.dirname(modelPath)
     cfg = generate_config(modelDir, (), ())
     cfg.MODEL.WEIGHTS = modelPath
@@ -22,7 +22,7 @@ def detectInnerCores(imgPath, csvPath):
 
     img = cv2.imread(imgPath)
     outputs = predictor(img)
-    processor = DetectionProcessor(outputs, imgPath, csvPath)
+    processor = DetectionProcessor(outputs, imgPath, savePath, csvPath)
     processor.filterDetections()
     jsonPath = processor.exportDetections()
 
