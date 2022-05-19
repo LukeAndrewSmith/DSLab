@@ -17,13 +17,15 @@ if __name__=="__main__":
                         help='The directory in which to save the results')
     parser.add_argument('--openLabelme', action='store_true',
                         help='Pause and open labelme after auto-detecting cores')
+    parser.add_argument('-onlyRings', action='store_true',
+                        help='set this flag of you only want to run the ring detection part.')
     args = parser.parse_args()
 
     if not os.path.isfile(args.imagePath):
         logging.error(f"Error: invalid imagePath {args.imagePath}")
         exit()
     
-    imageName = os.path.basename(args.imagePath)[:-4]
+    imageName = os.path.basename(args.imagePath).split('.')[0]
     csvPath = os.path.join(CORE_LISTS, imageName + ".csv")
     if not os.path.isfile(csvPath):
         logging.error(f"Error: no matching CSV in {csvPath}")
@@ -37,9 +39,12 @@ if __name__=="__main__":
         f"savePath {args.savePath}\n"
         f"openLabelme: {args.openLabelme}")
     logging.info(f"Auto-detecting cores")
-    
-    labelMeJsonPath = detectInnerCores(args.imagePath, csvPath, args.savePath)
-    #labelMeJsonPath = "/Users/cguerner/Documents/classes/dslab/dslabtreering/results/infertest/RueA15_16_19_20.json"
+
+    if not args.onlyRings:
+        labelMeJsonPath = detectInnerCores(args.imagePath, csvPath, args.savePath)
+    else:
+        labelMeJsonPath= os.path.join(args.savePath, f'{imageName}.json')
+
 
     if labelMeJsonPath and args.openLabelme:
         os.system("echo Opening labelme. Please be patient for one moment, labelme can be slow to start")

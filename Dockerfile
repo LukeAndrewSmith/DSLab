@@ -18,7 +18,7 @@ ARG C_INCLUDE_PATH=/usr/include/gdal
 
 
 RUN mkdir /dslabtreering
-WORKDIR /dslabtreering
+WORKDIR /dslabtreering/src/ringdetector/ringdetector
 # clone and get all the necessary files
 COPY src /dslabtreering/src
 COPY models /dslabtreering/models
@@ -36,8 +36,6 @@ RUN python3 -m pip install 'git+https://github.com/facebookresearch/detectron2.g
 
 # please make sure that you set the Paths in Paths.py to the correct ones before building the image
 
-# command to run the docker image:
-#docker run -it -v /Users/fredericboesel/Documents/master/frühling22/ds_lab/dslabtreering:/treering:rw treering /bin/sh
 
 
 

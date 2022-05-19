@@ -1,8 +1,8 @@
 import os
 
 # Set absolute path to your own data folder.
-
-DATA = '/Users/cguerner/Documents/classes/dslab/dslabtreering/data'
+# the data folder should be relative from dslabtreering/src/ringdetector/ringdetector
+DATA = '../../../data'
 
 # Raw data paths
 IMAGES = os.path.join(DATA, 'images/')
