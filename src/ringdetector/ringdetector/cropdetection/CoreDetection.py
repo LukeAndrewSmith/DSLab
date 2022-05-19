@@ -15,9 +15,11 @@ class CoreDetection:
         self.mask = pred_mask
         # get more info:
         self.maskSize = self.__getSizeFromMask(self.mask)
-        self.maskRectangle = self.__getRectangleFromMask(self.mask)
-        self.maskRectangleSize = self.__getSizeFromAngledRectangle(self.maskRectangle)
+        #self.maskRectangle = self.__getRectangleFromMask(self.mask)
+        #self.maskRectangleSize = self.__getSizeFromAngledRectangle(self.maskRectangle)
 
+    def computeRectangle(self):
+        self.maskRectangle = self.__getRectangleFromMask(self.mask)
 
     def __getSizeFromMask(self, mask):
         sizeTensor = torch.count_nonzero(mask * 1)
