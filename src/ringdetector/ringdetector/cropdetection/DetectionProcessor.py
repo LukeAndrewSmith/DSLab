@@ -43,11 +43,15 @@ class DetectionProcessor:
 
     def exportDetections(self):
         coreList = list()
-        # TODO sort list by top to bottom based on y coordinate and then assign label of csv if it is given
-        for i,core in enumerate(self.coreDetections):
+        # only compute rectangle now to save computation
+        for detection in self.coreDetections:
+            detection.computeRectangle()
+        # sort coreDetections in descending order based on y coordinate:
+        topDownDetections = sorted(self.coreDetections, key=lambda d: d.maskRectangle[1][1], reverse=False)
+        for i,core in enumerate(topDownDetections):
             if core.maskRectangle is not None:
                 coreDict = {
-                    "label": str(i),
+                    "label": self.core_names[i],
                     "points": core.maskRectangle.tolist(),
                     "group_id": None,
                     "shape_type": "polygon",
