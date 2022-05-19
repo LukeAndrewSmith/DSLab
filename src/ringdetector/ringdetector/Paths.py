@@ -2,18 +2,21 @@ import os
 
 # Set absolute path to your own data folder.
 
-DATA = '/Users/fredericboesel/Documents/master/frühling22/ds_lab/dslabtreering/data'
+DATA = '/Users/cguerner/Documents/classes/dslab/dslabtreering/data'
 
-GENERATED_DATASETS = os.path.join(DATA, "generated_datasets")
+# Raw data paths
 IMAGES = os.path.join(DATA, 'images/')
 LABELME_JSONS = os.path.join(DATA, 'labelme_jsons/')
 POINT_LABELS = os.path.join(DATA, 'point_labels/')
 WIDTH_MEASUREMENTS = os.path.join(DATA, '/width_measurements')
-CORE_LISTS = os.path.join(DATA, '/core_lists')
+CORE_LISTS = os.path.join(DATA, '/core_lists') # directory for prediction csvs
+
+# saved models
 MODELS = os.path.join(DATA, '..', 'models')
 CROP_MODEL = os.path.join(MODELS, 'model_final.pth')
 
 # inner dataset
+GENERATED_DATASETS = os.path.join(DATA, "generated_datasets")
 GENERATED_DATASETS_INNER = os.path.join(DATA, 'generated_datasets/inner')
 GENERATED_DATASETS_INNER_CROPS = os.path.join(
     GENERATED_DATASETS_INNER, "cropped_core_images")

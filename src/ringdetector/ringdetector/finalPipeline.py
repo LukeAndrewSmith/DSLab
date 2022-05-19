@@ -4,6 +4,7 @@ import logging
 import coloredlogs
 coloredlogs.install(level=logging.INFO)
 
+from ringdetector.Paths import CORE_LISTS
 from ringdetector.preprocessing.InnerCropExtraction import extractInnerCrops
 from ringdetector.analysis.InnerCropProcessing import processInnerCrops
 
@@ -20,9 +21,16 @@ if __name__=="__main__":
     if not os.path.isfile(args.imagePath):
         print("Error: invalid imagePath")
         exit()
+    
+    imageName = os.path.basename(args.imagePath)[:-4]
+    csvPath = os.path.join(CORE_LISTS, imageName + ".csv")
+    if not os.path.isfile(csvPath):
+        print("Error: no matching CSV")
+        exit()
     if not os.path.isdir(args.savePath):
         print("Error: invalid savePath")
         exit()
+
 
     logging.info(f"Running with args: imagePath: {args.imagePath}, openLabelme: {args.openLabelme}")
     logging.info(f"Auto-detecting cores")
@@ -30,7 +38,17 @@ if __name__=="__main__":
     # TODO: call the auto-crop detection and set the correct labelmeJsonPath
     # labelMeJsonPath = detectCores(args.imagePath)
     labelMeJsonPath = '/Users/lukeasmi/Documents/ETHZ/dslabtreering/data/labelme_jsons/KunA08.json'
+
+    if labelMeJsonPath and args.openLabelme:
+        os.system("echo Opening labelme. Please be patient for one moment, labelme can be slow to start")
+        os.system(f'labelme {labelMeJsonPath} --logger-level fatal &') # Open in background TODO: maybe detect if windows and change the command... also not sure if this will work in docker?
+        input("Press Enter to continue...")
     # TODO: maybe move the opening of labelme here
-    innerCrops = extractInnerCrops(labelmeJsonPath=labelMeJsonPath, openLabelme=args.openLabelme, saveDataset=False)
+
+    innerCrops = extractInnerCrops(
+        labelmeJsonPath=labelMeJsonPath, 
+        csvPath=csvPath,
+        saveDataset=False
+    )
     logging.info(f"Identifying rings")
     processInnerCrops(innerCrops, args.savePath)

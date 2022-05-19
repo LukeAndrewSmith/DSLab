@@ -9,5 +9,5 @@ from ringdetector.preprocessing.InnerCropExtraction import extractInnerCrops
 
 if __name__ == "__main__":
     logging.info("Creating inner dataset")
-    extractInnerCrops(saveDataset=True)
+    _ = extractInnerCrops(saveDataset=True)
     logging.info("Inner dataset successfully created")

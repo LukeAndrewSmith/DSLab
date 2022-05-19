@@ -67,7 +67,7 @@ def __getPosFileLines(coords, core):
         f"#DPI {core.dpi} \n",
         "#All coordinates in millimeters (mm) \n",
         "SCALE 1 \n",
-        "#C DATED 2020 \n", # TODO: wrong dating
+        f"#C DATED {core.firstYear} \n",
         "#C licensedTo=Justine Charlet de Sauvage, justine.charlet@usys.ethz.ch; \n"
     ]
     for coord in coords:

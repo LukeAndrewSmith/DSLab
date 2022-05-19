@@ -1,19 +1,23 @@
-# class that takes the outputs of a model and nCores
-# the instances get filtered and a labelme json format can be produced
-from math import isnan
-from CoreDetection import CoreDetection
-import json, os, csv
+import json, os
+
+from ringdetector.cropdetection.CoreDetection import CoreDetection
+from ringdetector.utils.csvLoader import loadImageCSV
 
 class DetectionProcessor:
+    # class that takes the outputs of a model and nCores
+    # the instances get filtered and a labelme json format can be produced
+
     def __init__(self, outputs, imgPath, csvPath=None):
         self.instances = outputs['instances']
         self.coreDetections = self.__collectDetections()
+        
         self.imgHeight = self.instances.image_size[0]
         self.imgWidth = self.instances.image_size[1]
         self.imgPath = imgPath
+        
         self.csvPath = csvPath
-        if self.csvPath is not None:
-            self.core_names, self.start_years = self.__getCoreInfo()
+        if self.csvPath:
+            self.core_names, _ = loadImageCSV(self.csvPath)
             self.nCores = len(self.core_names)
 
 
@@ -68,30 +72,6 @@ class DetectionProcessor:
             json.dump(labelmeJson, json_file)
 
         return filename
-
-
-    # TODO request: @freddy you need to handle the FNs in the prediction so that we can correctly align the names w/ the cores (I think it can be a part of the crop detection heuristic ticket)
-    # NOTE: you need to (write code somewhere else to) assert that the csvPath matches the imgPath before calling the func.
-    def __getCoreInfo(self):
-        core_names = []
-        start_years = []
-        correct_header = ['CORE_NAMES', 'START_YEAR']
-        
-        with open(self.csvPath, newline='') as csvfile:
-            csv_reader = csv.reader(csvfile)
-            
-            header = next(csv_reader)
-            assert header == correct_header, f'CSV file header assertion failed. Did you name and order your header properly with {correct_header}?'
-
-            for index, row in enumerate(csv_reader):
-                core_name, start_year = row
-
-                assert (core_name and start_year), f'NaN values is not allowed! Check row {index + 1}.'
-
-                core_names.append(core_name.strip())
-                start_years.append(int(start_year.strip()))
-        
-        return core_names, start_years
 
     def __collectDetections(self):
         detections = list()

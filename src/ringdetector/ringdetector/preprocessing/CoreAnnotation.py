@@ -10,7 +10,8 @@ from ringdetector.preprocessing.GeometryUtils import min_bounding_rectangle
 from ringdetector.Paths import IMAGES
 
 class CoreAnnotation:
-    def __init__(self, labelmeAnnotations, sampleName, corePosPath, imagePath):
+    def __init__(self, labelmeAnnotations, sampleName, corePosPath, imagePath,
+    firstYear=None):
         self.sampleName  = sampleName
         self.corePosPath = corePosPath
         self.imagePath = imagePath
@@ -35,7 +36,7 @@ class CoreAnnotation:
         self.bark   = self.__findShape('BARK', [])
         self.ctrmid = self.__findShape('CTRMID', [])
         self.ctrend = self.__findShape('CTREND', [])
-        self.shapes = [self.cracks, self.bark, self.ctrmid, self.ctrend]
+        self.shapes = [self.bark, self.ctrmid, self.ctrend]
         
         self.tricky = self.__initTricky()
         
@@ -49,12 +50,15 @@ class CoreAnnotation:
         self.pointLabels = []
         self.gapLabels = []
         self.dpi = None
-        self.mmPith, self.mmDistToPith, self.yearsToPith = None
+        self.mmPith, self.mmDistToPith, self.yearsToPith = None, None, None
         self.pith = []
         self.distToPith = None
+        self.firstYear = firstYear
 
         if corePosPath:
             self.__parsePosFile()
+
+            self.firstYear = self.__getDated()
 
             # Point/Gap Labels: [ [ [x,y], ... ], ... ]
             self.mmPointLabels = self.__initPointLabels()
@@ -80,6 +84,9 @@ class CoreAnnotation:
         #img = cv2.imread(imagePath, cv2.IMREAD_COLOR)
         #TODO: check this
         img = cv2.imread(imagePath, cv2.IMREAD_UNCHANGED)
+        assert img is not None, f"Core {self.sampleName} from img " \
+            f"{self.imageName} from path" \
+            f"{self.imagePath}: could not load original image"
         return img
 
     ######################
@@ -108,6 +115,15 @@ class CoreAnnotation:
     ##############################
     # POS File Processing
     ##############################
+    def __getDated(self):
+        """ Loop through header lines and extract DATED (first year)"""
+        result = None
+        for line in self.headerLines:
+            if '#C DATED' in line:
+                result = int(self.__safeRegexSearch(line, '#C DATED (\d+)'))
+                break
+        return result
+    
     def __getDPI(self):
         """ Loop through header lines and extract DPI"""
         result = None

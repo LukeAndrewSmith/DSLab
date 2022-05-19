@@ -16,23 +16,22 @@ from ringdetector.Paths import GENERATED_DATASETS, GENERATED_DATASETS_INNER, \
 ################################################################################
 #                                 Main Function
 ################################################################################
-def extractInnerCrops(labelmeJsonPath=None, openLabelme=False,
-                      saveDataset=False):
+def extractInnerCrops(labelmeJsonPath=None, csvPath=None, saveDataset=False):
     
     if saveDataset:
         __setupDirectoriesForSaving()
-
-    #TODO: not sure whether this belongs here
-    if labelmeJsonPath and openLabelme:
-        os.system("echo Opening labelme. Please be patient for one moment, labelme can be slow to start")
-        os.system(f'labelme {labelmeJsonPath} --logger-level fatal &') # Open in background TODO: maybe detect if windows and change the command... also not sure if this will work in docker?
-        input("Press Enter to continue...")
     
-    coreAnnotations = __getCoreAnnotations(labelmeJsonPath)
+    coreAnnotations = __getCoreAnnotations(labelmeJsonPath, csvPath)
 
+    #TODO: runs out of memory when processing many cores, should try to 
+    # modify inference workflow to go one by one
     innerCrops = []
-    for core in tqdm(coreAnnotations, desc="Extracting Inner Crops"):
-        innerCrops.append(__getCroppedImg(core, saveDataset))
+    if saveDataset:
+        for core in tqdm(coreAnnotations, desc="Extracting and saving inner crops"):
+            _ = __getCroppedImg(core, saveDataset)
+    else:
+        for core in tqdm(coreAnnotations, desc="Extracting Inner Crops"):
+            innerCrops.append(__getCroppedImg(core, saveDataset))
 
     return innerCrops
 
@@ -62,16 +61,18 @@ def __setupDirectoriesForSaving():
 
 ##########################################
 # Core annotations
-def __getCoreAnnotations(labelmeJsonPath=None):
-    if labelmeJsonPath:
-        return __initCoreAnnotationsOneImage(labelmeJsonPath)
+def __getCoreAnnotations(labelmeJsonPath=None, csvPath=None):
+    if labelmeJsonPath and csvPath:
+        return __initCoreAnnotationsOneImage(labelmeJsonPath, csvPath)
+    elif labelmeJsonPath or csvPath:
+        raise "Need labelMeJson and CSV, or neither"
     else:
         return __initCoreAnnotations()
 
-def __initCoreAnnotationsOneImage(labelmeJsonPath):
+def __initCoreAnnotationsOneImage(labelmeJsonPath, csvPath):
+    logging.info(f"Collecting cores from labelme json {labelmeJsonPath}")
     return ImageAnnotation( 
-                labelmeJsonPath, 
-                POINT_LABELS
+                labelmeJsonPath, csvPath
             ).core_annotations   
 
 def __initCoreAnnotations():
@@ -81,8 +82,7 @@ def __initCoreAnnotations():
         if file.endswith(".json"):
             coreAnnotations.append(
                 ImageAnnotation(
-                    os.path.join(LABELME_JSONS, file), 
-                    POINT_LABELS
+                    os.path.join(LABELME_JSONS, file)
                 ).core_annotations
             )
     return list(chain(*coreAnnotations))
@@ -140,10 +140,13 @@ def __rotateImagePointsShapes(core, img):
     # ------ TODO: find a more elegant way of assigning the new variables, such that the lists are automatically updated----
     # e.g. use a dict
     core.innerRectangle, core.outerRectangle = __rotateRectangles(core.rectangles, rotMat)
-    core.cracks, core.bark, core.ctrmid, core.ctrend = rotateListOfCoords(core.shapes, rotMat)
+    core.cracks = rotateListOfCoords(core.cracks, rotMat)
+    core.gaps = rotateListOfCoords(core.gaps, rotMat)
+    core.bark, core.ctrmid, core.ctrend = rotateListOfCoords(core.shapes, 
+        rotMat)
     core.rectangles = [core.innerRectangle, core.outerRectangle]
-    core.shapes     = [core.cracks, core.bark, core.ctrmid, core.ctrend]
-    # ----------------------------------------------------------------------------------------------------------------------
+    core.shapes     = [core.bark, core.ctrmid, core.ctrend]
+     
     if core.corePosPath:
         core.pointLabels = rotateListOfCoords(core.pointLabels, rotMat)
         core.gapLabels = rotateListOfCoords(core.gapLabels, rotMat)
@@ -192,11 +195,21 @@ def __shiftAllPoints(core):
     [_,topLeft, _, _] = core.innerRectangle 
     core.shift = topLeft
 
-    core.innerRectangle, core.outerRectangle         = [shiftListOfCoords(list, core.shift) for list in core.rectangles] 
-    core.cracks, core.bark, core.ctrmid, core.ctrend = [shiftListOfCoords(list, core.shift) for list in core.shapes]
+    core.innerRectangle, core.outerRectangle = [
+        shiftListOfCoords(list, core.shift) for list in core.rectangles
+    ] 
+    core.cracks = [
+        shiftListOfCoords(list, core.shift) for list in core.cracks
+    ] 
+    core.gaps = [
+        shiftListOfCoords(list, core.shift) for list in core.gaps
+    ] 
+    core.bark, core.ctrmid, core.ctrend = [
+        shiftListOfCoords(list, core.shift) for list in core.shapes
+    ]
     core.rectangles = [core.innerRectangle, core.outerRectangle] 
-    core.shapes     = [core.cracks, core.bark, core.ctrmid, core.ctrend]
-    # ----------------------------------------------------------------------------------------------------------------------
+    core.shapes     = [core.bark, core.ctrmid, core.ctrend]
+    
     if core.corePosPath:
         core.pointLabels = [shiftListOfCoords(list, core.shift) for list in core.pointLabels]
         core.gapLabels   = [shiftListOfCoords(list, core.shift) for list in core.gapLabels]

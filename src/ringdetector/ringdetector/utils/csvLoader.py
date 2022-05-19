@@ -1,10 +1,8 @@
 import os, csv
 
-from ringdetector.Paths import CORE_LISTS
-
 # TODO request: @freddy you need to handle the FNs in the prediction so that we can correctly align the names w/ the cores (I think it can be a part of the crop detection heuristic ticket)
 # NOTE: you need to (write code somewhere else to) assert that the csvPath matches the imgPath before calling the func.
-def loadImageCSV(imageName):
+def loadImageCSV(csv_path):
     """ Loads info from manual input json at the start of the inference workflow
 
     :param imageName: name of the original scanned image e.g. KunA10_11_14
@@ -15,7 +13,6 @@ def loadImageCSV(imageName):
     core_names = []
     start_years = []
     correct_header = ['CORE_NAMES', 'START_YEAR']
-    csv_path = os.path.join(CORE_LISTS, imageName + ".csv")
 
     with open(csv_path, newline='') as csvfile:
         csv_reader = csv.reader(csvfile)
