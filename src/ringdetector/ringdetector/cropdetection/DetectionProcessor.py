@@ -1,5 +1,6 @@
 import json, os
 import logging
+from pathlib import Path
 
 from ringdetector.cropdetection.CoreDetection import CoreDetection
 from ringdetector.utils.csvLoader import loadImageCSV
@@ -66,11 +67,13 @@ class DetectionProcessor:
                     "flags": {}
                 }
                 coreList.append(coreDict)
+
+        # the image path need to be relative from the savepath:
         labelmeJson = {
             "version": "5.0.1",
             "flags": {},
             "shapes": coreList,
-            "imagePath": self.imgPath.split('/')[-1],
+            "imagePath": os.path.join(os.path.relpath(os.path.dirname(self.imgPath), self.savePath), self.imgPath.split('/')[-1]),
             "imageData": None,
             "imageHeight": self.imgHeight,
             "imageWidth": self.imgWidth

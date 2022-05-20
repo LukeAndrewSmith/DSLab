@@ -7,6 +7,8 @@ setup(
     author='Yutong (Leona) Xiang, Frederic Boesel, Luke Smith, Clement Guerner',
     packages=find_packages(),
     install_requires=['Pillow',
+                      'scikit-learn',
+                      'networkx',
                     'shapely',
                     'wandb',
                     'numpy',

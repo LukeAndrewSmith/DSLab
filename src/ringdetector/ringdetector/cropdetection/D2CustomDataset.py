@@ -75,8 +75,7 @@ class D2CustomDataset():
         for file in os.listdir(os.path.join(self.json_path, split)):
             if file.endswith(".json"):
                 img = ImageAnnotation(
-                    os.path.join(self.json_path, file), 
-                    self.pos_path
+                    os.path.join(self.json_path, file)
                 )
                 
                 annos = []
