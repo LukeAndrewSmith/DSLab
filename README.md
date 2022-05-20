@@ -58,7 +58,7 @@ Docker Desktop and go to Settings > Resources > Advanced and give generous resou
 The Docker container will need access to your data folder which should also be located inside the dslabtreering folder. 
 For this, please go to Settings > Resources > File Sharing and make sure the path to the data folder is included, if not add it. 
 
-## STEP 4: Ccheck folder structure
+## STEP 4: Check folder structure
 The application is assuming a folder structure, where there is a data folder (commonly located inside the dslabtreering directory)
 which has the following subfolders: 
 -images : put the images to analyze here
