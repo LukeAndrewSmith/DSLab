@@ -49,6 +49,7 @@ if __name__=="__main__":
     if labelMeJsonPath and args.openLabelme:
         #os.system("echo Opening labelme. Please be patient for one moment, labelme can be slow to start")
         #os.system(f'labelme {labelMeJsonPath} --logger-level fatal &') # Open in background TODO: maybe detect if windows and change the command... also not sure if this will work in docker?
+        logging.info('please check the detected cores on labelme!')
         input("Press Enter to continue...")
 
     #TODO: HARDCODED ASSUMPTION THAT DPI IS 1200 should have manual input
