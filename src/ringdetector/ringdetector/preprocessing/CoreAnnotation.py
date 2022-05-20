@@ -10,7 +10,8 @@ from ringdetector.preprocessing.GeometryUtils import min_bounding_rectangle
 from ringdetector.Paths import IMAGES
 
 class CoreAnnotation:
-    def __init__(self, labelmeAnnotations, sampleName, corePosPath, imagePath):
+    def __init__(self, labelmeAnnotations, sampleName, corePosPath, imagePath,
+    firstYear=None):
         self.sampleName  = sampleName
         self.corePosPath = corePosPath
         self.imagePath = imagePath
@@ -35,28 +36,38 @@ class CoreAnnotation:
         self.bark   = self.__findShape('BARK', [])
         self.ctrmid = self.__findShape('CTRMID', [])
         self.ctrend = self.__findShape('CTREND', [])
-        self.shapes = [self.cracks, self.bark, self.ctrmid, self.ctrend]
+        self.shapes = [self.bark, self.ctrmid, self.ctrend]
         
         self.tricky = self.__initTricky()
         
         # Parsing the pos file, splitting lines into groups
+        #TODO: can probably remove all this pith shit
         self.headerLines = []
         self.labelLines = []
         self.gapLines = []
-        self.__getLines()
-
-        # Point/Gap Labels: [ [ [x,y], ... ], ... ]
-        self.mmPointLabels = self.__initPointLabels()
-        self.mmGapLabels = self.__initGapLabels()
+        self.mmPointLabels = []
+        self.mmGapLabels = []
         self.pointLabels = []
         self.gapLabels = []
-
-        # Point Label Info:
-        self.dpi = self.__getDPI() 
-        self.mmPith, self.mmDistToPith, self.yearsToPith = self.__getPithData()
-
+        # TODO: FIX THIS SHIT
+        self.dpi = 1200
+        self.mmPith, self.mmDistToPith, self.yearsToPith = None, None, None
         self.pith = []
         self.distToPith = None
+        self.firstYear = firstYear
+
+        if corePosPath:
+            self.__parsePosFile()
+
+            self.firstYear = self.__getDated()
+
+            # Point/Gap Labels: [ [ [x,y], ... ], ... ]
+            self.mmPointLabels = self.__initPointLabels()
+            self.mmGapLabels = self.__initGapLabels()
+        
+            # Point Label Info:
+            self.dpi = self.__getDPI() 
+            self.mmPith, self.mmDistToPith, self.yearsToPith = self.__getPithData()
 
         # Saving rotation info
         self.shift = None
@@ -72,16 +83,27 @@ class CoreAnnotation:
     def getOriginalImage(self):
         imagePath = os.path.join(IMAGES, self.imageName)
         img = cv2.imread(imagePath, cv2.IMREAD_COLOR)
+        assert img is not None, f"Core {self.sampleName} from img " \
+            f"{self.imageName} from path" \
+            f"{self.imagePath}: could not load original image"
         return img
 
     ######################
     # labelme Annotations
     def __initRectangle(self, rectType):
         points = self.__findShape(rectType, [])
-        assert len(points) > 0, f"Core {self.sampleName} missing inner or "\
-            "outer crop label in JSON."
-        boundingRect = min_bounding_rectangle(points)
-        return boundingRect
+        if rectType == "INNER":
+            assert len(points) > 0, f"Core {self.sampleName} missing inner "\
+                "crop label in JSON."        
+            boundingRect = min_bounding_rectangle(points)
+            return boundingRect
+        else: #"OUTER" no longer required
+            if len(points) > 0:
+                boundingRect = min_bounding_rectangle(points)
+                return boundingRect
+            else:
+                return []
+            
 
     def __initTricky(self):
         if self.__findShape('TRICKY', False): return True
@@ -100,6 +122,15 @@ class CoreAnnotation:
     ##############################
     # POS File Processing
     ##############################
+    def __getDated(self):
+        """ Loop through header lines and extract DATED (first year)"""
+        result = None
+        for line in self.headerLines:
+            if '#C DATED' in line:
+                result = int(self.__safeRegexSearch(line, '#C DATED (\d+)'))
+                break
+        return result
+    
     def __getDPI(self):
         """ Loop through header lines and extract DPI"""
         result = None
@@ -181,7 +212,7 @@ class CoreAnnotation:
 
     ##############################
     # Helpers
-    def __getLines(self):
+    def __parsePosFile(self):
         """ Reads pos file and splits lines into three categories,
         adding them to corresponding lists
         """

@@ -21,7 +21,7 @@ RUN mkdir /dslabtreering
 WORKDIR /dslabtreering
 # clone and get all the necessary files
 COPY src /dslabtreering/src
-
+COPY models /dslabtreering/models
 #RUN add-apt-repository ppa:ubuntugis/ppa && apt-get update && apt-get install -y gdal-bin python-gdal python3-gdal
 # install the dependencies
 #RUN cd src

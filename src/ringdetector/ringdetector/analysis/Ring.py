@@ -4,6 +4,8 @@ from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error
 
 from ringdetector.preprocessing.GeometryUtils import pixelDist
+
+
 class Ring():
     
     def __init__(self, ringCoords, imgDims):
@@ -22,7 +24,7 @@ class Ring():
         self.closestLabelPoint = None
     
 
-    def scoreEdge(self, pointLabels):
+    def scoreRing(self, pointLabels):
         flattened_points = [item for sublist in pointLabels for item in sublist]
         #TODO: should make closestpoints a list of points with min dist
         self.minDist, self.closestLabelPoint = self.__findClosestLabel(

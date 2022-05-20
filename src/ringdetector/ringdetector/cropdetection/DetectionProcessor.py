@@ -1,19 +1,27 @@
-# class that takes the outputs of a model and nCores
-# the instances get filtered and a labelme json format can be produced
-from math import isnan
-from CoreDetection import CoreDetection
-import json, os, csv
+import json, os
+import logging
+
+from ringdetector.cropdetection.CoreDetection import CoreDetection
+from ringdetector.utils.csvLoader import loadImageCSV
 
 class DetectionProcessor:
-    def __init__(self, outputs, imgPath, csvPath=None):
+    # class that takes the outputs of a model and nCores
+    # the instances get filtered and a labelme json format can be produced
+
+    def __init__(self, outputs, imgPath, savePath, csvPath=None):
         self.instances = outputs['instances']
         self.coreDetections = self.__collectDetections()
+        
         self.imgHeight = self.instances.image_size[0]
         self.imgWidth = self.instances.image_size[1]
         self.imgPath = imgPath
+        self.imgName = os.path.basename(imgPath)[:-4]
+        self.savePath = savePath
+        
         self.csvPath = csvPath
-        if self.csvPath is not None:
-            self.core_names, self.start_years = self.__getCoreInfo()
+        self.nCores = None
+        if self.csvPath:
+            self.core_names, _ = loadImageCSV(self.csvPath)
             self.nCores = len(self.core_names)
 
 
@@ -39,11 +47,19 @@ class DetectionProcessor:
 
     def exportDetections(self):
         coreList = list()
-        # TODO sort list by top to bottom based on y coordinate and then assign label of csv if it is given
-        for i,core in enumerate(self.coreDetections):
+        # only compute rectangle now to save computation
+        for detection in self.coreDetections:
+            detection.computeRectangle()
+        # sort coreDetections in descending order based on y coordinate:
+        topDownDetections = sorted(
+            self.coreDetections, key=lambda d: d.maskRectangle[1][1], 
+            reverse=False
+        )
+        #TODO: hard coded these as inner crops
+        for i,core in enumerate(topDownDetections):
             if core.maskRectangle is not None:
                 coreDict = {
-                    "label": str(i),
+                    "label": f"{self.core_names[i]}_inner",
                     "points": core.maskRectangle.tolist(),
                     "group_id": None,
                     "shape_type": "polygon",
@@ -61,37 +77,12 @@ class DetectionProcessor:
         }
 
         # write to json:
-        #dir = os.path.dirname(self.imgPath)
-        filename = self.imgPath.split('.')[:-1][0] + '.json'
-
-        with open(filename, 'w') as json_file:
+        jsonPath = os.path.join(self.savePath, f'{self.imgName}.json')
+        with open(jsonPath, 'w') as json_file:
             json.dump(labelmeJson, json_file)
+        logging.info(f"Exported automatic crop results to {jsonPath}")
 
-        return filename
-
-
-    # TODO request: @freddy you need to handle the FNs in the prediction so that we can correctly align the names w/ the cores (I think it can be a part of the crop detection heuristic ticket)
-    # NOTE: you need to (write code somewhere else to) assert that the csvPath matches the imgPath before calling the func.
-    def __getCoreInfo(self):
-        core_names = []
-        start_years = []
-        correct_header = ['CORE_NAMES', 'START_YEAR']
-        
-        with open(self.csvPath, newline='') as csvfile:
-            csv_reader = csv.reader(csvfile)
-            
-            header = next(csv_reader)
-            assert header == correct_header, f'CSV file header assertion failed. Did you name and order your header properly with {correct_header}?'
-
-            for index, row in enumerate(csv_reader):
-                core_name, start_year = row
-
-                assert (core_name and start_year), f'NaN values is not allowed! Check row {index + 1}.'
-
-                core_names.append(core_name.strip())
-                start_years.append(int(start_year.strip()))
-        
-        return core_names, start_years
+        return jsonPath
 
     def __collectDetections(self):
         detections = list()

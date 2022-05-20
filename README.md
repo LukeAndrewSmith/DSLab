@@ -39,3 +39,24 @@ Execute `python main.py --mode=train --dataMode=inner --num-gpus=2 --cracks`
 ### Core Prediction and Scoring
 Execute `python analysis/pipeline.py` with optional args documented in `utils/ConfigArgs.py`. Quite slow for the moment, consider running for a single core first with `python analysis/pipeline.py -sample KunA01SS`, replacing the sample name with a sample in your inner dataset directory.
 
+
+#HOW TO RUN THE FULL PIPELINE AS A USER
+
+##STEP 1: Install Docker: 
+Please follow the steps [here](https://docs.docker.com/get-docker/) to install docker for your operating system
+
+##STEP 2: Build the docker image: 
+Once docker is installed, you need to build the docker image of this application. 
+For this open a terminal and navigate to the dslabtreering folder
+then run the following command: (this can take a couple of minutes) 
+`docker build -t dslabtreering .`
+NOTE: You have to build this image only once, if you use the application multiple times, this has not to be repeated
+
+##STEP 3: Give resources
+The application is computationally quite expensive. To make sure docker doesn't stop the process, pleae open 
+Docker Desktop and go to Settings > Resources > Advanced and give generous resource levels for Memory, SWAP and CPUs.
+The Docker container will need access to your data folder which should also be located inside the dslabtreering folder. 
+For this, please go to Settings > Resources > File Sharing and make sure the path to the data folder is included, if not add it. 
+##STEP 4: Run the docker container:
+Once the image is created you can start up the environment with all your needs: 
+`docker run `

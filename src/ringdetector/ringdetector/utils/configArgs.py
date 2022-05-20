@@ -21,7 +21,7 @@ def getArgs(parser):
     #    default='inner', help="Which dataset to load.")
     parser.add_argument("-sample", type=str, default="",
         help="Specify sampleName, e.g. RUEP03WW, to run only on one sample.")
-    parser.add_argument("-n", type=int, default=None,
+    parser.add_argument("-n", dest="nsamples", type=int, default=None,
         help="Run on n samples.")
     
     ###########################################################################
