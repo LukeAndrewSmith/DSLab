@@ -86,7 +86,7 @@ def main():
         exportShapePlot(img, sample, rings, RESULTS_DIAG, scoreDict)
 
         # Pos File Export
-        ringCoords = selectCoordsFromRings(rings)
+        ringCoords = selectCoordsFromRings(rings, img.shape[0])
         savePosFile(ringCoords, core, RESULTS_POS)
 
     # RUN LEVEL REPORTING

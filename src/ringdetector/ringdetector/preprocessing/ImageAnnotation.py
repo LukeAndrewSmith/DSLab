@@ -74,7 +74,11 @@ class ImageAnnotation:
     def __annotate_cores(self, cores, labelMeAnnotations):
         core_annos = list()
         for core_upper,_,core_year in cores:
-            core_pos_path = self.__get_core_pos_path(core_upper, core_year)
+            # if core_year, then inference workflow -- no pos file
+            if not core_year:
+                core_pos_path = self.__get_core_pos_path(core_upper, core_year)
+            else:
+                core_pos_path = None
             coreLabelMeAnnotations = self.__processLabelMeAnnos(
                 core_upper, labelMeAnnotations
             )
@@ -96,7 +100,7 @@ class ImageAnnotation:
                     POINT_LABELS, file
                 )
                 break
-        if core_year is None and core_pos_path is None:
+        if core_pos_path is None:
             logging.warn(f"Could not find pos file for core {core}"
                 f" in {self.image_path}")
         return core_pos_path

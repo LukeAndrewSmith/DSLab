@@ -26,10 +26,9 @@ def inferInnerCrops(innerCrops, savePath):
     allCoords = []
     for core, croppedImg in tqdm(innerCrops, "Predicting rings"):
         rings = findRings(croppedImg)
-        # TODO: perpendicular lines
         # TODO: could we call selectcoords inside savePosFile?
         exportInferenceLinePlot(croppedImg, core.sampleName, rings, savePath)
-        ringCoords = selectCoordsFromRings(rings)
+        ringCoords = selectCoordsFromRings(rings, croppedImg.shape[0])
         savePosFile(ringCoords, core, savePath)
         allCoords += undoShiftRotation(ringCoords, core)
 
