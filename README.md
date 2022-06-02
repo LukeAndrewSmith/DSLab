@@ -65,7 +65,21 @@ which has the following subfolders:
 -results: you can expect the output here
 -core_lists: put the csv file with the core names here. The csv file should have the same name as the corresponding .jpg 
 
+example: 
+```bash
+└── dslabtreering
+    ├── data
+    │   ├── images            # put the images to analyze here
+    │   ├── results           # the results will be stored here
+    │   └── core_lists        # put the csvs with the core names here
+    │    # everything below is part of the repository already
+    ├── models  
+    │   └── model_final.pth  
+    └── src
+        └── ...
+```
+
 ## STEP 5: Run the docker container:
 Once the image is created you can start up the environment with all your needs: 
-`docker run -it --volume {ABSOLUTE PATH TO THE DATA FOLDER}:/dslabtreering/data:rw dslabtreering python3 finalPipeline.py -imagePath /dslabtreering/data/images/{PUT THE IMAGE NAME HERE} -savePath /dslabtreering/data/results`
+`docker run -it --volume {ABSOLUTE PATH TO THE DATA FOLDER ON YOUR MACHINE}:/dslabtreering/data:rw dslabtreering python3 finalPipeline.py -imagePath /dslabtreering/data/images/{PUT THE IMAGE NAME HERE} -savePath /dslabtreering/data/results`
 
