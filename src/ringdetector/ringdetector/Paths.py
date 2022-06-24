@@ -26,7 +26,7 @@ GENERATED_DATASETS_TEST_INNER = os.path.join(
     DATA, 'generated_datasets/test_inner')
 
 # ring results
-RESULTS = os.path.abspath(os.path.join(DATA, '..', 'results'))
+RESULTS = os.path.abspath(os.path.join(DATA, 'results'))
 RESULTS_PKL = os.path.join(RESULTS, "processed_cores")
 RESULTS_POS = os.path.join(RESULTS, "pos")
 RESULTS_DIAG = os.path.join(RESULTS, "diag")

@@ -142,7 +142,17 @@ cython_debug/
 .python-version
 src/ringdetector/ringdetector.egg-info
 # Ignore data subfolder
-/data/*
+#/data/*
+data/All_correct_measurements.rwl
+data/core_lists/RueA15_16_19_20.csv
+data/generated_datasets/*
+*.jpg
+data/labelme_jsons/*
+data/myimgs/*
+data/mylabel_jsons/*
+data/old/*
+data/point_labels/*
+data/testimgs/*
 *results/
 
 # Ignore python cache files
