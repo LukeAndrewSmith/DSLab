@@ -31,8 +31,9 @@ def selectCoordsFromRings(rings, imgHeight):
     :param imgHeight: height of the image (max y value)
     :return: list of coordinates [[ring 1 coords], [ring 2 coords], ...]
     """
+    #TODO: fix this distance for match, no reason for it to be this big.
     perpCoords, _ = getPerpCoords(rings, imgHeight, distance=100)
-    return [[perpCoord] for perpCoord in perpCoords]
+    return perpCoords
 
 ################################################################################
 # Perpendicular Line Helpers
@@ -100,21 +101,32 @@ def getPerpCoords(rings, imgHeight, distance):
     for i in range(len(rings)):
         ring = rings[i]
         slope, intercept = lines[-1]
+        ringCoords = []
+        
+        # find intersection b/w most recent line and new ring
         matchedCoord = getMatchedCoord(ring, slope, intercept, distance)
+        
+        # check if need to reset the line
+        inBounds = checkInBounds(matchedCoord, imgHeight)
+        
         if matchedCoord:
-            perpCoords.append(matchedCoord)
+            ringCoords.append(matchedCoord)
         #else: 
             #print(f"Ring {i} didn't have matched coord")
-        inBounds = checkInBounds(matchedCoord, imgHeight)
+            # TODO: figure out why some rings dont get a matched coord
         # TODO: should introduce a method where if boundDistance or 
         # matchedDistance is too big, reset the line on the previous ring
         # and try again. 
         if not inBounds:
             slope, intercept = getPerpendicularLine(ring, imgHeight)
             lines.append((slope, intercept))
-            matchedCoord = getMatchedCoord(ring, slope, intercept, distance)
-            perpCoords.append(matchedCoord)
-    
+            secondMatchedCoord = getMatchedCoord(
+                ring, slope, intercept, distance
+            )
+            ringCoords.append(secondMatchedCoord)
+
+        if ringCoords:
+            perpCoords.append(ringCoords)
     return perpCoords, lines
 
 ################################################################################
