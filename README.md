@@ -2,6 +2,8 @@
 
 Project for the Data Science Lab @ ETHZ. We investigated the automatic detection of tree rings from images, please see the file 'DSLab_TreeRings.pdf' for more details.
 
+Warning: the final CNN used is too large to fit on github, it should be found in 'models/model_final.pth', hence if you'd actually like to run this code yourself please contact me and I'll happily share the file with you.
+
 # HOW TO RUN THE FULL PIPELINE AS A USER
 
 ## STEP 1: Install Docker: 
