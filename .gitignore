@@ -166,3 +166,6 @@ data/testimgs/*
 
 # wandb
 *wandb/
+
+# model (too large for github)
+models/*
