@@ -1,6 +1,6 @@
 # DSLabTreeRing
 
-Project for the Data Science Lab @ ETHZ. We investigated the automatic detection of tree rings from images, please see the file 'DSLabTreeRing.pdf' for more details.
+Project for the Data Science Lab @ ETHZ. We investigated the automatic detection of tree rings from images, please see the file 'DSLab_TreeRings.pdf' for more details.
 
 # HOW TO RUN THE FULL PIPELINE AS A USER
 
